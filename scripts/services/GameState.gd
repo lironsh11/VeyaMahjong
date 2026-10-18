@@ -19,7 +19,8 @@ const DEFAULT_SETTINGS := {
 	"large_tiles": false,
 	"reduced_motion": false,
 	"graphics": "auto",        # auto | low | standard
-	"highlight_free": true,    # dim tiles that cannot be picked
+	"highlight_free": false,   # dim tiles that cannot be picked (opt-in assist: it gives away
+	                           # which tiles are free, which removes most of the challenge)
 	"soften_background": false,
 	"show_timer": false,       # optional personal statistic, hidden by default
 }

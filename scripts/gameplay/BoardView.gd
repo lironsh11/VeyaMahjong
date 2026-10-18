@@ -29,7 +29,7 @@ const HIT_GROW := 0.10
 var state: BoardState
 var theme_id: String = "classic"
 var large_tiles: bool = false
-var highlight_free: bool = true
+var highlight_free: bool = false
 var high_contrast: bool = false
 var tiles: Array[TileView] = []
 var tile_w: float = 64.0
