@@ -26,7 +26,7 @@ func build_background() -> void:
 	_stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_stage.layout_direction = Control.LAYOUT_DIRECTION_LTR  # artwork never mirrors
 	add_child(_stage)
-	UIKit.fullscreen_bg(_stage, ContentService.world_bg(_world_id, "world", AccessibilityService.low_profile))
+	UIKit.fullscreen_bg(_stage, ContentService.world_bg(_world_id, "bloom", AccessibilityService.low_profile))
 	_stage.resized.connect(_place_decorations)
 	_place_decorations.call_deferred()
 
@@ -97,7 +97,7 @@ func _place_decorations() -> void:
 		b.size = Vector2(px, px)
 		b.position = anchor - Vector2(px * 0.5, px)
 		b.pivot_offset = Vector2(px * 0.5, px)
-		var img := UIKit.texrect(ContentService.tex("decorations/%s_%d.png" % [d.sprite, 512 if hi else 256]))
+		var img := UIKit.texrect(ContentService.discovery_texture(d, hi))
 		img.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		b.add_child(img)
 		if not unlocked:

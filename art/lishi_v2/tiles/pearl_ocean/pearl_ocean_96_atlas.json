@@ -1,0 +1,310 @@
+{
+  "texture": "pearl_ocean_96_atlas.png",
+  "cell_size": [
+    96,
+    123
+  ],
+  "tile_count": 42,
+  "body": [
+    0.0399999991059303,
+    0.025000000372529,
+    0.915000021457672,
+    0.904999971389771
+  ],
+  "mapping": {
+    "character_1": {
+      "x": 0,
+      "y": 0,
+      "width": 96,
+      "height": 123,
+      "index": 0
+    },
+    "character_2": {
+      "x": 96,
+      "y": 0,
+      "width": 96,
+      "height": 123,
+      "index": 1
+    },
+    "character_3": {
+      "x": 192,
+      "y": 0,
+      "width": 96,
+      "height": 123,
+      "index": 2
+    },
+    "character_4": {
+      "x": 288,
+      "y": 0,
+      "width": 96,
+      "height": 123,
+      "index": 3
+    },
+    "character_5": {
+      "x": 384,
+      "y": 0,
+      "width": 96,
+      "height": 123,
+      "index": 4
+    },
+    "character_6": {
+      "x": 480,
+      "y": 0,
+      "width": 96,
+      "height": 123,
+      "index": 5
+    },
+    "character_7": {
+      "x": 576,
+      "y": 0,
+      "width": 96,
+      "height": 123,
+      "index": 6
+    },
+    "character_8": {
+      "x": 0,
+      "y": 123,
+      "width": 96,
+      "height": 123,
+      "index": 7
+    },
+    "character_9": {
+      "x": 96,
+      "y": 123,
+      "width": 96,
+      "height": 123,
+      "index": 8
+    },
+    "bamboo_1": {
+      "x": 192,
+      "y": 123,
+      "width": 96,
+      "height": 123,
+      "index": 9
+    },
+    "bamboo_2": {
+      "x": 288,
+      "y": 123,
+      "width": 96,
+      "height": 123,
+      "index": 10
+    },
+    "bamboo_3": {
+      "x": 384,
+      "y": 123,
+      "width": 96,
+      "height": 123,
+      "index": 11
+    },
+    "bamboo_4": {
+      "x": 480,
+      "y": 123,
+      "width": 96,
+      "height": 123,
+      "index": 12
+    },
+    "bamboo_5": {
+      "x": 576,
+      "y": 123,
+      "width": 96,
+      "height": 123,
+      "index": 13
+    },
+    "bamboo_6": {
+      "x": 0,
+      "y": 246,
+      "width": 96,
+      "height": 123,
+      "index": 14
+    },
+    "bamboo_7": {
+      "x": 96,
+      "y": 246,
+      "width": 96,
+      "height": 123,
+      "index": 15
+    },
+    "bamboo_8": {
+      "x": 192,
+      "y": 246,
+      "width": 96,
+      "height": 123,
+      "index": 16
+    },
+    "bamboo_9": {
+      "x": 288,
+      "y": 246,
+      "width": 96,
+      "height": 123,
+      "index": 17
+    },
+    "circle_1": {
+      "x": 384,
+      "y": 246,
+      "width": 96,
+      "height": 123,
+      "index": 18
+    },
+    "circle_2": {
+      "x": 480,
+      "y": 246,
+      "width": 96,
+      "height": 123,
+      "index": 19
+    },
+    "circle_3": {
+      "x": 576,
+      "y": 246,
+      "width": 96,
+      "height": 123,
+      "index": 20
+    },
+    "circle_4": {
+      "x": 0,
+      "y": 369,
+      "width": 96,
+      "height": 123,
+      "index": 21
+    },
+    "circle_5": {
+      "x": 96,
+      "y": 369,
+      "width": 96,
+      "height": 123,
+      "index": 22
+    },
+    "circle_6": {
+      "x": 192,
+      "y": 369,
+      "width": 96,
+      "height": 123,
+      "index": 23
+    },
+    "circle_7": {
+      "x": 288,
+      "y": 369,
+      "width": 96,
+      "height": 123,
+      "index": 24
+    },
+    "circle_8": {
+      "x": 384,
+      "y": 369,
+      "width": 96,
+      "height": 123,
+      "index": 25
+    },
+    "circle_9": {
+      "x": 480,
+      "y": 369,
+      "width": 96,
+      "height": 123,
+      "index": 26
+    },
+    "wind_east": {
+      "x": 576,
+      "y": 369,
+      "width": 96,
+      "height": 123,
+      "index": 27
+    },
+    "wind_south": {
+      "x": 0,
+      "y": 492,
+      "width": 96,
+      "height": 123,
+      "index": 28
+    },
+    "wind_west": {
+      "x": 96,
+      "y": 492,
+      "width": 96,
+      "height": 123,
+      "index": 29
+    },
+    "wind_north": {
+      "x": 192,
+      "y": 492,
+      "width": 96,
+      "height": 123,
+      "index": 30
+    },
+    "dragon_red": {
+      "x": 288,
+      "y": 492,
+      "width": 96,
+      "height": 123,
+      "index": 31
+    },
+    "dragon_green": {
+      "x": 384,
+      "y": 492,
+      "width": 96,
+      "height": 123,
+      "index": 32
+    },
+    "dragon_white": {
+      "x": 480,
+      "y": 492,
+      "width": 96,
+      "height": 123,
+      "index": 33
+    },
+    "season_spring": {
+      "x": 576,
+      "y": 492,
+      "width": 96,
+      "height": 123,
+      "index": 34
+    },
+    "season_summer": {
+      "x": 0,
+      "y": 615,
+      "width": 96,
+      "height": 123,
+      "index": 35
+    },
+    "season_autumn": {
+      "x": 96,
+      "y": 615,
+      "width": 96,
+      "height": 123,
+      "index": 36
+    },
+    "season_winter": {
+      "x": 192,
+      "y": 615,
+      "width": 96,
+      "height": 123,
+      "index": 37
+    },
+    "flower_plum": {
+      "x": 288,
+      "y": 615,
+      "width": 96,
+      "height": 123,
+      "index": 38
+    },
+    "flower_orchid": {
+      "x": 384,
+      "y": 615,
+      "width": 96,
+      "height": 123,
+      "index": 39
+    },
+    "flower_chrysanthemum": {
+      "x": 480,
+      "y": 615,
+      "width": 96,
+      "height": 123,
+      "index": 40
+    },
+    "flower_bamboo_flower": {
+      "x": 576,
+      "y": 615,
+      "width": 96,
+      "height": 123,
+      "index": 41
+    }
+  }
+}

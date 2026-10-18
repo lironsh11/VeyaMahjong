@@ -33,6 +33,9 @@ const TOUCH_MIN := 64      ## minimum touch target height (logical px, ~48dp on 
 const UI_SCALE := 0.5      ## pack texture -> logical canvas
 
 const BUTTON_COLORS := ["green", "blue", "cream", "gold", "violet", "rose"]
+## Theme colour name -> pack file prefix (the pack calls green "emerald"; rose is a generated
+## placeholder, see art/lishi_v2/MANIFEST.json).
+const BUTTON_FILES := {"green": "emerald"}
 
 var theme: Theme
 var font_regular: Font
@@ -109,7 +112,7 @@ func scaled_tex(rel_path: String, factor: float = UI_SCALE) -> Texture2D:
 	var key := "%s@%s" % [rel_path, factor]
 	if _scaled.has(key):
 		return _scaled[key]
-	var src := ContentService.tex(rel_path)
+	var src := ContentService.art(rel_path)
 	if src == null:
 		return null
 	var img := src.get_image()
@@ -123,14 +126,14 @@ func scaled_tex(rel_path: String, factor: float = UI_SCALE) -> Texture2D:
 	return t
 
 
-func nine(rel_path: String, l: int, t: int, r: int, b: int, content_h: int = 18, content_v: int = 10) -> StyleBoxTexture:
+func nine(rel_path: String, l: int, t: int, r: int, b: int, content_h: int = 18, content_v: int = 10, factor: float = UI_SCALE) -> StyleBoxTexture:
 	## Nine-patch from a pack texture; margins are given in SOURCE pixels.
 	var sb := StyleBoxTexture.new()
-	sb.texture = scaled_tex(rel_path)
-	sb.texture_margin_left = l * UI_SCALE
-	sb.texture_margin_top = t * UI_SCALE
-	sb.texture_margin_right = r * UI_SCALE
-	sb.texture_margin_bottom = b * UI_SCALE
+	sb.texture = scaled_tex(rel_path, factor)
+	sb.texture_margin_left = l * factor
+	sb.texture_margin_top = t * factor
+	sb.texture_margin_right = r * factor
+	sb.texture_margin_bottom = b * factor
 	sb.content_margin_left = content_h
 	sb.content_margin_right = content_h
 	sb.content_margin_top = content_v
@@ -161,14 +164,15 @@ func build() -> void:
 	th.set_color("font_color", "Label", tc)
 	th.set_constant("line_spacing", "Label", 2)
 
-	# Buttons: pack pills (460x150 large / 220x100 small); margins avoid the rounded caps.
+	# Buttons: pack pills (640x160 large / 320x120 small, transparent padding below for the
+	# drop shadow); margins avoid the rounded caps. Labels are always drawn by Godot.
 	for col in BUTTON_COLORS:
 		for size in ["large", "small"]:
 			var type := "Btn_%s_%s" % [col, size]
 			th.add_type(type)
 			th.set_type_variation(type, "Button")
-			var m := [72, 40, 72, 52] if size == "large" else [46, 30, 46, 40]
-			var base := "ui/buttons/%s_%s_" % [col, size]
+			var m := [80, 46, 80, 60] if size == "large" else [56, 36, 56, 46]
+			var base := "ui/buttons/%s_%s_" % [BUTTON_FILES.get(col, col), size]
 			th.set_stylebox("normal", type, nine(base + "normal.png", m[0], m[1], m[2], m[3], 22, 8))
 			th.set_stylebox("hover", type, nine(base + "normal.png", m[0], m[1], m[2], m[3], 22, 8))
 			th.set_stylebox("pressed", type, nine(base + "pressed.png", m[0], m[1], m[2], m[3], 22, 8))
@@ -211,39 +215,81 @@ func build() -> void:
 	th.set_stylebox("disabled", "FlatTool", clear)
 	th.set_stylebox("focus", "FlatTool", _focus_box())
 
-	# Panels
-	var panel_bg := "ui/components/panel_white.png" if high_contrast else "ui/components/panel_cream.png"
-	th.set_stylebox("panel", "PanelContainer", nine(panel_bg, 64, 64, 64, 64, 26, 22))
-	th.add_type("Card")
-	th.set_type_variation("Card", "PanelContainer")
+	# Panels (pack panels: cream/gold-rim cards, emerald bars). High contrast keeps flat,
+	# opaque surfaces with a strong outline instead.
 	if high_contrast:
-		th.set_stylebox("panel", "Card", flat(Color.WHITE, 22, NAVY, 3, 18))
 		th.set_stylebox("panel", "PanelContainer", flat(Color.WHITE, 26, NAVY, 3, 24))
 	else:
-		th.set_stylebox("panel", "Card", nine("ui/components/card_cream.png", 52, 52, 52, 56, 20, 14))
-	th.add_type("CardFlat")
-	th.set_type_variation("CardFlat", "PanelContainer")
-	th.set_stylebox("panel", "CardFlat", flat(Color(1, 1, 1, 0.97 if high_contrast else 0.9), 22, Color("E8CFA0") if not high_contrast else NAVY, 2, 16))
+		th.set_stylebox("panel", "PanelContainer", nine("ui/panels/cream.png", 48, 48, 48, 56, 26, 22))
+	var cards := {
+		"Card": ["ui/panels/card.png", 40, 40, 40, 46, 20, 14],
+		"Dialog": ["ui/panels/dialog.png", 52, 52, 52, 60, 28, 24],
+		"OfferCard": ["ui/panels/offer.png", 44, 44, 44, 52, 20, 14],
+		"CollectionCard": ["ui/panels/collection_card.png", 40, 40, 40, 48, 18, 12],
+		"CardFlat": ["ui/panels/settings_row.png", 40, 36, 40, 44, 18, 8],
+	}
+	for type in cards:
+		var c: Array = cards[type]
+		th.add_type(type)
+		th.set_type_variation(type, "PanelContainer")
+		if high_contrast:
+			th.set_stylebox("panel", type, flat(Color.WHITE, 22, NAVY, 3, 18 if type != "CardFlat" else 16))
+		else:
+			th.set_stylebox("panel", type, nine(c[0], c[1], c[2], c[3], c[4], c[5], c[6]))
 	th.add_type("HudPill")
 	th.set_type_variation("HudPill", "PanelContainer")
-	th.set_stylebox("panel", "HudPill", flat(Color(NAVY, 0.92 if high_contrast else 0.78), 28, Color(1, 1, 1, 0.25), 2, 14))
+	if high_contrast:
+		th.set_stylebox("panel", "HudPill", flat(Color(NAVY, 0.92), 28, Color(1, 1, 1, 0.25), 2, 14))
+	else:
+		th.set_stylebox("panel", "HudPill", nine("ui/panels/hud_bar.png", 40, 36, 40, 42, 18, 6))
 	th.add_type("NavBar")
 	th.set_type_variation("NavBar", "PanelContainer")
-	th.set_stylebox("panel", "NavBar", flat(Color(IVORY, 0.98), 26, Color("E8CFA0"), 2, 6))
+	if high_contrast:
+		th.set_stylebox("panel", "NavBar", flat(Color(IVORY, 0.98), 26, NAVY, 2, 6))
+	else:
+		th.set_stylebox("panel", "NavBar", nine("ui/components/bottom_nav_background.png", 60, 44, 60, 44, 8, 2))
 	th.add_type("Toolbar")
 	th.set_type_variation("Toolbar", "PanelContainer")
-	th.set_stylebox("panel", "Toolbar", flat(Color("0E5A5E", 0.95 if high_contrast else 0.86), 30, Color(TEAL, 0.8), 2, 8))
+	if high_contrast:
+		th.set_stylebox("panel", "Toolbar", flat(Color("0E5A5E", 0.95), 30, Color(TEAL, 0.8), 2, 8))
+	else:
+		th.set_stylebox("panel", "Toolbar", nine("ui/panels/emerald.png", 48, 48, 48, 56, 10, 2))
+
+	# Segmented tabs (world pickers): emerald selected, cream unselected.
+	for tab in [["TabOn", "ui/components/tab_active.png", Color.WHITE], ["TabOff", "ui/components/tab_inactive.png", tc]]:
+		th.add_type(tab[0])
+		th.set_type_variation(tab[0], "Button")
+		var nb := nine(tab[1], 36, 30, 36, 34, 10, 4)
+		var pressed_nb := nine(tab[1], 36, 30, 36, 34, 10, 4)
+		pressed_nb.modulate_color = Color(0.88, 0.88, 0.88)
+		for st in ["normal", "hover", "normal_mirrored", "hover_mirrored"]:
+			th.set_stylebox(st, tab[0], nb)
+		for st in ["pressed", "pressed_mirrored"]:
+			th.set_stylebox(st, tab[0], pressed_nb)
+		var dis := nine(tab[1], 36, 30, 36, 34, 10, 4)
+		dis.modulate_color = Color(1, 1, 1, 0.55)
+		th.set_stylebox("disabled", tab[0], dis)
+		th.set_stylebox("disabled_mirrored", tab[0], dis)
+		th.set_stylebox("focus", tab[0], _focus_box())
+		for k in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "icon_normal_color"]:
+			th.set_color(k, tab[0], tab[2])
+		th.set_color("font_disabled_color", tab[0], Color(tab[2], 0.55))
+		th.set_font("font", tab[0], font_bold)
+
+	# Chips / badges (status labels): text drawn by Godot over the pack sprite.
+	for chip in [["ChipEmerald", "ui/components/chip_emerald.png", 0.32], ["ChipCream", "ui/components/chip_cream.png", 0.32],
+			["BadgeGreen", "ui/components/badge_green.png", 0.42], ["BadgeRed", "ui/components/badge_red.png", 0.42], ["BadgeGold", "ui/components/badge_gold.png", 0.42]]:
+		th.add_type(chip[0])
+		th.set_type_variation(chip[0], "PanelContainer")
+		th.set_stylebox("panel", chip[0], nine(chip[1], 34, 30, 34, 34, 10, 2, chip[2]))
 
 	# Toggles
-	th.set_icon("checked", "CheckButton", scaled_tex("ui/components/toggle_on.png", 0.45))
-	th.set_icon("unchecked", "CheckButton", scaled_tex("ui/components/toggle_off.png", 0.45))
-	th.set_icon("checked_disabled", "CheckButton", scaled_tex("ui/components/toggle_on.png", 0.45))
-	th.set_icon("unchecked_disabled", "CheckButton", scaled_tex("ui/components/toggle_off.png", 0.45))
+	var on := scaled_tex("ui/components/switch_on_knob.png", 0.4)
+	var off := scaled_tex("ui/components/switch_off_knob.png", 0.4)
 	# RTL layouts use separate *_mirrored theme items.
-	th.set_icon("checked_mirrored", "CheckButton", scaled_tex("ui/components/toggle_on.png", 0.45))
-	th.set_icon("unchecked_mirrored", "CheckButton", scaled_tex("ui/components/toggle_off.png", 0.45))
-	th.set_icon("checked_disabled_mirrored", "CheckButton", scaled_tex("ui/components/toggle_on.png", 0.45))
-	th.set_icon("unchecked_disabled_mirrored", "CheckButton", scaled_tex("ui/components/toggle_off.png", 0.45))
+	for sfx in ["", "_disabled", "_mirrored", "_disabled_mirrored"]:
+		th.set_icon("checked" + sfx, "CheckButton", on)
+		th.set_icon("unchecked" + sfx, "CheckButton", off)
 	for st in ["normal", "hover", "pressed", "hover_pressed", "disabled", "normal_mirrored", "hover_mirrored", "pressed_mirrored", "hover_pressed_mirrored", "disabled_mirrored"]:
 		th.set_stylebox(st, "CheckButton", StyleBoxEmpty.new())
 	th.set_stylebox("focus", "CheckButton", _focus_box())
@@ -252,14 +298,19 @@ func build() -> void:
 	th.set_color("font_pressed_color", "CheckButton", tc)
 	th.set_color("font_hover_pressed_color", "CheckButton", tc)
 
-	# Progress bars (pack bar sprites)
-	# Progress bars: flat rounded (the pack bar sprites are too tall to nine-patch slimly).
-	var track := flat(Color(NAVY, 0.55 if high_contrast else 0.35), 10, Color(1, 1, 1, 0.5), 1, 0)
-	track.content_margin_top = 0
-	track.content_margin_bottom = 0
-	var fill := flat(GOLD, 10, Color.TRANSPARENT, 0, 0)
-	th.set_stylebox("background", "ProgressBar", track)
-	th.set_stylebox("fill", "ProgressBar", fill)
+	# Progress bars: pack track + fills, scaled down so bars stay slim (min height 12).
+	if high_contrast:
+		var track := flat(Color(NAVY, 0.55), 10, Color(1, 1, 1, 0.5), 1, 0)
+		track.content_margin_top = 0
+		track.content_margin_bottom = 0
+		th.set_stylebox("background", "ProgressBar", track)
+		th.set_stylebox("fill", "ProgressBar", flat(GOLD.darkened(0.2), 10, Color.TRANSPARENT, 0, 0))
+	else:
+		th.set_stylebox("background", "ProgressBar", _bar("ui/components/progress_track.png"))
+		th.set_stylebox("fill", "ProgressBar", _bar("ui/components/progress_fill_gold.png"))
+	th.add_type("ProgressGreen")
+	th.set_type_variation("ProgressGreen", "ProgressBar")
+	th.set_stylebox("fill", "ProgressGreen", flat(GREEN.darkened(0.2), 10, Color.TRANSPARENT, 0, 0) if high_contrast else _bar("ui/components/progress_fill_green.png"))
 	th.set_color("font_color", "ProgressBar", tc)
 
 	# Slider
@@ -324,3 +375,9 @@ func _circle_icon(d: int, c: Color) -> ImageTexture:
 			var col := Color.WHITE if dist < r - 3.5 else c
 			img.set_pixel(x, y, Color(col, a))
 	return ImageTexture.create_from_image(img)
+
+
+func _bar(rel_path: String) -> StyleBoxTexture:
+	var sb := nine(rel_path, 42, 40, 42, 40, 0, 0, 0.15)
+	sb.content_margin_bottom = 0
+	return sb

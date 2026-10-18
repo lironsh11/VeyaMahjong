@@ -3,6 +3,7 @@ extends Screen
 ## locked states. Locked levels explain why instead of doing nothing.
 
 const COLS := 5
+const NODE_DISC_LIFT := 6.0
 
 var _world_id: String = ""
 
@@ -36,7 +37,7 @@ func build() -> void:
 			AudioService.play_world_music(wid)
 			_rebuild())
 		if not unlocked:
-			b.icon = UITheme.scaled_tex("ui/icons/navy/lock.png", 0.2)
+			b.icon = UITheme.scaled_tex("ui/icons/emerald/lock.png", 0.27)
 		tabs.add_child(b)
 	root.add_child(tabs)
 	var r := ContentService.world_range(_world_id)
@@ -91,12 +92,13 @@ func _level_node(id: int, next: int) -> Control:
 	b.theme_type_variation = "FlatTool"
 	b.custom_minimum_size = Vector2(84, 84)
 	b.focus_mode = Control.FOCUS_ALL
-	var sprite := "round_green" if completed else ("round_blue" if unlocked else "round_locked")
-	var bg := UIKit.texrect(UITheme.scaled_tex("ui/components/%s.png" % sprite, 0.5), Vector2(80, 80))
+	var sprite := "complete" if completed else ("current" if id == next else ("available" if unlocked else "locked"))
+	var bg := UIKit.texrect(UITheme.scaled_tex("ui/level_nodes/%s.png" % sprite, 0.6), Vector2(80, 80))
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	b.add_child(bg)
 	var l := UIKit.label(LocalizationService.format_number(id), UITheme.FONT_H2, true, Color.WHITE if unlocked else Color(1, 1, 1, 0.8), HORIZONTAL_ALIGNMENT_CENTER, false)
 	l.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	l.offset_bottom = -NODE_DISC_LIFT  # the node disc sits above its drop shadow
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	l.add_theme_color_override("font_outline_color", Color(UITheme.NAVY, 0.55))
 	l.add_theme_constant_override("outline_size", 5)
@@ -106,14 +108,6 @@ func _level_node(id: int, next: int) -> Control:
 		b.add_child(chk)  # attach before positioning (RTL mirrors the corner automatically)
 		chk.position = Vector2(58, 0)
 		chk.size = Vector2(26, 26)
-	if id == next and not completed:
-		var ring := Panel.new()
-		ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		ring.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		var sb := UITheme.flat(Color.TRANSPARENT, 42, UITheme.GOLD, 4, 0)
-		sb.draw_center = false
-		ring.add_theme_stylebox_override("panel", sb)
-		b.add_child(ring)
 	var state_key := "level_state_done" if completed else ("level_state_open" if unlocked else "level_state_locked")
 	AccessibilityService.set_access_name(b, t("level_n", {"level": id}) + ", " + t(state_key))
 	b.pressed.connect(func() -> void:

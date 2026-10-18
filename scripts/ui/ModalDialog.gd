@@ -24,6 +24,9 @@ static func open(parent: Node, title_text: String, body_text: String = "", p_dis
 func _build(title_text: String, body_text: String) -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	# Above everything on the screen: selected/hinted tiles raise their z_index, which would
+	# otherwise draw them over the dim and the panel.
+	z_index = 100
 	var dim := ColorRect.new()
 	dim.color = Color(0.03, 0.1, 0.16, 0.55)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -37,6 +40,7 @@ func _build(title_text: String, body_text: String) -> void:
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(center)
 	var panel := PanelContainer.new()
+	panel.theme_type_variation = "Dialog"
 	panel.custom_minimum_size = Vector2(440, 0)
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(panel)

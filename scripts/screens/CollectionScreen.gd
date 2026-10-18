@@ -34,7 +34,7 @@ func build() -> void:
 func _theme_card(theme_id: String, equipped: String) -> Control:
 	var unlocked := ProgressionService.is_theme_unlocked(theme_id)
 	var is_eq := theme_id == equipped
-	var p := UIKit.panel("Card")
+	var p := UIKit.panel("CollectionCard")
 	var v := UIKit.vbox(8)
 	p.add_child(v)
 	var top := UIKit.hbox(8)
@@ -42,11 +42,11 @@ func _theme_card(theme_id: String, equipped: String) -> Control:
 	name_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(name_l)
 	if is_eq:
-		top.add_child(UIKit.chip(t("equipped"), UITheme.GREEN))
+		top.add_child(UIKit.chip(t("equipped"), "ChipEmerald"))
 	elif unlocked:
-		top.add_child(UIKit.chip(t("unlocked"), UITheme.TEAL.darkened(0.15)))
+		top.add_child(UIKit.chip(t("unlocked"), "BadgeGreen"))
 	else:
-		top.add_child(UIKit.chip(t("locked"), UITheme.NAVY_SOFT))
+		top.add_child(UIKit.chip(t("locked"), "ChipCream"))
 	v.add_child(top)
 	var tiles_row := UIKit.hbox(6)
 	tiles_row.alignment = BoxContainer.ALIGNMENT_CENTER

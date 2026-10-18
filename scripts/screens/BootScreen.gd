@@ -9,17 +9,15 @@ var _retry: Button
 
 
 func build_background() -> void:
-	var c := ColorRect.new()
-	c.color = UITheme.IVORY
-	c.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(c)
+	# Same art as the store splash; softened so the tagline and status stay readable.
+	UIKit.fullscreen_bg(self, ContentService.world_bg("aurora_garden", "world", AccessibilityService.low_profile), 0.35, UITheme.IVORY)
 
 
 func build() -> void:
 	var v := UIKit.vbox(18)
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	safe.add_child(v)
-	var logo := UIKit.texrect(ContentService.tex("branding/lishi_logo_stacked_dark.png"), Vector2(320, 200))
+	var logo := UIKit.texrect(ContentService.art("branding/logo_ornate_large.png"), Vector2(320, 200))
 	v.add_child(logo)
 	v.add_child(UIKit.label(t("app_tagline"), UITheme.FONT_H2, false, UITheme.text_soft(), HORIZONTAL_ALIGNMENT_CENTER))
 	_status = UIKit.label(t("loading"), UITheme.FONT_BODY, false, UITheme.text_soft(), HORIZONTAL_ALIGNMENT_CENTER)

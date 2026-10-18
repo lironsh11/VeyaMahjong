@@ -6,10 +6,7 @@ var _list: VBoxContainer
 
 
 func build_background() -> void:
-	var c := ColorRect.new()
-	c.color = UITheme.IVORY
-	c.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(c)
+	UIKit.fullscreen_bg(self, ContentService.screen_bg("settings", AccessibilityService.low_profile), 0.45, UITheme.IVORY)
 
 
 func build() -> void:

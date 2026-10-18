@@ -1,6 +1,7 @@
 extends Node
 ## DEBUG-ONLY visual QA driver. Started by Router only in debug builds when the game is
 ## launched with:  godot --path . -- --tour=<out_dir> [--locale=he] [--save-dir=user://tour]
+## Extra modes: --levels=1,7,50 (boards only), --bloom-all (every discovery unlocked).
 ## Visits every screen and dialog, saving viewport captures as PNG. It uses an isolated save
 ## directory (see SaveService) so real player data is never touched.
 
@@ -56,6 +57,18 @@ func _run() -> void:
 				print("BOARD level=%d area=%s tile_w=%.1f" % [int(id), bv.size, bv.tile_w])
 			get_tree().quit()
 			return
+		if a == "--bloom-all":
+			# Bloom placement check: every level completed, so every discovery is unlocked.
+			await _wait(1.5)
+			GameState.data.tutorial_done = true
+			for id in range(1, ContentService.level_count() + 1):
+				ProgressionService.complete_level(id, {"moves": 10, "hints": 0})
+			for w in ContentService.worlds:
+				await _go("bloom", {"world": str(w.id)})
+				await _wait(1.2)
+				await _shot("bloom_all_" + str(w.id))
+			get_tree().quit()
+			return
 	await _wait(0.35)
 	await _shot("01_boot")
 	await _wait(1.0)
@@ -75,6 +88,8 @@ func _run() -> void:
 	var scr: Node = Router.current_screen()
 	var free: PackedInt32Array = scr.session.state.free_tiles()
 	scr.controller._on_tap(free[0])
+	await _wait(0.3)
+	await _shot("05b_gameplay_selected")
 	scr.controller.request_hint()
 	await _wait(1.0)
 	await _shot("06_gameplay_selected_hint")

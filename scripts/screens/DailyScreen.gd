@@ -18,7 +18,7 @@ func _ready() -> void:
 
 
 func build_background() -> void:
-	UIKit.fullscreen_bg(self, ContentService.world_bg("pearl_coast", "gameplay", AccessibilityService.low_profile), 0.05, Color.WHITE)
+	UIKit.fullscreen_bg(self, ContentService.screen_bg("daily", AccessibilityService.low_profile), 0.05, Color.WHITE)
 
 
 func build() -> void:
@@ -180,7 +180,9 @@ func _tasks_card() -> Control:
 		var col := UIKit.vbox(2)
 		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		col.add_child(UIKit.label(t(str(task.label_key), {"count": target}), UITheme.FONT_BODY, false))
-		col.add_child(UIKit.progress_bar(prog, target, 10))
+		var bar := UIKit.progress_bar(prog, target, 12)
+		bar.theme_type_variation = "ProgressGreen"
+		col.add_child(bar)
 		row.add_child(col)
 		row.add_child(UIKit.label("%s/%s" % [LocalizationService.format_number(prog), LocalizationService.format_number(target)], UITheme.FONT_SMALL, true, UITheme.text_soft(), HORIZONTAL_ALIGNMENT_CENTER, false))
 		v.add_child(row)

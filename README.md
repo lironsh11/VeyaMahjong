@@ -84,5 +84,7 @@ godot --path . --resolution 540x960 -- --tour=C:/tmp/shots --save-dir=user://tou
 
 `scripts/core` pure rules · `scripts/gameplay` board view/controller · `scripts/services`
 autoloads · `scripts/screens` screens · `scripts/ui` shared UI · `data/` levels/config/locales ·
-`assets/veya/` runtime art/audio · `tests/` · `tools/` · `docs/`. The original pack in
+`art/lishi_v2/` runtime art (LiShi v2 pack, imported by `tools/import_lishi_v2.gd`, see
+docs/LISHI_V2_GRAPHICS_MIGRATION.md) · `assets/veya/` audio, effects, app icons and legacy
+Pearl Coast art · `tests/` · `tools/` · `docs/`. The original pack in
 `VeyaMahjong_AssetPack_v1/` is kept unmodified and excluded from import.

@@ -13,7 +13,8 @@ extends Control
 
 signal tile_tapped(index: int)
 
-## Fractions of the sprite size (pack tiles are 128x164 / 256x328 with padding + shadow).
+## Fractions of the tile slot (LiShi v2 atlas cells are 96x123 / 192x246: tile body plus soft
+## shadow; tools/import_lishi_v2.gd fits every face onto this body).
 const BODY := Rect2(0.04, 0.025, 0.915, 0.905)
 const STEP_X := BoardFit.STEP_X
 const STEP_Y := BoardFit.STEP_Y
@@ -108,27 +109,24 @@ func _relayout() -> void:
 	_content_size = Vector2(w_units * tile_w, h_units * tile_w)
 	_clamp_pan()
 	var origin := (size - _content_size) * 0.5 + _pan
-	# Texture resolution: 256px atlas only when tiles are drawn large on the physical screen.
+	# Texture resolution: 192px atlas only when tiles are drawn large on the physical screen
+	# (the 96px one would be upscaled more than ~1.15x).
 	var phys_w := tile_w * _physical_scale()
-	var want_hi := phys_w > 150.0 and not AccessibilityService.low_profile
+	var want_hi := phys_w > 112.0 and not AccessibilityService.low_profile
 	var retexture := want_hi != _hi_res or tiles[0] == null or tiles[0].face_rect == null
 	_hi_res = want_hi
 	var sprite := Vector2(tile_w, tile_h)
-	var body := Rect2(BODY.position * sprite, BODY.size * sprite)
 	for i in tiles.size():
 		var tv := tiles[i]
 		var pos := tile_pos(i, origin, sprite)
 		if tv.face_rect == null:
-			tv.setup(i, _tex(i), sprite, body)
+			tv.setup(i, _tex(i), sprite, _hi_res)
 		else:
 			tv.size = sprite
 			tv.pivot_offset = sprite * 0.5
-			tv.ring.position = body.position - Vector2(3, 3)
-			tv.ring.size = body.size + Vector2(6, 6)
-			tv.hint_ring.position = tv.ring.position
-			tv.hint_ring.size = tv.ring.size
 			if retexture:
 				tv.set_texture(_tex(i))
+				tv.set_overlay_res(_hi_res)
 		tv.base_pos = pos
 		tv.position = pos
 		tv.visible = not state.is_removed(i)

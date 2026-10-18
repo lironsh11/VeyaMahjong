@@ -55,13 +55,13 @@ func build() -> void:
 
 
 func _product_card(prod: Dictionary) -> Control:
-	var p := UIKit.panel("Card")
+	var p := UIKit.panel("OfferCard")
 	var v := UIKit.vbox(8)
 	p.add_child(v)
 	v.add_child(UIKit.label(t(str(prod.title_key)), UITheme.FONT_H2, true))
 	v.add_child(UIKit.label(t(str(prod.desc_key)), UITheme.FONT_SMALL, false, UITheme.text_soft()))
 	if IAPService.is_owned(prod):
-		v.add_child(UIKit.chip(t("owned"), UITheme.GREEN))
+		v.add_child(UIKit.chip(t("owned"), "ChipEmerald"))
 	else:
 		var price := IAPService.price_text(str(prod.id))
 		var b := UIKit.button(t("buy_for", {"price": price}), "green", "small", func() -> void:

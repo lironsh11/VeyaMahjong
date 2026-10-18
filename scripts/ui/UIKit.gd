@@ -36,7 +36,8 @@ static func button(text: String, color: String = "green", size: String = "large"
 
 static func tab_button(text: String, active: bool, on_press: Callable) -> Button:
 	## Segmented-control button that wraps long names (e.g. German/Russian world names).
-	var b := button(text, "violet" if active else "cream", "small", on_press)
+	var b := button(text, "cream", "small", on_press)
+	b.theme_type_variation = "TabOn" if active else "TabOff"
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	b.custom_minimum_size = Vector2(0, UITheme.TOUCH_MIN)
@@ -246,9 +247,12 @@ static func progress_bar(value: float, max_value: float, height: int = 18) -> Pr
 	return pb
 
 
-static func chip(text: String, bg: Color, fg: Color = Color.WHITE) -> PanelContainer:
+static func chip(text: String, style: String = "ChipEmerald") -> PanelContainer:
+	## Status chip / badge: pack sprite (ChipEmerald, ChipCream, BadgeGreen, BadgeRed,
+	## BadgeGold) with live text on top.
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UITheme.flat(bg, 14, Color.TRANSPARENT, 0, 10))
+	p.theme_type_variation = style
+	var fg: Color = UITheme.text_color() if style in ["ChipCream", "BadgeGold"] else Color.WHITE
 	p.add_child(label(text, UITheme.FONT_SMALL, true, fg, HORIZONTAL_ALIGNMENT_CENTER, false))
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return p

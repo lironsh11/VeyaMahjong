@@ -1,5 +1,5 @@
 {
-  "_comment": "LiShi Bloom discoveries. One discovery unlocks every lights_per_discovery LiShi Lights, in this order across worlds. Positions are normalized (0..1) on the 1080x1920 world background (anchor = sprite bottom-centre) and kept between y 0.40 and 0.83 so they stay clear of the header card and bottom bar on 16:9-20:9 phones.",
+  "_comment": "LiShi Bloom discoveries. One discovery unlocks every lights_per_discovery LiShi Lights, in this order across worlds. Positions are normalized (0..1) on the 1080x1920 world background (anchor = sprite bottom-centre) and kept between y 0.40 and 0.86 so they stay clear of the header card and bottom bar on 16:9-20:9 phones. \"art\" names a LiShi v2 prop (art/lishi_v2/props/); discoveries without it use the legacy decoration named by \"sprite\" (Pearl Coast, and objects the v2 pack does not cover yet). \"sprite\" also keys the localized name and story, so it never changes.",
   "lights_per_discovery": 5,
   "worlds": [
     {
@@ -8,45 +8,50 @@
         {
           "id": "ag_stone_path",
           "sprite": "stone_path",
+          "art": "stepping_stones",
           "pos": [
-            0.56,
-            0.66
+            0.42,
+            0.745
           ],
-          "size": 0.2
+          "size": 0.18
         },
         {
           "id": "ag_flower_bed",
           "sprite": "flower_bed",
+          "art": "flower_bed",
           "pos": [
-            0.17,
-            0.62
+            0.24,
+            0.71
           ],
           "size": 0.2
         },
         {
           "id": "ag_sakura_tree",
           "sprite": "sakura_tree",
+          "art": "cherry_tree",
           "pos": [
-            0.64,
-            0.52
+            0.85,
+            0.6
           ],
-          "size": 0.18
+          "size": 0.24
         },
         {
           "id": "ag_pond",
           "sprite": "pond",
+          "art": "koi_pond",
           "pos": [
             0.78,
-            0.81
+            0.85
           ],
-          "size": 0.22
+          "size": 0.24
         },
         {
           "id": "ag_stone_lantern",
           "sprite": "stone_lantern",
+          "art": "stone_lantern",
           "pos": [
-            0.42,
-            0.6
+            0.44,
+            0.86
           ],
           "size": 0.1
         },
@@ -54,46 +59,50 @@
           "id": "ag_butterfly",
           "sprite": "butterfly",
           "pos": [
-            0.3,
-            0.4
+            0.56,
+            0.47
           ],
-          "size": 0.09
+          "size": 0.08
         },
         {
           "id": "ag_blossom_pink",
           "sprite": "blossom_pink",
+          "art": "pink_flower_bush",
           "pos": [
-            0.12,
-            0.82
+            0.14,
+            0.86
           ],
           "size": 0.16
         },
         {
           "id": "ag_wooden_fence",
           "sprite": "wooden_fence",
+          "art": "wooden_fence",
           "pos": [
-            0.3,
-            0.58
+            0.13,
+            0.645
           ],
           "size": 0.2
         },
         {
           "id": "ag_bridge",
           "sprite": "bridge",
+          "art": "stone_bridge",
           "pos": [
-            0.86,
-            0.68
+            0.66,
+            0.735
           ],
-          "size": 0.18
+          "size": 0.24
         },
         {
           "id": "ag_pagoda",
           "sprite": "pagoda",
+          "art": "pavilion",
           "pos": [
-            0.18,
-            0.5
+            0.17,
+            0.52
           ],
-          "size": 0.2
+          "size": 0.22
         }
       ]
     },
@@ -198,6 +207,7 @@
         {
           "id": "cn_lantern",
           "sprite": "lantern",
+          "art": "lit_lantern",
           "pos": [
             0.5,
             0.6
@@ -216,6 +226,7 @@
         {
           "id": "cn_pond",
           "sprite": "pond",
+          "art": "lotus_pond",
           "pos": [
             0.52,
             0.82
@@ -225,6 +236,7 @@
         {
           "id": "cn_blossom_blue",
           "sprite": "blossom_blue",
+          "art": "blue_hydrangea_bush",
           "pos": [
             0.14,
             0.83
@@ -234,6 +246,7 @@
         {
           "id": "cn_maple_tree",
           "sprite": "maple_tree",
+          "art": "maple_tree",
           "pos": [
             0.88,
             0.7
@@ -243,6 +256,7 @@
         {
           "id": "cn_rocks",
           "sprite": "rocks",
+          "art": "rock_garden",
           "pos": [
             0.32,
             0.8
@@ -279,6 +293,7 @@
         {
           "id": "cn_pagoda_night",
           "sprite": "pagoda_night",
+          "art": "small_pavilion",
           "pos": [
             0.18,
             0.62

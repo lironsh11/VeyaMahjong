@@ -32,7 +32,7 @@ func build() -> void:
 	top.add_child(UIKit.spacer(0, true))
 	top.add_child(UIKit.icon_button("settings", t("settings"), func() -> void: Router.go("settings"), 60))
 	root.add_child(top)
-	var logo := UIKit.texrect(ContentService.tex("branding/lishi_logo_stacked_dark.png"), Vector2(300, 170))
+	var logo := UIKit.texrect(ContentService.art("branding/logo_ornate_large.png"), Vector2(300, 170))
 	root.add_child(logo)
 	root.add_child(UIKit.spacer(0, true))
 	# Continue card
@@ -90,7 +90,7 @@ func _bloom_card() -> Control:
 	b.add_child(p)
 	var unseen := ProgressionService.unseen_discoveries()
 	if unseen > 0:
-		var c := UIKit.chip(t("new_badge"), UITheme.ROSE.darkened(0.2))
+		var c := UIKit.chip(t("new_badge"), "BadgeRed")
 		# Badge floats on the card's top-end corner; Godot mirrors the anchor in RTL.
 		b.add_child(c)
 		c.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 6)
