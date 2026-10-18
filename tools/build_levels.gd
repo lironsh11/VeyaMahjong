@@ -20,7 +20,7 @@ extends SceneTree
 ##   5. Ordered by the combined progression value (stored as metrics.progression).
 ## Writes a report to docs/reports/levels_051_150.md.
 
-const BUILD_ID := "levels-51-150-v6"  ## v6: identical-tiles-only rule
+const BUILD_ID := "levels-51-150-v7"  ## v7: portrait boards that fill a phone screen
 const OUT_PATH := "res://data/levels/levels_051_150_generated.json"
 const EARLY_PATH := "res://data/levels/levels_004_050_regenerated.json"
 const REPORT_PATH := "res://docs/reports/levels_051_150.md"
@@ -28,7 +28,7 @@ const FIRST_ID := 51
 const COUNT := 100
 const MIN_TILES := 56
 const MAX_TILES := 144
-const MAX_SPAN_TILES := 10   ## readability: at most 10 tiles across or down
+const MIN_FIT_TILE := 66.0  ## min tile width (px) on BoardFit.REFERENCE_AREA - big, readable tiles
 const PLAYOUTS := 32
 const SCORE_WEIGHT := 0.35   ## secondary axis weight relative to trickiness
 
@@ -65,9 +65,10 @@ func _initialize() -> void:
 			for p in l.positions:
 				positions.append(Vector3i(int(p[0]) * 2, int(p[1]) * 2, int(p[2])))
 		else:
+			# Portrait-shaped: fewer columns than rows, to fill a phone screen (see BoardFit).
 			var params := {
-				"min_cols": 6, "max_cols": rng.rand_int(7, MAX_SPAN_TILES),
-				"min_rows": 6, "max_rows": rng.rand_int(7, 9),
+				"min_cols": 5, "max_cols": rng.rand_int(6, 8),
+				"min_rows": 8, "max_rows": rng.rand_int(9, 11),
 				"fill_base": 0.97, "fill_falloff": 0.35 + rng.rand_float() * 0.3,
 				"upper_prob": 0.6 + rng.rand_float() * 0.35,
 				"max_layers": rng.rand_int(3, 5),
@@ -76,9 +77,10 @@ func _initialize() -> void:
 			}
 			positions = LayoutGenerator.generate_ex(rng, rng.rand_int(70, MAX_TILES), params)
 			layout_id = "proc:%s:%d" % [LayoutGenerator.VERSION, k]
+		positions = BoardFit.best_orientation(positions)
 		# Mix pairing styles (far-apart -> nearer partners) so forgiving boards exist too.
 		gen.spread_bias = [0.6, 0.3, 0.0][k % 3]
-		if positions.size() < MIN_TILES or positions.size() > MAX_TILES or not _readable(positions):
+		if positions.size() < MIN_TILES or positions.size() > MAX_TILES or not _fits_screen(positions):
 			stats.size_rejected += 1
 			continue
 		var seed_text := "%s|board|%d" % [BUILD_ID, k]
@@ -197,8 +199,6 @@ func _initialize() -> void:
 	quit(0)
 
 
-func _readable(positions: Array) -> bool:
+func _fits_screen(positions: Array) -> bool:
 	var geo := BoardGeometry.from_positions(positions)
-	if not geo.errors.is_empty():
-		return false
-	return geo.width_half_units() / 2 <= MAX_SPAN_TILES and geo.height_half_units() / 2 <= MAX_SPAN_TILES
+	return geo.errors.is_empty() and BoardFit.fit_tile_width(geo) >= MIN_FIT_TILE

@@ -52,6 +52,8 @@ func _run() -> void:
 			for id in a.trim_prefix("--levels=").split(","):
 				await _go("gameplay", {"mode": "level", "level": int(id), "restart": true})
 				await _shot("level_%03d" % int(id))
+				var bv: BoardView = Router.current_screen().board
+				print("BOARD level=%d area=%s tile_w=%.1f" % [int(id), bv.size, bv.tile_w])
 			get_tree().quit()
 			return
 	await _wait(0.35)

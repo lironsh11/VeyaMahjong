@@ -162,14 +162,14 @@ func test_daily_board_deterministic() -> void:
 
 
 func test_daily_board_fingerprints_pinned() -> void:
-	# Daily boards must never change silently. Fingerprints recorded 2026-10-18 for "daily-2"
-	# (identical-tiles-only rule). A mismatch means an algorithm change that requires bumping
+	# Daily boards must never change silently. Fingerprints recorded 2026-10-18 for "daily-3"
+	# (identical tiles only, portrait boards). A mismatch means an algorithm change that requires bumping
 	# DailyGenerator.VERSION and re-pinning; completions are keyed by date and survive.
-	check_eq(DailyGenerator.VERSION.get_slice(" ", 0), "daily-2")
+	check_eq(DailyGenerator.VERSION.get_slice(" ", 0), "daily-3")
 	var pinned := {
-		"2026-10-18": "f2c7feb014f9bc43", "2026-10-19": "447aca24610a4145",
-		"2026-11-03": "6bdadd667d37669e", "2027-02-28": "721abd54174f9915",
-		"2028-02-29": "b1d270fb4b93aa60",
+		"2026-10-18": "ee516a200e72a273", "2026-10-19": "7ed012809d5e08c6",
+		"2026-11-03": "be398070eaf8dd16", "2027-02-28": "2758332aa0c4566b",
+		"2028-02-29": "2f437eff5c02b700",
 	}
 	for d in pinned:
 		var L := DailyGenerator.build(d)

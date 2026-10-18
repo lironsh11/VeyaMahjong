@@ -1,7 +1,22 @@
 {
   "events": {
-    "tap": "sfx/tap.wav",
-    "select": "sfx/select.wav",
+    "tap": [
+      "sfx/tap_1.wav",
+      "sfx/tap_2.wav",
+      "sfx/tap_3.wav",
+      "sfx/tap_4.wav"
+    ],
+    "select": [
+      "sfx/select_1.wav",
+      "sfx/select_2.wav",
+      "sfx/select_3.wav",
+      "sfx/select_4.wav"
+    ],
+    "button": [
+      "sfx/button_1.wav",
+      "sfx/button_2.wav",
+      "sfx/button_3.wav"
+    ],
     "match": "sfx/match.wav",
     "invalid": "sfx/invalid.wav",
     "undo": "sfx/undo.wav",
@@ -11,14 +26,22 @@
     "reward": "sfx/reward.wav",
     "world_unlock": "sfx/world_unlock.wav",
     "victory": "sfx/victory.wav",
-    "button": "sfx/button.wav",
     "soft_pop": "sfx/soft_pop.wav"
   },
-  "loops": {
-    "aurora_garden": "music/aurora_garden_loop.ogg",
-    "pearl_coast": "music/pearl_coast_loop.ogg",
-    "crystal_nocturne": "music/crystal_nocturne_loop.ogg"
+  "music": {
+    "aurora_garden": [
+      "music/aurora_garden_a.ogg",
+      "music/aurora_garden_b.ogg"
+    ],
+    "pearl_coast": [
+      "music/pearl_coast_a.ogg",
+      "music/pearl_coast_b.ogg"
+    ],
+    "crystal_nocturne": [
+      "music/crystal_nocturne_a.ogg",
+      "music/crystal_nocturne_b.ogg"
+    ]
   },
-  "music_loop_seconds": 24,
-  "audio_origins": "Procedurally synthesized originals; no external samples"
+  "key": "D major pentatonic (D E F# A B) for all tonal effects; music: Aurora Garden D major/B minor, Pearl Coast G major/E minor, Crystal Nocturne B minor/D major",
+  "audio_origins": "Original audio synthesized by tools/audio/make_audio.mjs (no samples, no third-party material). Replaces the asset pack audio (kept unchanged in VeyaMahjong_AssetPack_v1/audio)."
 }

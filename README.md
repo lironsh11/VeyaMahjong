@@ -77,6 +77,7 @@ godot --path . --resolution 540x960 -- --tour=C:/tmp/shots --save-dir=user://tou
 | [PROGRESS](docs/PROGRESS.md) | Phase tracker |
 | [DEPENDENCY_LOCK](docs/DEPENDENCY_LOCK.md) | Verified versions and store requirements |
 | [BRANDING](docs/BRANDING.md) | App icon source, generated variants, regeneration |
+| [AUDIO](docs/AUDIO.md) | Sound design, research basis, measurements, regeneration |
 | [STORE_LISTINGS](docs/STORE_LISTINGS/README.md) | Draft listings in 10 languages |
 
 ## Layout

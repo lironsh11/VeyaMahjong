@@ -190,3 +190,26 @@ identical-only matching (incl. Flowers/Seasons), invalid picks, duplicate taps, 
 honesty, generator determinism and batch validity, procedural layout support, shuffle
 invariants and impossible geometry, session save/restore and tamper rejection, rewinding to
 the checkpoint, and all 150 pack levels.
+
+## Screen fit (portrait boards)
+
+Tiles are taller than wide and phones are portrait, so wide layouts (e.g. 10 columns x 4 rows)
+left half the screen empty with 55 px tiles. `BoardFit` (pure, shared by the game, tools and
+tests) computes the tile width a board gets in `REFERENCE_AREA` (508x880 logical px: a 20:9 phone
+minus HUD, toolbar and banner). The level tools and `DailyGenerator` pick the original or the
+transposed layout, whichever gives bigger tiles. A transposed layout is a different puzzle
+(left/right blocking runs along the old rows), so faces are generated and validated for the
+final orientation. Procedural layouts use 5-8 columns x 8-11 rows, and candidates under 66 px are
+rejected. Levels 1-3 keep the supplied orientation because their witness would otherwise become
+invalid; their tiles are already 91-112 px.
+
+| Levels | Min tile (px) | Median tile (px) |
+|---|---|---|
+| 1-3 (pack) | 91 | 112 |
+| 4-50 | 67 | 77 |
+| 51-150 | 67 | 76 |
+
+Portrait boards have shorter rows, hence more free tiles at once, so the measured random-play
+dead-end rate of 51-150 is lower than before (0.20 / 0.47 averages for 51-100 / 101-150). It
+still rises steadily, but the top end may need playtesting.
+

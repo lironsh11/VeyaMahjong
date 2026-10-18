@@ -14,3 +14,4 @@ config/secrets*.json
 android/build/
 native/levelplay/android/build/
 native/levelplay/android/.gradle/
+tools/audio/out/

@@ -68,11 +68,43 @@ func test_levels_4_50_keep_pack_shapes() -> void:
 		sources[src] = true
 		var a := LevelDefinition.from_dict(d).positions()
 		var b := LevelDefinition.from_dict(pack[src - 1]).positions()
+		var bt := BoardFit.transposed(b)
 		a.sort()
 		b.sort()
-		check(a == b, "level %d has the exact geometry of pack level %d" % [d.id, src])
+		bt.sort()
+		check(a == b or a == bt, "level %d has the geometry of pack level %d (possibly turned to portrait)" % [d.id, src])
 		check_eq(str(d.world), "aurora_garden")
 	check_eq(sources.size(), 47, "every pack shape 4-50 used exactly once")
+
+
+func test_boards_fill_a_portrait_screen() -> void:
+	# Owner request: boards must use a phone screen well - portrait, with big tiles.
+	# Every level is in its best orientation and generated levels reach >= 66 px tiles on
+	# BoardFit.REFERENCE_AREA (pack levels 1-3 are small and already at the 112 px cap).
+	var merged := _merged()
+	var worst := 999.0
+	for d in merged:
+		var pos := LevelDefinition.from_dict(d).positions()
+		var fit := BoardFit.fit_tile_width(BoardGeometry.from_positions(pos))
+		var best := BoardFit.fit_tile_width(BoardGeometry.from_positions(BoardFit.best_orientation(pos)))
+		# Levels 1-3 are the supplied pack boards: turning them would invalidate their verified
+		# witness, and their tiles are already large (>= 91 px), so only the size check applies.
+		if int(d.id) > 3:
+			check(fit >= best - 0.01, "level %d not in its best orientation (%.0f vs %.0f px)" % [d.id, fit, best])
+		check(fit >= 66.0, "level %d tiles only %.0f px" % [d.id, fit])
+		worst = minf(worst, fit)
+	check(worst >= 66.0, "smallest tile %.0f px" % worst)
+
+
+func test_daily_boards_fill_a_portrait_screen() -> void:
+	var start := Time.get_unix_time_from_datetime_string("2026-10-01T12:00:00")
+	for day in 30:
+		var L := DailyGenerator.build(Time.get_date_string_from_unix_time(start + day * 86400))
+		var pos := L.positions()
+		var fit := BoardFit.fit_tile_width(BoardGeometry.from_positions(pos))
+		var best := BoardFit.fit_tile_width(BoardGeometry.from_positions(BoardFit.best_orientation(pos)))
+		check(fit >= best - 0.01, "daily %s not in its best orientation" % L.key)
+		check(fit >= 60.0, "daily %s tiles only %.0f px" % [L.key, fit])
 
 
 func _mirror_rate(L: LevelDefinition) -> float:

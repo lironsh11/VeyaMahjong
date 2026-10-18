@@ -15,12 +15,12 @@ signal tile_tapped(index: int)
 
 ## Fractions of the sprite size (pack tiles are 128x164 / 256x328 with padding + shadow).
 const BODY := Rect2(0.04, 0.025, 0.915, 0.905)
-const STEP_X := 0.915
-const STEP_Y := 0.885
-const LAYER_DX := -0.07
-const LAYER_DY := -0.055
-const ASPECT := 164.0 / 128.0
-const MAX_TILE_W := 112.0
+const STEP_X := BoardFit.STEP_X
+const STEP_Y := BoardFit.STEP_Y
+const LAYER_DX := BoardFit.LAYER_DX
+const LAYER_DY := BoardFit.LAYER_DY
+const ASPECT := BoardFit.ASPECT
+const MAX_TILE_W := BoardFit.MAX_TILE_W
 const LARGE_TILE_MIN_W := 66.0
 const TAP_SLOP := 14.0
 const HIT_GROW := 0.10
@@ -96,10 +96,10 @@ func _relayout() -> void:
 	if state == null or tiles.is_empty() or size.x <= 0.0:
 		return
 	var geo := state.geo
-	var w_units := (geo.max_gx - geo.min_gx) / 2.0 * STEP_X + 1.0 + geo.max_z * absf(LAYER_DX)
-	var h_units := ((geo.max_gy - geo.min_gy) / 2.0 * STEP_Y + 1.0 + geo.max_z * absf(LAYER_DY)) * ASPECT
-	var fit := minf(size.x / w_units, size.y / h_units)
-	tile_w = minf(fit, MAX_TILE_W)
+	var units := BoardFit.board_units(geo)
+	var w_units := units.x
+	var h_units := units.y
+	tile_w = BoardFit.fit_tile_width(geo, size)
 	_can_pan = false
 	if large_tiles and tile_w < LARGE_TILE_MIN_W:
 		tile_w = LARGE_TILE_MIN_W

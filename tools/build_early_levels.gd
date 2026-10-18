@@ -14,7 +14,7 @@ extends SceneTree
 ## the start of the generated levels 51-150, and the 47 boards are then ordered by measured
 ## difficulty. Deterministic: re-running reproduces the same file.
 
-const BUILD_ID := "levels-4-50-v2"  ## v2: identical-tiles-only rule
+const BUILD_ID := "levels-4-50-v3"  ## v3: pack shapes oriented to fill a portrait screen
 const OUT_PATH := "res://data/levels/levels_004_050_regenerated.json"
 const REPORT_PATH := "res://docs/reports/levels_004_050.md"
 const FIRST_ID := 4
@@ -41,7 +41,8 @@ func _initialize() -> void:
 	var invalid := 0
 	for src in range(FIRST_ID, LAST_ID + 1):
 		var P := LevelDefinition.from_dict(pack[src - 1])
-		var positions := P.positions()
+		# Same pack shape, turned to whichever orientation gives bigger tiles on a portrait phone.
+		var positions := BoardFit.best_orientation(P.positions())
 		var opts: Array = []
 		for v in variants:
 			# Mix pairing styles: far-apart partners (harder) through nearer partners (gentler),

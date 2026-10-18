@@ -97,7 +97,7 @@ func _after_match(a: int, b: int) -> void:
 	view.play_match(a, b)
 	combo += 1
 	# Gentle rising "harmonics" for consecutive matches; no timing pressure involved.
-	AudioService.play("match", 1.0 + minf(combo - 1, 6) * 0.025)
+	AudioService.play_match(combo)
 	AccessibilityService.haptic("match")
 	if mode != "tutorial":
 		DailyService.record_match(session.state.faces[a])

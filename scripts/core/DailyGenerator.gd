@@ -7,7 +7,7 @@ extends RefCounted
 ## were already generated: changing the algorithm requires bumping VERSION, and saved
 ## completions are keyed by date, not by board contents.
 
-const VERSION := "daily-2"  ## daily-2: identical-tiles-only pairs (owner rule, 2026-10-18)
+const VERSION := "daily-3"  ## daily-3: portrait orientation (daily-2: identical-tiles-only pairs)
 const LAYOUTS_PATH := "res://data/levels/layouts_50.json"
 const WORLDS := ["aurora_garden", "pearl_coast", "crystal_nocturne"]
 
@@ -71,6 +71,7 @@ static func build(date: String) -> LevelDefinition:
 			positions = LayoutGenerator.generate(rng, rng.rand_int(56, 96))
 		if positions.size() < 16:
 			continue
+		positions = BoardFit.best_orientation(positions)
 		var L := gen.generate_level(positions, "%s|%d" % [seed_text, attempt], {
 			"key": "daily:" + date, "world": world, "layout_id": layout_id, "difficulty_band": "daily",
 		})
