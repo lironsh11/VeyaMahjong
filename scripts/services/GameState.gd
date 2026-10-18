@@ -8,6 +8,7 @@ signal settings_changed(key: String)
 signal progress_changed
 signal data_reset
 
+const SETTINGS_REV := 1  ## bump with a one-time step in migrate()
 const DEFAULT_SETTINGS := {
 	"locale": "auto",
 	"music_volume": 0.7,
@@ -37,6 +38,7 @@ func _ready() -> void:
 static func defaults() -> Dictionary:
 	return {
 		"schema_version": 1,
+		"settings_rev": SETTINGS_REV,
 		"created_unix": int(Time.get_unix_time_from_system()),
 		"tutorial_done": false,
 		"first_open_logged": false,
@@ -77,6 +79,13 @@ static func migrate(payload: Dictionary) -> Dictionary:
 			prog.completed = as_dict
 		v = 1
 	payload["schema_version"] = v
+	# One-time settings revisions (no schema change: settings are free-form).
+	var settings: Variant = payload.get("settings")
+	if int(payload.get("settings_rev", 0)) < 1 and typeof(settings) == TYPE_DICTIONARY:
+		# Rev 1: "Dim Blocked Tiles" became opt-in. Every earlier save stored the old default
+		# (on), so turn it off once; a player who re-enables it afterwards keeps it.
+		settings["highlight_free"] = false
+	payload["settings_rev"] = SETTINGS_REV
 	_deep_fill(payload, defaults())
 	return payload
 

@@ -3,7 +3,8 @@
 ## Unreleased
 
 - Blocked tiles are no longer dimmed by default (it gave away which tiles are free). "Dim Blocked
-  Tiles" stays in Settings as an opt-in assist; existing saves keep their stored choice.
+  Tiles" stays in Settings as an opt-in assist. Existing saves are switched off once (settings
+  rev 1, `GameState.migrate`); a player who turns it back on keeps it.
 - Graphics refresh (LiShi v2 pack, graphics only): new tiles in four themes, state overlays as
   separate nodes, buttons/panels/tabs/chips/switches/progress bars from text-free sprites with
   live localized text, new icons, level nodes, backgrounds (540x960 and pre-blurred boards for

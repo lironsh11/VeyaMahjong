@@ -66,6 +66,19 @@ func test_migration_from_v0() -> void:
 	check(m.has("daily") and m.daily.has("completed"), "new sections added")
 
 
+func test_dim_blocked_tiles_turned_off_once_in_old_saves() -> void:
+	# Saves made before settings rev 1 stored "highlight_free": true (the old default).
+	var old := {"schema_version": 1, "settings": {"highlight_free": true, "music_on": false}}
+	var m := GameState.migrate(old)
+	check_eq(m.settings.highlight_free, false, "old default switched off")
+	check_eq(m.settings.music_on, false, "other settings kept")
+	check_eq(int(m.settings_rev), GameState.SETTINGS_REV)
+	# A player who turns it back on keeps it on later loads.
+	m.settings.highlight_free = true
+	check_eq(GameState.migrate(m).settings.highlight_free, true, "explicit choice respected")
+	check_eq(GameState.defaults().settings.highlight_free, false, "new saves start with it off")
+
+
 func test_full_state_persists_through_reload() -> void:
 	_reset()
 	ProgressionService.complete_level(1, {"moves": 8})
