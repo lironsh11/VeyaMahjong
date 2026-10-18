@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="328" viewBox="0 0 256 328">
+ <defs>
+ <linearGradient id="ivory" x1="0" y1="0" x2="0.5" y2="1"><stop stop-color="#FFFDF7"/><stop offset=".69" stop-color="#FFF5E6"/><stop offset="1" stop-color="#F3DEC5"/></linearGradient>
+ <linearGradient id="tileSide" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#F8DEB8"/><stop offset="1" stop-color="#D8B390"/></linearGradient>
+ <linearGradient id="buttonGreen" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#91E996"/><stop offset=".47" stop-color="#37BC81"/><stop offset="1" stop-color="#198966"/></linearGradient>
+ <linearGradient id="buttonBlue" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#9DE8FB"/><stop offset=".42" stop-color="#4BA8E9"/><stop offset="1" stop-color="#2478C1"/></linearGradient>
+ <linearGradient id="buttonViolet" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#CCB2FF"/><stop offset=".5" stop-color="#9565E3"/><stop offset="1" stop-color="#6339C4"/></linearGradient>
+ <linearGradient id="buttonGold" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFE7A1"/><stop offset=".48" stop-color="#FBC351"/><stop offset="1" stop-color="#D98D28"/></linearGradient>
+ <linearGradient id="buttonRose" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFDFEB"/><stop offset=".5" stop-color="#F69CBC"/><stop offset="1" stop-color="#DC6C9B"/></linearGradient>
+ <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFFDF6"/><stop offset="1" stop-color="#FBE8CB"/></linearGradient>
+ <linearGradient id="gem" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#EEC9FF"/><stop offset=".43" stop-color="#A75DF4"/><stop offset="1" stop-color="#6243C3"/></linearGradient>
+ <radialGradient id="glow"><stop stop-color="#FFF7A9" stop-opacity="1"/><stop offset=".45" stop-color="#FFD572" stop-opacity=".43"/><stop offset="1" stop-color="#FFEDAF" stop-opacity="0"/></radialGradient>
+ <filter id="shadow" x="-35%" y="-35%" width="170%" height="190%"><feGaussianBlur stdDeviation="5"/></filter>
+ <linearGradient id="face" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFFEF7"/><stop offset="1" stop-color="#FFEED7"/></linearGradient></defs><rect x="22" y="24" width="214" height="300" rx="25" fill="#17293E" opacity=".16"/>
+ <rect x="14" y="11" width="228" height="302" rx="29" fill="#E4C3A3"/>
+ <rect x="15" y="9" width="226" height="292" rx="27" fill="url(#face)" stroke="#E4C3A3" stroke-width="5"/>
+ <path d="M45 33 Q128 20 210 33" stroke="#FFFFFF" stroke-width="5" opacity=".75" fill="none"/>
+ <rect x="58" y="102" width="140" height="142" rx="16" fill="none" stroke="#336FAB" stroke-width="13"/><rect x="73" y="117" width="110" height="112" rx="7" fill="none" stroke="#268C69" stroke-width="4"/></svg>

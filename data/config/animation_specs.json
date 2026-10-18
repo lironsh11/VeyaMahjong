@@ -1,0 +1,24 @@
+{
+  "tap_duration_ms": 90,
+  "match_duration_ms": 220,
+  "win_animation_max_ms": 1200,
+  "animations": {
+    "match_sparkle": {
+      "frames": 12,
+      "fps": 20
+    },
+    "petal_pop": {
+      "frames": 12,
+      "fps": 20
+    },
+    "ripple": {
+      "frames": 12,
+      "fps": 20
+    },
+    "gold_twinkle": {
+      "frames": 12,
+      "fps": 20
+    }
+  },
+  "reduced_motion": "skip or shorten particles, preserve game state transitions"
+}

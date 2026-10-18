@@ -1,0 +1,24 @@
+{
+  "events": {
+    "tap": "sfx/tap.wav",
+    "select": "sfx/select.wav",
+    "match": "sfx/match.wav",
+    "invalid": "sfx/invalid.wav",
+    "undo": "sfx/undo.wav",
+    "hint": "sfx/hint.wav",
+    "shuffle": "sfx/shuffle.wav",
+    "coin": "sfx/coin.wav",
+    "reward": "sfx/reward.wav",
+    "world_unlock": "sfx/world_unlock.wav",
+    "victory": "sfx/victory.wav",
+    "button": "sfx/button.wav",
+    "soft_pop": "sfx/soft_pop.wav"
+  },
+  "loops": {
+    "aurora_garden": "music/aurora_garden_loop.ogg",
+    "pearl_coast": "music/pearl_coast_loop.ogg",
+    "crystal_nocturne": "music/crystal_nocturne_loop.ogg"
+  },
+  "music_loop_seconds": 24,
+  "audio_origins": "Procedurally synthesized originals; no external samples"
+}

@@ -1,0 +1,9 @@
+{
+  "frame_width": 128,
+  "frame_height": 128,
+  "columns": 6,
+  "rows": 2,
+  "count": 12,
+  "fps": 20,
+  "loop": false
+}

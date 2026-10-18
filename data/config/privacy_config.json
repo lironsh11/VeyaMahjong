@@ -1,0 +1,8 @@
+{
+  "_comment": "Owner must supply real, published URLs before release. Empty values disable the corresponding Settings entry with a visible reason. Never invent links.",
+  "privacy_policy_url": "",
+  "terms_url": "",
+  "support_url": "",
+  "support_email": "",
+  "data_deletion_url": ""
+}

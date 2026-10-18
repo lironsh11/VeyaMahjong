@@ -1,0 +1,71 @@
+; Engine configuration file.
+; Veya Mahjong - Godot 4.7, Compatibility renderer, portrait-first mobile.
+
+config_version=5
+
+[application]
+
+config/name="Veya Mahjong"
+config/description="Match. Bloom. Relax."
+config/version="0.1.0"
+run/main_scene="res://scenes/boot/Boot.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+run/low_processor_mode=true
+boot_splash/bg_color=Color(1, 0.972549, 0.92549, 1)
+boot_splash/image="res://assets/veya/branding/veya_logo_stacked_dark.png"
+boot_splash/fullsize=false
+boot_splash/use_filter=true
+config/icon="res://assets/veya/branding/app_icon_master_192.png"
+config/quit_on_go_back=false
+
+[autoload]
+
+FeatureFlags="*res://scripts/services/FeatureFlags.gd"
+SaveService="*res://scripts/services/SaveService.gd"
+GameState="*res://scripts/services/GameState.gd"
+ContentService="*res://scripts/services/ContentService.gd"
+LocalizationService="*res://scripts/services/LocalizationService.gd"
+UITheme="*res://scripts/services/UITheme.gd"
+AccessibilityService="*res://scripts/services/AccessibilityService.gd"
+AudioService="*res://scripts/services/AudioService.gd"
+Jobs="*res://scripts/services/Jobs.gd"
+AnalyticsService="*res://scripts/services/AnalyticsService.gd"
+PrivacyService="*res://scripts/services/PrivacyService.gd"
+IAPService="*res://scripts/services/IAPService.gd"
+AdsService="*res://scripts/services/AdsService.gd"
+ProgressionService="*res://scripts/services/ProgressionService.gd"
+DailyService="*res://scripts/services/DailyService.gd"
+Router="*res://scripts/services/Router.gd"
+
+[display]
+
+window/size/viewport_width=540
+window/size/viewport_height=960
+window/size/window_width_override=432
+window/size/window_height_override=864
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[gui]
+
+common/drop_mouse_on_gui_input_disabled=true
+theme/default_theme_scale=1.0
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=false
+pointing/emulate_mouse_from_touch=true
+
+[internationalization]
+
+locale/include_text_server_data=true
+locale/fallback="en"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=3
+textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_clear_color=Color(1, 0.972549, 0.92549, 1)

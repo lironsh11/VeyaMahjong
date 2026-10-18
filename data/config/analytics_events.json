@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "_comment": "Allowed events and parameter types. Unknown events/params are rejected. No personal data, no free text.",
+  "events": {
+    "first_open": {},
+    "tutorial_started": {},
+    "tutorial_completed": {"skipped": "bool"},
+    "level_started": {"level": "int", "world": "str", "resumed": "bool"},
+    "level_completed": {"level": "int", "moves": "int", "hints": "int", "undos": "int", "shuffles": "int", "first_time": "bool"},
+    "level_abandoned": {"level": "int", "progress_pct": "int"},
+    "level_rescued": {"level": "int", "method": "str"},
+    "hint_used": {"level": "int", "safe": "bool"},
+    "undo_used": {"level": "int"},
+    "shuffle_used": {"level": "int", "ok": "bool"},
+    "no_moves_encountered": {"level": "int", "remaining": "int"},
+    "daily_started": {"date": "str"},
+    "daily_completed": {"date": "str", "first_time": "bool"},
+    "bloom_item_unlocked": {"item": "str", "lights": "int"},
+    "cosmetic_equipped": {"theme": "str"},
+    "rewarded_ad_offered": {"placement": "str"},
+    "rewarded_ad_completed": {"placement": "str"},
+    "iap_attempted": {"product": "str"},
+    "iap_completed": {"product": "str"},
+    "iap_failed": {"product": "str", "reason": "str"},
+    "error_nonfatal": {"code": "str"}
+  }
+}

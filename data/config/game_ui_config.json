@@ -1,0 +1,61 @@
+{
+  "title": "Veya Mahjong",
+  "genre": "Mahjong Solitaire",
+  "default_orientation": "portrait",
+  "rendering": {
+    "engine": "Godot 4.x",
+    "recommended_renderer": "Compatibility",
+    "target_fps": 60,
+    "low_end_target_fps": 30,
+    "original_background_resolution": [
+      1080,
+      1920
+    ],
+    "low_end_background_resolution": [
+      540,
+      960
+    ],
+    "tile_size_source": [
+      256,
+      328
+    ],
+    "tile_size_low": [
+      128,
+      164
+    ],
+    "pixel_filter": "linear",
+    "use_runtime_3d": false,
+    "particle_budget": "small",
+    "prefer_atlases": true
+  },
+  "gameplay": {
+    "timer_required": false,
+    "offline_first": true,
+    "optional_undo": true,
+    "hint_available": true,
+    "shuffle_requires_solvable_result": true,
+    "allow_resume": true,
+    "bonus_tile_matching": "flowers match any flower; seasons match any season"
+  },
+  "economy": {
+    "mandatory_ads": false,
+    "lives_system": false,
+    "pay_to_unblock": false,
+    "currency_costs_not_defined": true
+  },
+  "design": {
+    "palette": {
+      "violet": "#765AC7",
+      "blue": "#379DD8",
+      "teal": "#49BDB7",
+      "rose": "#F4A3C7",
+      "gold": "#F4C568",
+      "navy": "#153D56",
+      "ivory": "#FFF8EC",
+      "green": "#20A878",
+      "lightgreen": "#75DA92",
+      "cream": "#FFF0D4"
+    },
+    "art_direction": "Lightweight crisp 2D, bright matte porcelain tiles, subtle bevel/shadow, calm pastel backgrounds"
+  }
+}

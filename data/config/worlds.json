@@ -1,0 +1,41 @@
+[
+  {
+    "id": "aurora_garden",
+    "name": "Aurora Garden",
+    "chapter": 1,
+    "levels": [
+      1,
+      50
+    ],
+    "bg": "backgrounds/worlds/aurora_garden_1080x1920.png",
+    "map": "backgrounds/maps/aurora_garden_map_1080x1920.png",
+    "music": "audio/music/aurora_garden_loop.ogg",
+    "default_tile_theme": "classic"
+  },
+  {
+    "id": "pearl_coast",
+    "name": "Pearl Coast",
+    "chapter": 2,
+    "levels": [
+      51,
+      100
+    ],
+    "bg": "backgrounds/worlds/pearl_coast_1080x1920.png",
+    "map": "backgrounds/maps/pearl_coast_map_1080x1920.png",
+    "music": "audio/music/pearl_coast_loop.ogg",
+    "default_tile_theme": "ocean"
+  },
+  {
+    "id": "crystal_nocturne",
+    "name": "Crystal Nocturne",
+    "chapter": 3,
+    "levels": [
+      101,
+      150
+    ],
+    "bg": "backgrounds/worlds/crystal_nocturne_1080x1920.png",
+    "map": "backgrounds/maps/crystal_nocturne_map_1080x1920.png",
+    "music": "audio/music/crystal_nocturne_loop.ogg",
+    "default_tile_theme": "nocturne"
+  }
+]

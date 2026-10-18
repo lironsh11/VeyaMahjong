@@ -1,0 +1,59 @@
+{
+  "Splash": [
+    "branding/veya_logo_stacked_dark.png",
+    "backgrounds/worlds/aurora_garden_1080x1920.png",
+    "ui/buttons/green_large_normal.png"
+  ],
+  "Home": [
+    "branding/veya_logo_stacked_dark.png",
+    "ui/components/nav_bar.png",
+    "ui/components/hud_pill.png",
+    "ui/rewards/coin.png",
+    "ui/rewards/gem.png"
+  ],
+  "Gameplay": [
+    "tiles/{theme}/png_256/{tile_id}.png",
+    "backgrounds/gameplay/{world}_soft_1080x1920.png",
+    "ui/icons/white/hint.png",
+    "ui/icons/white/shuffle.png",
+    "ui/icons/white/undo.png"
+  ],
+  "WorldMap": [
+    "backgrounds/maps/{world}_map_1080x1920.png",
+    "ui/components/round_green.png",
+    "ui/rewards/star.png"
+  ],
+  "Bloom": [
+    "backgrounds/worlds/{world}_1080x1920.png",
+    "decorations/*_256.png",
+    "ui/rewards/light.png"
+  ],
+  "Win": [
+    "ui/components/panel_cream.png",
+    "ui/rewards/star.png",
+    "ui/rewards/coin.png",
+    "ui/rewards/gem.png",
+    "ui/buttons/green_large_normal.png"
+  ],
+  "Daily": [
+    "ui/components/card_cream.png",
+    "ui/components/bar_fill_green.png",
+    "ui/icons/navy/daily.png"
+  ],
+  "Collections": [
+    "tiles/{theme}/png_256/{tile_id}.png",
+    "ui/components/card_cream.png",
+    "ui/icons/navy/collection.png"
+  ],
+  "Settings": [
+    "ui/components/toggle_on.png",
+    "ui/components/toggle_off.png",
+    "ui/icons/navy/settings.png"
+  ],
+  "Shop": [
+    "ui/components/panel_cream.png",
+    "ui/rewards/coin.png",
+    "ui/rewards/gem.png",
+    "ui/buttons/green_large_normal.png"
+  ]
+}

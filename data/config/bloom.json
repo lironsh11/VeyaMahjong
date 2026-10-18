@@ -1,0 +1,291 @@
+{
+  "_comment": "Veya Bloom discoveries. One discovery unlocks every lights_per_discovery Veya Lights, in this order across worlds. Positions are normalized (0..1) on the 1080x1920 world background (anchor = sprite bottom-centre) and kept between y 0.40 and 0.83 so they stay clear of the header card and bottom bar on 16:9-20:9 phones.",
+  "lights_per_discovery": 5,
+  "worlds": [
+    {
+      "world": "aurora_garden",
+      "discoveries": [
+        {
+          "id": "ag_stone_path",
+          "sprite": "stone_path",
+          "pos": [
+            0.56,
+            0.66
+          ],
+          "size": 0.2
+        },
+        {
+          "id": "ag_flower_bed",
+          "sprite": "flower_bed",
+          "pos": [
+            0.17,
+            0.62
+          ],
+          "size": 0.2
+        },
+        {
+          "id": "ag_sakura_tree",
+          "sprite": "sakura_tree",
+          "pos": [
+            0.64,
+            0.52
+          ],
+          "size": 0.18
+        },
+        {
+          "id": "ag_pond",
+          "sprite": "pond",
+          "pos": [
+            0.78,
+            0.81
+          ],
+          "size": 0.22
+        },
+        {
+          "id": "ag_stone_lantern",
+          "sprite": "stone_lantern",
+          "pos": [
+            0.42,
+            0.6
+          ],
+          "size": 0.1
+        },
+        {
+          "id": "ag_butterfly",
+          "sprite": "butterfly",
+          "pos": [
+            0.3,
+            0.4
+          ],
+          "size": 0.09
+        },
+        {
+          "id": "ag_blossom_pink",
+          "sprite": "blossom_pink",
+          "pos": [
+            0.12,
+            0.82
+          ],
+          "size": 0.16
+        },
+        {
+          "id": "ag_wooden_fence",
+          "sprite": "wooden_fence",
+          "pos": [
+            0.3,
+            0.58
+          ],
+          "size": 0.2
+        },
+        {
+          "id": "ag_bridge",
+          "sprite": "bridge",
+          "pos": [
+            0.86,
+            0.68
+          ],
+          "size": 0.18
+        },
+        {
+          "id": "ag_pagoda",
+          "sprite": "pagoda",
+          "pos": [
+            0.18,
+            0.5
+          ],
+          "size": 0.2
+        }
+      ]
+    },
+    {
+      "world": "pearl_coast",
+      "discoveries": [
+        {
+          "id": "pc_shell",
+          "sprite": "shell",
+          "pos": [
+            0.2,
+            0.8
+          ],
+          "size": 0.11
+        },
+        {
+          "id": "pc_rocks",
+          "sprite": "rocks",
+          "pos": [
+            0.84,
+            0.66
+          ],
+          "size": 0.16
+        },
+        {
+          "id": "pc_coral",
+          "sprite": "coral",
+          "pos": [
+            0.66,
+            0.82
+          ],
+          "size": 0.16
+        },
+        {
+          "id": "pc_pearl",
+          "sprite": "pearl",
+          "pos": [
+            0.4,
+            0.82
+          ],
+          "size": 0.09
+        },
+        {
+          "id": "pc_grass_patch",
+          "sprite": "grass_patch",
+          "pos": [
+            0.16,
+            0.64
+          ],
+          "size": 0.16
+        },
+        {
+          "id": "pc_shrub",
+          "sprite": "shrub",
+          "pos": [
+            0.92,
+            0.56
+          ],
+          "size": 0.13
+        },
+        {
+          "id": "pc_leaf_tree",
+          "sprite": "leaf_tree",
+          "pos": [
+            0.1,
+            0.56
+          ],
+          "size": 0.22
+        },
+        {
+          "id": "pc_lotus",
+          "sprite": "lotus",
+          "pos": [
+            0.52,
+            0.74
+          ],
+          "size": 0.13
+        },
+        {
+          "id": "pc_blossom_white",
+          "sprite": "blossom_white",
+          "pos": [
+            0.86,
+            0.83
+          ],
+          "size": 0.15
+        },
+        {
+          "id": "pc_hedge",
+          "sprite": "hedge",
+          "pos": [
+            0.32,
+            0.62
+          ],
+          "size": 0.16
+        }
+      ]
+    },
+    {
+      "world": "crystal_nocturne",
+      "discoveries": [
+        {
+          "id": "cn_lantern",
+          "sprite": "lantern",
+          "pos": [
+            0.5,
+            0.6
+          ],
+          "size": 0.11
+        },
+        {
+          "id": "cn_crystal_cluster",
+          "sprite": "crystal_cluster",
+          "pos": [
+            0.78,
+            0.82
+          ],
+          "size": 0.18
+        },
+        {
+          "id": "cn_pond",
+          "sprite": "pond",
+          "pos": [
+            0.52,
+            0.82
+          ],
+          "size": 0.22
+        },
+        {
+          "id": "cn_blossom_blue",
+          "sprite": "blossom_blue",
+          "pos": [
+            0.14,
+            0.83
+          ],
+          "size": 0.16
+        },
+        {
+          "id": "cn_maple_tree",
+          "sprite": "maple_tree",
+          "pos": [
+            0.88,
+            0.7
+          ],
+          "size": 0.22
+        },
+        {
+          "id": "cn_rocks",
+          "sprite": "rocks",
+          "pos": [
+            0.32,
+            0.8
+          ],
+          "size": 0.14
+        },
+        {
+          "id": "cn_cherry_petals",
+          "sprite": "cherry_petals",
+          "pos": [
+            0.62,
+            0.42
+          ],
+          "size": 0.13
+        },
+        {
+          "id": "cn_butterfly",
+          "sprite": "butterfly",
+          "pos": [
+            0.26,
+            0.44
+          ],
+          "size": 0.09
+        },
+        {
+          "id": "cn_grass_patch",
+          "sprite": "grass_patch",
+          "pos": [
+            0.68,
+            0.66
+          ],
+          "size": 0.14
+        },
+        {
+          "id": "cn_pagoda_night",
+          "sprite": "pagoda_night",
+          "pos": [
+            0.18,
+            0.62
+          ],
+          "size": 0.2
+        }
+      ]
+    }
+  ]
+}

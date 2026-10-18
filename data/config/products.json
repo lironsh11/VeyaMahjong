@@ -1,0 +1,7 @@
+{
+  "_comment": "Non-consumable products only. Platform IDs are intentionally EMPTY: the owner must create the products in Play Console / App Store Connect and fill the IDs. Empty IDs keep the product hidden. Prices are NEVER stored here; they come from the store at runtime.",
+  "products": [
+    {"id": "remove_ads", "type": "non_consumable", "title_key": "product_remove_ads", "desc_key": "product_remove_ads_desc", "google_play_id": "", "app_store_id": "", "grants": ["remove_ads"]},
+    {"id": "theme_bundle", "type": "non_consumable", "title_key": "product_theme_bundle", "desc_key": "product_theme_bundle_desc", "google_play_id": "", "app_store_id": "", "grants": ["theme_bundle"]}
+  ]
+}

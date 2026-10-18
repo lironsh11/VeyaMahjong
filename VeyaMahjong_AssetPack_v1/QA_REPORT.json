@@ -1,0 +1,25 @@
+{
+  "asset_count": 1034,
+  "by_extension": {
+    ".md": 6,
+    ".json": 25,
+    ".png": 643,
+    ".svg": 342,
+    ".py": 1,
+    ".ogg": 3,
+    ".wav": 13,
+    ".ico": 1
+  },
+  "unique_tile_faces": 42,
+  "tile_themes": [
+    "classic",
+    "sakura",
+    "ocean",
+    "nocturne"
+  ],
+  "levels_verified": 150,
+  "preview_screens": 10,
+  "errors": [],
+  "ready_for_godot_import": true,
+  "disclaimer": "Art package validated; not an executable game or certified store submission."
+}

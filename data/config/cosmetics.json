@@ -1,0 +1,10 @@
+{
+  "_comment": "Tile themes. Unlocks are derived from earned progress (never a spendable balance) and/or platform-verified entitlements, so they cannot be lost or duplicated.",
+  "default_theme": "classic",
+  "themes": [
+    {"id": "classic", "name_key": "theme_classic", "unlock": {"type": "default"}},
+    {"id": "sakura", "name_key": "theme_sakura", "unlock": {"type": "lights", "value": 10}, "entitlement": "theme_bundle"},
+    {"id": "ocean", "name_key": "theme_ocean", "unlock": {"type": "level", "value": 50}, "entitlement": "theme_bundle"},
+    {"id": "nocturne", "name_key": "theme_nocturne", "unlock": {"type": "level", "value": 100}, "entitlement": "theme_bundle"}
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "_comment": "Optional daily tasks. Three are chosen deterministically per date. Completing all three grants one Veya Light for that date (claimable once). Missed days simply pass; nothing resets or is lost.",
+  "per_day": 3,
+  "tasks": [
+    {"id": "play_three_levels", "label_key": "task_play_levels", "stat": "boards_completed", "target": 3},
+    {"id": "finish_without_hints", "label_key": "task_no_hints", "stat": "boards_no_hints", "target": 1},
+    {"id": "clear_flower_tiles", "label_key": "task_clear_flowers", "stat": "flowers_cleared", "target": 4},
+    {"id": "clear_season_tiles", "label_key": "task_clear_seasons", "stat": "seasons_cleared", "target": 4},
+    {"id": "make_matches", "label_key": "task_make_matches", "stat": "matches", "target": 30},
+    {"id": "play_daily", "label_key": "task_play_daily", "stat": "daily_completed", "target": 1}
+  ]
+}

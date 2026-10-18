@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="330" viewBox="0 0 640 330">
+ <defs>
+ <linearGradient id="ivory" x1="0" y1="0" x2="0.5" y2="1"><stop stop-color="#FFFDF7"/><stop offset=".69" stop-color="#FFF5E6"/><stop offset="1" stop-color="#F3DEC5"/></linearGradient>
+ <linearGradient id="tileSide" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#F8DEB8"/><stop offset="1" stop-color="#D8B390"/></linearGradient>
+ <linearGradient id="buttonGreen" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#91E996"/><stop offset=".47" stop-color="#37BC81"/><stop offset="1" stop-color="#198966"/></linearGradient>
+ <linearGradient id="buttonBlue" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#9DE8FB"/><stop offset=".42" stop-color="#4BA8E9"/><stop offset="1" stop-color="#2478C1"/></linearGradient>
+ <linearGradient id="buttonViolet" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#CCB2FF"/><stop offset=".5" stop-color="#9565E3"/><stop offset="1" stop-color="#6339C4"/></linearGradient>
+ <linearGradient id="buttonGold" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFE7A1"/><stop offset=".48" stop-color="#FBC351"/><stop offset="1" stop-color="#D98D28"/></linearGradient>
+ <linearGradient id="buttonRose" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFDFEB"/><stop offset=".5" stop-color="#F69CBC"/><stop offset="1" stop-color="#DC6C9B"/></linearGradient>
+ <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFFDF6"/><stop offset="1" stop-color="#FBE8CB"/></linearGradient>
+ <linearGradient id="gem" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#EEC9FF"/><stop offset=".43" stop-color="#A75DF4"/><stop offset="1" stop-color="#6243C3"/></linearGradient>
+ <radialGradient id="glow"><stop stop-color="#FFF7A9" stop-opacity="1"/><stop offset=".45" stop-color="#FFD572" stop-opacity=".43"/><stop offset="1" stop-color="#FFEDAF" stop-opacity="0"/></radialGradient>
+ <filter id="shadow" x="-35%" y="-35%" width="170%" height="190%"><feGaussianBlur stdDeviation="5"/></filter>
+ </defs><g transform="translate(320,162) scale(1.16)">
+ <path d="M-210 70 Q0 -120 230 70 L230 105 Q0 -65 -210 105Z" fill="#C47D57" stroke="#89503A" stroke-width="9"/>
+ <path d="M-212 47 Q0 -122 228 47" fill="none" stroke="#EAB08B" stroke-width="14" stroke-linecap="round"/>
+ <path d="M-215 3 Q0 -166 234 3" fill="none" stroke="#805244" stroke-width="11" stroke-linecap="round"/>
+ <path d="M-215 3 Q0 -166 234 3" fill="none" stroke="#F5C3A0" stroke-width="5"/>
+ <path d="M-210 20 L-210 85 M-128 -60 L-128 12 M-40 -104 L-40 -39 M51 -100 L51 -39 M145 -60 L145 12 M229 20 L229 85" stroke="#81503E" stroke-width="12"/>
+ <path d="M-210 20 L-210 85 M-128 -60 L-128 12 M-40 -104 L-40 -39 M51 -100 L51 -39 M145 -60 L145 12 M229 20 L229 85" stroke="#E5A880" stroke-width="5"/>
+ </g></svg>

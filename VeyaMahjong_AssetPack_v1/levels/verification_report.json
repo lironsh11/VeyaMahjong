@@ -1,0 +1,6 @@
+{
+  "levels_generated": 150,
+  "unverified": [],
+  "verified": 150,
+  "verification_method": "Legal open-side and uncovered-state solution replay; each remaining tile position removed exactly once."
+}

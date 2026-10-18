@@ -1,0 +1,14 @@
+# Godot
+.godot/
+*.import.tmp
+/build/
+/export/
+# Signing material and secrets - never commit
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
+export_credentials.cfg
+.env
+config/secrets*.json
+android/build/

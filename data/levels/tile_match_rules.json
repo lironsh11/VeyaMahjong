@@ -1,0 +1,20 @@
+{
+  "standard_matching": "identical face ids",
+  "bonus_matching": {
+    "flower": [
+      "flower_plum",
+      "flower_orchid",
+      "flower_chrysanthemum",
+      "flower_bamboo_flower"
+    ],
+    "season": [
+      "season_spring",
+      "season_summer",
+      "season_autumn",
+      "season_winter"
+    ]
+  },
+  "free_tile_rule": "No tile at (x,y,z+1), plus at least one of (x-1,y,z) and (x+1,y,z) is empty",
+  "tile_coordinate_system": "positive integer grid x,y,z; layers overlap exactly",
+  "limitations": "A solvable starting arrangement can become unsolvable after arbitrary moves; engine must provide undo/shuffle/rescue"
+}
