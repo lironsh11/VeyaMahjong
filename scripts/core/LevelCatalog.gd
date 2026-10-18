@@ -1,7 +1,8 @@
 class_name LevelCatalog
 extends RefCounted
 ## Single source of truth for the shipped journey:
-##   levels 1-3    : supplied pack levels, unchanged (gentle follow-ups to the tutorial)
+##   levels 1-3    : supplied pack levels (gentle follow-ups to the tutorial), same geometry and
+##                   witness; bonus pairs made identical for the identical-tiles-only rule
 ##   levels 4-50   : the pack's own shapes with re-scattered faces, ordered by measured
 ##                   difficulty (data/levels/levels_004_050_regenerated.json,
 ##                   tools/build_early_levels.gd). The pack placed ~74% of tiles directly
@@ -37,15 +38,39 @@ static func load_merged(errors: PackedStringArray = PackedStringArray()) -> Arra
 	if typeof(pack) != TYPE_ARRAY or (pack as Array).size() != TOTAL:
 		errors.append("pack levels missing or invalid")
 		return []
-	var out: Array = (pack as Array).slice(0, PACK_LEVELS_KEPT)
+	var out: Array = []
+	for d in (pack as Array).slice(0, PACK_LEVELS_KEPT):
+		out.append(identical_pairs(d))
 	var early := _load_range(EARLY_PATH, PACK_LEVELS_KEPT + 1, EARLY_LAST)
 	if early.is_empty():
 		errors.append("re-scattered levels 4-50 missing or invalid; using pack levels 4-50")
-		early = (pack as Array).slice(PACK_LEVELS_KEPT, EARLY_LAST)
+		early = (pack as Array).slice(PACK_LEVELS_KEPT, EARLY_LAST).map(identical_pairs)
 	out.append_array(early)
 	var later := _load_range(GENERATED_PATH, EARLY_LAST + 1, TOTAL)
 	if later.is_empty():
 		errors.append("generated levels 51-150 missing or invalid; using pack levels 51-150")
-		later = (pack as Array).slice(EARLY_LAST, TOTAL)
+		later = (pack as Array).slice(EARLY_LAST, TOTAL).map(identical_pairs)
 	out.append_array(later)
 	return out
+
+
+static func identical_pairs(d: Dictionary) -> Dictionary:
+	## Owner rule: a tile matches only an identical tile. The pack paired DIFFERENT Flowers (and
+	## different Seasons) together; for each such pair in the verified witness, the second tile
+	## takes the first tile's face. Geometry and witness order are unchanged, so the witness stays
+	## legal and the board stays solvable.
+	var out: Dictionary = d.duplicate(true)
+	var by_pos := {}
+	for i in out.tiles.size():
+		var t: Dictionary = out.tiles[i]
+		by_pos["%d,%d,%d" % [int(t.x), int(t.y), int(t.z)]] = i
+	for step in out.get("verified_solution", []):
+		var a: Variant = by_pos.get("%d,%d,%d" % [int(step[0][0]), int(step[0][1]), int(step[0][2])])
+		var b: Variant = by_pos.get("%d,%d,%d" % [int(step[1][0]), int(step[1][1]), int(step[1][2])])
+		if a == null or b == null:
+			continue
+		if out.tiles[b].face != out.tiles[a].face:
+			out.tiles[b].face = out.tiles[a].face
+			out["faces_adjusted_for_identical_rule"] = true
+	return out
+

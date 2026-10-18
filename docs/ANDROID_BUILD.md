@@ -4,11 +4,11 @@
 
 | Step | Result |
 |---|---|
-| Debug APK export (`Android` preset, non-Gradle) | **PASS.** `build/android/VeyaMahjong-debug.apk`, 98 MB (debug engine for arm64-v8a + armeabi-v7a + x86_64), signed with the local Godot debug keystore |
-| Install + run on Android 16 (API 36) x86_64 emulator, 1080×2400 @420 dpi | **PASS.** Tutorial, Home, level 1 played to completion with real taps, hint, blocked-tile feedback, Flower/Season matching, undo, force-stop and resume mid-board |
+| Debug APK export (`Android` preset, Gradle — required for the LevelPlay banner plugin) | **PASS** before the banner. Re-export to pick up the banner. |
+| Install + run on Android 16 (API 36) x86_64 emulator, 1080×2400 @420 dpi | **PASS.** Tutorial, Home, level 1 played to completion with real taps, hint, blocked-tile feedback, undo, force-stop and resume mid-board |
 | Release-size check (`Android Release Size Check` preset, arm64 only, **unsigned**) | **PASS.** 38.1 MB APK download (92 MB uncompressed; the engine `.so` is 71 MB of that) |
-| Gradle build template + AAB (`Android AAB (Gradle)` preset, debug-signed) | **PASS.** `build/android/VeyaMahjong-debug.aab`, 69 MB (debug engine, 2 ABIs) |
-| Manifest | minSdk 24, targetSdk 36, compileSdk 36; permissions: `VIBRATE` only |
+| Gradle build template + AAB (`Android AAB (Gradle)` preset, debug-signed) | **PASS.** `build/android/LiShiMahjong-debug.aab`, 69 MB (debug engine, 2 ABIs) |
+| Manifest | minSdk 24, targetSdk 36, compileSdk 36; the banner presets also request `INTERNET`, `ACCESS_NETWORK_STATE` and `AD_ID` |
 | 16 KB alignment (`zipalign -c -P 16 -v 4`) | **PASS** on the release-size APK |
 | Physical device install | **NOT TESTED** (no physical device was connected) |
 | Release-signed AAB | **BLOCKED.** Needs the owner's upload keystore |
@@ -26,13 +26,13 @@
 godot --headless --path . --import
 ```
 ```bash
-godot --headless --path . --export-debug "Android" build/android/VeyaMahjong-debug.apk
+godot --headless --path . --export-debug "Android" build/android/LiShiMahjong-debug.apk
 ```
 ```bash
-adb install -r build/android/VeyaMahjong-debug.apk
+adb install -r build/android/LiShiMahjong-debug.apk
 ```
 ```bash
-godot --headless --path . --install-android-build-template --export-release "Android AAB (Gradle)" build/android/VeyaMahjong.aab
+godot --headless --path . --install-android-build-template --export-release "Android AAB (Gradle)" build/android/LiShiMahjong.aab
 ```
 
 The last command produces the Play-upload artifact once a release keystore is configured
@@ -43,11 +43,11 @@ The last command produces the Play-upload artifact once a release keystore is co
 
 | Preset | Purpose |
 |---|---|
-| `Android` | Debug APK for QA: arm64-v8a, armeabi-v7a, x86_64 (emulator) |
+| `Android` | Debug APK for QA (Gradle, so the LevelPlay banner is included): arm64-v8a, armeabi-v7a, x86_64 |
 | `Android AAB (Gradle)` | Store build: AAB, arm64-v8a + armeabi-v7a, Gradle (required for v2 plugins such as Play Billing/AdMob) |
 | `Android Release Size Check (unsigned, arm64)` | Measures the release download size; not for distribution |
 
-Application ID: `com.veyamahjong.app` is a **placeholder** that the owner must approve. Once a
+Application ID: `com.lishimahjong.app` is a **placeholder** that the owner must approve. Once a
 release is uploaded to Play, it can never change. Version: name `0.1.0`, code `1`; increment
 `version/code` on every upload.
 

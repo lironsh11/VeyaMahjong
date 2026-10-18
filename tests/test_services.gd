@@ -162,13 +162,14 @@ func test_daily_board_deterministic() -> void:
 
 
 func test_daily_board_fingerprints_pinned() -> void:
-	# Daily boards must never change once released ("daily-1"). Fingerprints recorded
-	# 2026-10-18 from the shipped generator; a mismatch means an algorithm change that
-	# requires bumping DailyGenerator.VERSION instead.
+	# Daily boards must never change silently. Fingerprints recorded 2026-10-18 for "daily-2"
+	# (identical-tiles-only rule). A mismatch means an algorithm change that requires bumping
+	# DailyGenerator.VERSION and re-pinning; completions are keyed by date and survive.
+	check_eq(DailyGenerator.VERSION.get_slice(" ", 0), "daily-2")
 	var pinned := {
-		"2026-10-18": "96c0778287a81efe", "2026-10-19": "c3b167fca4d408cf",
-		"2026-11-03": "08283d2a9d57a207", "2027-02-28": "2f6968041979ea68",
-		"2028-02-29": "33c0aa09b8b584bb",
+		"2026-10-18": "f2c7feb014f9bc43", "2026-10-19": "447aca24610a4145",
+		"2026-11-03": "6bdadd667d37669e", "2027-02-28": "721abd54174f9915",
+		"2028-02-29": "b1d270fb4b93aa60",
 	}
 	for d in pinned:
 		var L := DailyGenerator.build(d)
@@ -345,3 +346,17 @@ func test_analytics_schema_and_consent() -> void:
 	check(AnalyticsService.track("level_started", {"level": 1, "world": "aurora_garden", "resumed": false}))
 	check(not AnalyticsService.collecting(), "nothing collected without flag+consent+provider")
 	check_eq(AnalyticsService.sanitize("Hello World!/<script>"), "helloworldscript")
+
+
+func test_banner_respects_flag_consent_and_remove_ads() -> void:
+	_reset()
+	FeatureFlags.set_override("banner_ads_enabled", false)
+	check(not AdsService.banner_allowed(), "flag off")
+	FeatureFlags.set_override("banner_ads_enabled", true)
+	check(AdsService.banner_allowed(), "banner on before a CMP result, non-personalized")
+	PrivacyService.record_ads_consent("denied")
+	check(not AdsService.banner_allowed(), "declined consent hides the banner")
+	PrivacyService.record_ads_consent("not_required")
+	check(AdsService.banner_allowed())
+	GameState.data.entitlements["remove_ads"] = {"state": "active"}
+	check(not AdsService.banner_allowed(), "Remove Ads hides the banner")

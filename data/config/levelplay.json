@@ -1,0 +1,11 @@
+{
+  "_comment": "LevelPlay app keys and banner ad units. Meta placement IDs live in the LevelPlay dashboard, not in the game.",
+  "android": {
+    "app_key": "28d197415",
+    "banner_ad_unit_id": "ytsl6jimu8h4ocxi"
+  },
+  "ios": {
+    "app_key": "28d19e725",
+    "banner_ad_unit_id": "nbo1oxfo63n8gajg"
+  }
+}

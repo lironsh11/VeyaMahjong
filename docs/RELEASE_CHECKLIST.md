@@ -4,11 +4,12 @@ Nothing below has been submitted, purchased or published. Store submission, acco
 production ad serving and any spending need explicit owner approval.
 
 ## Gate 1 — Product decisions
-- [ ] Approve the application/bundle ID (placeholder `com.veyamahjong.app`; it can't change after the first Play upload).
+- [ ] Approve the application/bundle ID (placeholder `com.lishimahjong.app`; it can't change after the first Play upload).
 - [x] Re-scatter levels 4-50 (pack shapes kept) and rebuild 51-150; all ordered by measured difficulty.
 - [ ] Playtest levels 4-150 (especially ~100-150) with real players; retune the build tools if needed.
 - [ ] Decide on ads (provider, placements) and IAP (Remove Ads, Theme Bundle) for launch, or ship without.
-- [ ] Trademark clearance for "Veya Mahjong".
+- [ ] Trademark clearance for "LiShi Mahjong".
+- [ ] Confirm commercial rights to the new app icon artwork (docs/BRANDING.md).
 
 ## Gate 2 — Legal and links
 - [ ] Publish the privacy policy, terms, support page/email and a data-deletion page; fill `data/config/privacy_config.json` (https only).

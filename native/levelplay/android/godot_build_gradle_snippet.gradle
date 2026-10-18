@@ -1,0 +1,11 @@
+// Applied to the Godot Android gradle template (android/build/build.gradle).
+// Meta FAN SDK 6.22.0 depends on androidx.browser:1.9.0, whose AAR metadata
+// requires Android Gradle Plugin 8.9.1+. Godot 4.7's export template ships
+// AGP 8.6.1. Keep FAN 6.22.0 and pin browser to 1.8.0 so checkAarMetadata
+// succeeds without upgrading the Godot template.
+
+configurations.configureEach {
+    resolutionStrategy {
+        force "androidx.browser:browser:1.8.0"
+    }
+}

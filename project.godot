@@ -1,18 +1,18 @@
 ; Engine configuration file.
-; Veya Mahjong - Godot 4.7, Compatibility renderer, portrait-first mobile.
+; LiShi Mahjong - Godot 4.7, Compatibility renderer, portrait-first mobile.
 
 config_version=5
 
 [application]
 
-config/name="Veya Mahjong"
+config/name="LiShi Mahjong"
 config/description="Match. Bloom. Relax."
 config/version="0.1.0"
 run/main_scene="res://scenes/boot/Boot.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 run/low_processor_mode=true
 boot_splash/bg_color=Color(1, 0.972549, 0.92549, 1)
-boot_splash/image="res://assets/veya/branding/veya_logo_stacked_dark.png"
+boot_splash/image="res://assets/veya/branding/lishi_logo_stacked_dark.png"
 boot_splash/fullsize=false
 boot_splash/use_filter=true
 config/icon="res://assets/veya/branding/app_icon_master_192.png"

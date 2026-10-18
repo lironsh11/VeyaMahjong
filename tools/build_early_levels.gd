@@ -14,12 +14,13 @@ extends SceneTree
 ## the start of the generated levels 51-150, and the 47 boards are then ordered by measured
 ## difficulty. Deterministic: re-running reproduces the same file.
 
-const BUILD_ID := "levels-4-50-v1"
+const BUILD_ID := "levels-4-50-v2"  ## v2: identical-tiles-only rule
 const OUT_PATH := "res://data/levels/levels_004_050_regenerated.json"
 const REPORT_PATH := "res://docs/reports/levels_004_050.md"
 const FIRST_ID := 4
 const LAST_ID := 50
 const PLAYOUTS := 32
+const TARGET_TOP := 45.0  ## where the largest pack shapes of world 1 naturally end
 
 
 func _initialize() -> void:
@@ -30,9 +31,11 @@ func _initialize() -> void:
 			variants = int(a.trim_prefix("--variants="))
 	var t0 := Time.get_ticks_msec()
 	var pack: Array = JSON.parse_string(FileAccess.get_file_as_string(LevelCatalog.PACK_PATH))
-	var later: Array = JSON.parse_string(FileAccess.get_file_as_string(LevelCatalog.GENERATED_PATH))
-	var lo: float = DifficultyAnalyzer.analyze(LevelDefinition.from_dict(pack[2]), PLAYOUTS, 11).score
-	var hi: float = float(later[0].metrics.score)  # level 51 must not be easier than level 50
+	# Level 3 as shipped (bonus pairs made identical), not the raw pack board.
+	var lo: float = DifficultyAnalyzer.analyze(LevelDefinition.from_dict(LevelCatalog.identical_pairs(pack[2])), PLAYOUTS, 11).score
+	# Fixed top target. Levels 51-150 are built AFTER this file and start from its tail, so this
+	# tool must not read their output (that circular dependency made rebuilds drift).
+	var hi: float = TARGET_TOP
 	var gen := BoardGenerator.new()
 	var per_geo: Array = []   # [{source_id, options: [{L, an, v}]}]
 	var invalid := 0

@@ -73,6 +73,18 @@ func test_generator_sample_batch() -> void:
 	check_eq(failures, 0, "all generated boards replay legally (%d boards)" % total)
 
 
+func test_generator_never_mutates_shared_constants() -> void:
+	# Regression: shuffling a view of MahjongRules.FLOWERS made generation alternate between runs.
+	var before := [Array(MahjongRules.FLOWERS), Array(MahjongRules.SEASONS)]
+	var layout := _pack_layout_positions(32)
+	var gen := BoardGenerator.new()
+	var fps: Array = []
+	for k in 4:
+		fps.append(",".join(gen.generate_level(layout, "repeat").faces()))
+	check(fps[0] == fps[1] and fps[1] == fps[2] and fps[2] == fps[3], "identical output on repeated calls")
+	check(Array(MahjongRules.FLOWERS) == before[0] and Array(MahjongRules.SEASONS) == before[1], "constants untouched")
+
+
 func test_procedural_layout_deterministic() -> void:
 	var a := LayoutGenerator.generate(SeededRng.new(42), 64)
 	var b := LayoutGenerator.generate(SeededRng.new(42), 64)
@@ -178,9 +190,10 @@ func test_undo_to_checkpoint() -> void:
 static var _levels_cache: Array = []
 
 func _pack_level(id: int) -> Dictionary:
+	## Pack boards as the game would use them (identical-tiles-only rule).
 	if _levels_cache.is_empty():
 		_levels_cache = JSON.parse_string(FileAccess.get_file_as_string("res://data/levels/levels_001_150_verified.json"))
-	return _levels_cache[id - 1]
+	return LevelCatalog.identical_pairs(_levels_cache[id - 1])
 
 
 func _pack_layout_positions(idx: int) -> Array:

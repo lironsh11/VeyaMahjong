@@ -1,0 +1,55 @@
+plugins {
+    id 'com.android.library' version '8.6.1'
+}
+
+def godotAar = file("${rootDir}/../../../android/build/libs/release/godot-lib.template_release.aar")
+def godotClasses = layout.buildDirectory.file("godot-extract/classes.jar")
+
+tasks.register("extractGodotClasses", Copy) {
+    from(zipTree(godotAar)) {
+        include "classes.jar"
+    }
+    into(layout.buildDirectory.dir("godot-extract"))
+    rename { "classes.jar" }
+}
+
+android {
+    namespace "com.veyamahjong.ads"
+    compileSdk 36
+
+    defaultConfig {
+        minSdk 24
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+}
+
+dependencies {
+    compileOnly files(godotClasses)
+    compileOnly "com.unity3d.ads-mediation:mediation-sdk:9.6.0"
+}
+
+afterEvaluate {
+    tasks.named("preBuild").configure { dependsOn("extractGodotClasses") }
+    tasks.named("compileReleaseJavaWithJavac").configure { dependsOn("extractGodotClasses") }
+    tasks.named("compileDebugJavaWithJavac").configure { dependsOn("extractGodotClasses") }
+}
+
+tasks.register("exportPluginAar", Copy) {
+    dependsOn("assembleRelease")
+    from(layout.buildDirectory.dir("outputs/aar")) {
+        include "levelplay-banner-release.aar"
+    }
+    into "${rootDir}/../../../android/plugins"
+    rename { "LevelPlayBanner.aar" }
+}

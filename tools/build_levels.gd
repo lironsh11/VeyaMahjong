@@ -20,7 +20,7 @@ extends SceneTree
 ##   5. Ordered by the combined progression value (stored as metrics.progression).
 ## Writes a report to docs/reports/levels_051_150.md.
 
-const BUILD_ID := "levels-51-150-v5"
+const BUILD_ID := "levels-51-150-v6"  ## v6: identical-tiles-only rule
 const OUT_PATH := "res://data/levels/levels_051_150_generated.json"
 const EARLY_PATH := "res://data/levels/levels_004_050_regenerated.json"
 const REPORT_PATH := "res://docs/reports/levels_051_150.md"

@@ -75,9 +75,13 @@ func test_same_layer_overlap_is_error() -> void:
 func test_matching_semantics() -> void:
 	check(MahjongRules.can_match("character_5", "character_5"), "identical faces match")
 	check(not MahjongRules.can_match("character_5", "character_6"), "different faces don't")
-	check(MahjongRules.can_match("flower_plum", "flower_orchid"), "any flower matches any flower")
-	check(MahjongRules.can_match("season_spring", "season_winter"), "any season matches any season")
+	# Owner rule: identical tiles only - Flowers/Seasons included.
+	check(not MahjongRules.can_match("flower_plum", "flower_orchid"), "different flowers never match")
+	check(not MahjongRules.can_match("flower_plum", "flower_chrysanthemum"), "same shape, different colour: no match")
+	check(not MahjongRules.can_match("season_spring", "season_winter"), "different seasons never match")
 	check(not MahjongRules.can_match("flower_plum", "season_spring"), "flowers never match seasons")
+	check(MahjongRules.can_match("flower_plum", "flower_plum"), "identical flowers match")
+	check(MahjongRules.can_match("season_autumn", "season_autumn"), "identical seasons match")
 	check(not MahjongRules.can_match("dragon_red", "dragon_green"), "dragons are distinct")
 	check(not MahjongRules.can_match("bogus", "bogus"), "unknown faces never match")
 	for f in MahjongRules.FACES:
@@ -88,8 +92,9 @@ func test_rules_json_matches_engine_defaults() -> void:
 	var rules: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/levels/tile_match_rules.json"))
 	check(typeof(rules) == TYPE_DICTIONARY, "rules json parses")
 	check(MahjongRules.configure_from_rules_json(rules), "rules accepted")
-	check(MahjongRules.can_match("flower_bamboo_flower", "flower_chrysanthemum"), "pack flower group")
-	check_eq(MahjongRules.key_count(), 36, "34 normal faces + 2 bonus groups")
+	check(not MahjongRules.can_match("flower_bamboo_flower", "flower_chrysanthemum"), "no flower group in the game rules")
+	check_eq(MahjongRules.key_count(), 42, "every one of the 42 faces is its own match key")
+	check(MahjongRules.is_flower("flower_orchid") and MahjongRules.is_season("season_summer"), "families still known for stats")
 
 
 func test_tap_flow_and_invalid_picks() -> void:
@@ -141,12 +146,17 @@ func test_undo_restores_exact_state() -> void:
 
 
 func test_flower_season_pairs_in_play() -> void:
-	var faces := ["flower_plum", "season_spring", "season_autumn", "flower_orchid"]
+	var faces := ["flower_plum", "season_spring", "season_spring", "flower_plum"]
 	var L := level_from_rows(["XX", "XX"], [], faces)
 	var g := GameSession.start(L)
 	check(not g.state.can_pair(0, 1), "flower vs season")
-	check(g.match_pair(0, 3), "flower vs flower")
-	check(g.match_pair(1, 2), "season vs season")
+	check(g.match_pair(0, 3), "identical flowers")
+	check(g.match_pair(1, 2), "identical seasons")
+	var L2 := level_from_rows(["XX", "XX"], [], ["flower_plum", "flower_orchid", "flower_orchid", "flower_plum"])
+	var g2 := GameSession.start(L2)
+	g2.tap(0)
+	check_eq(g2.tap(1).r, GameSession.Tap.RESELECTED, "tapping a different flower does not match")
+	check_eq(g2.state.remaining, 4, "nothing removed")
 	check_eq(g.stats.flowers_cleared, 2)
 	check_eq(g.stats.seasons_cleared, 2)
 	check(g.completed)

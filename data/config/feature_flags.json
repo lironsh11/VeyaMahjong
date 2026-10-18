@@ -1,5 +1,5 @@
 {
-  "_comment": "Safe offline defaults. The game never depends on a remote config server. Monetization flags stay OFF until real SDKs are integrated and tested on devices.",
+  "_comment": "Safe offline defaults. The bottom banner is on; rewarded ads and interstitials stay off.",
   "content_version": "pack-v1(1-3)+levels-4-50-v1+levels-51-150-v5+daily-1",
   "effects_enabled": true,
   "daily_tasks_enabled": true,
@@ -12,5 +12,6 @@
   "interstitial_daily_cap": 4,
   "rewarded_daily_cap": 3,
   "qa_mock_services": false,
-  "show_session_timer_option": true
+  "show_session_timer_option": true,
+  "banner_ads_enabled": true
 }

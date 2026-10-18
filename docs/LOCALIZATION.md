@@ -77,7 +77,7 @@ subsetted Noto Sans CJK for that language only.
   controls keep the same look.
 - **Never mirrored:** the Mahjong board (`BoardView` forces LTR), tile symbols, Bloom artwork
   (the stage forces LTR) and tile previews in Collections.
-- Mixed content (the Latin "Veya Mahjong" brand, numbers, `{count}` values) is shaped by Godot's
+- Mixed content (the Latin "LiShi Mahjong" brand, numbers, `{count}` values) is shaped by Godot's
   BiDi (TextServerAdvanced/ICU). The Hebrew translator avoided a leading "+1" in `light_earned`
   so it can't be visually reordered.
 

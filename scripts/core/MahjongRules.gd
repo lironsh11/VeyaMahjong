@@ -1,14 +1,12 @@
 class_name MahjongRules
 extends RefCounted
-## Traditional Mahjong Solitaire matching semantics.
+## Mahjong Solitaire matching semantics.
 ##
-## - Ordinary faces (suits, winds, dragons) match only an identical face.
-## - Any Flower matches any other Flower; any Season matches any other Season.
-## - Flowers never match Seasons.
+## OWNER RULE (2026-10-18): every tile matches ONLY an identical tile - including Flowers and
+## Seasons (same picture, same colour). This deliberately departs from the traditional rule where
+## any Flower matches any Flower. Optional "match groups" are still supported by the engine and
+## are read from data/levels/tile_match_rules.json ("bonus_matching"); it is empty now.
 ## Freedom (which tiles may be picked) is geometric and lives in BoardGeometry/BoardState.
-##
-## Group membership defaults to the asset pack's levels/tile_match_rules.json and can be
-## re-configured from that file at boot so data and code cannot silently diverge.
 
 const FACES: PackedStringArray = [
 	"character_1", "character_2", "character_3", "character_4", "character_5",
@@ -23,10 +21,12 @@ const FACES: PackedStringArray = [
 	"season_spring", "season_summer", "season_autumn", "season_winter",
 ]
 
-const DEFAULT_GROUPS := {
-	"flower": ["flower_plum", "flower_orchid", "flower_chrysanthemum", "flower_bamboo_flower"],
-	"season": ["season_spring", "season_summer", "season_autumn", "season_winter"],
-}
+## Bonus tile families (used for stats such as "clear Flower tiles", not for matching).
+const FLOWERS: PackedStringArray = ["flower_plum", "flower_orchid", "flower_chrysanthemum", "flower_bamboo_flower"]
+const SEASONS: PackedStringArray = ["season_spring", "season_summer", "season_autumn", "season_winter"]
+
+## Match groups: faces in the same group match each other. Empty = identical faces only.
+const DEFAULT_GROUPS := {}
 
 ## face -> group name (only for bonus faces)
 static var _face_group: Dictionary = {}
@@ -92,16 +92,15 @@ static func can_match(face_a: String, face_b: String) -> bool:
 
 
 static func is_bonus(face: String) -> bool:
-	_ensure()
-	return _face_group.has(face)
+	return FLOWERS.has(face) or SEASONS.has(face)
 
 
 static func is_flower(face: String) -> bool:
-	return match_key(face) == "flower"
+	return FLOWERS.has(face)
 
 
 static func is_season(face: String) -> bool:
-	return match_key(face) == "season"
+	return SEASONS.has(face)
 
 
 static func suit(face: String) -> String:

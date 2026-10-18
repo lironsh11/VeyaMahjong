@@ -28,9 +28,14 @@ engine does not assume tiles are stacked at exactly the same coordinates.
    footprint touches that edge (`dx == ∓2`) and shares vertical extent (`|dy| < 2`).
    A half-tile gap does not block, and neither do tiles in different rows without vertical overlap.
 3. **Free** = not removed, not covered, and the left side **or** the right side is open.
-4. **Matching:** identical faces match. Any Flower matches any Flower, and any Season matches
-   any Season; Flowers never match Seasons. The groups come from the pack's
-   `levels/tile_match_rules.json`, and a test asserts the engine defaults equal that file.
+4. **Matching (owner rule, 2026-10-18):** a tile matches **only an identical tile** (same picture
+   and colour), Flowers and Seasons included. This deliberately departs from the traditional rule
+   (and the asset pack's original rules file), where any Flower matched any Flower and any
+   Season matched any Season. The engine still supports optional match groups through
+   `data/levels/tile_match_rules.json` (`bonus_matching`), which is now empty. The pack's
+   original file is kept unchanged in the pack folder. Levels 1-3 come from the pack, whose
+   witness paired different bonus faces, so for those pairs the second tile takes the first
+   tile's face (`LevelCatalog.identical_pairs`). Geometry and witness are unchanged.
 5. A pair is removed only if both tiles are free and match (`BoardState.can_pair`). The state
    updates immediately; animations follow the state but never gate it.
 6. A board is won only when `remaining == 0`.
@@ -85,8 +90,8 @@ pair to each removed slot pair gives a board that this witness can solve. The wi
 replayed through the real rules (forward validation) before the board is accepted. The removal
 order is biased toward far-apart partners to avoid trivial adjacent twins.
 
-- Faces are used in sets of four (two pairs), like a real set. Flowers and Seasons are paired
-  across different bonus faces.
+- Faces are used in sets of four (two pairs), like a real set. Every pair is two identical faces;
+  Flowers and Seasons contribute two identical pairs of two different bonus faces.
 - **Determinism:** `SeededRng` (xorshift64* seeded by SplitMix64; FNV-1a for string seeds) is
   pinned in code, so seeds reproduce across engine versions. Unit tests check the first outputs
   and the FNV constants.
@@ -180,7 +185,7 @@ and Undo/Shuffle are free, so tester feedback should still calibrate the top end
 
 `tests/test_rules.gd`, `tests/test_solver.gd`, `tests/test_levels.gd` cover: top cover,
 left/right blocking, half-offset partial overlap, same-layer overlap rejection,
-Flower/Season semantics, invalid picks, duplicate taps, mismatches, completion, exact undo
+identical-only matching (incl. Flowers/Seasons), invalid picks, duplicate taps, mismatches, completion, exact undo
 (counters and hash), no-move detection, the solver solving and proving unsolvable, budget
 honesty, generator determinism and batch validity, procedural layout support, shuffle
 invariants and impossible geometry, session save/restore and tamper rejection, rewinding to

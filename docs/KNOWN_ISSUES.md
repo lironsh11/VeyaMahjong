@@ -57,5 +57,5 @@
 ## Legal / owner
 
 21. Privacy policy, terms, support URL/email and deletion URL are empty (`data/config/privacy_config.json`).
-22. "Veya Mahjong" trademark clearance has not been performed. The application/bundle ID
-    `com.veyamahjong.app` is a placeholder.
+22. "LiShi Mahjong" trademark clearance has not been performed. The application/bundle ID
+    `com.lishimahjong.app` is a placeholder.

@@ -1,5 +1,5 @@
 {
-  "_comment": "Veya Bloom discoveries. One discovery unlocks every lights_per_discovery Veya Lights, in this order across worlds. Positions are normalized (0..1) on the 1080x1920 world background (anchor = sprite bottom-centre) and kept between y 0.40 and 0.83 so they stay clear of the header card and bottom bar on 16:9-20:9 phones.",
+  "_comment": "LiShi Bloom discoveries. One discovery unlocks every lights_per_discovery LiShi Lights, in this order across worlds. Positions are normalized (0..1) on the 1080x1920 world background (anchor = sprite bottom-centre) and kept between y 0.40 and 0.83 so they stay clear of the header card and bottom bar on 16:9-20:9 phones.",
   "lights_per_discovery": 5,
   "worlds": [
     {

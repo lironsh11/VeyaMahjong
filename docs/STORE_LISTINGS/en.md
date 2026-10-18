@@ -1,4 +1,4 @@
-# Veya Mahjong – Store listing draft: English (en)
+# LiShi Mahjong – Store listing draft: English (en)
 
 > DRAFT – AI-written. Needs owner review before submission. Text inside each `text` block is the exact store text; counts in parentheses are script-computed (Unicode characters; Apple keywords in UTF-8 bytes). See `README.md`.
 
@@ -6,9 +6,9 @@ Suggested store locales: Google Play `en-US` (copy to `en-GB` / `en-AU` / `en-CA
 
 ## Google Play
 
-### App name (23/30)
+### App name (24/30)
 ```text
-Veya Mahjong: Solitaire
+LiShi Mahjong: Solitaire
 ```
 
 ### Short description (78/80)
@@ -16,11 +16,11 @@ Veya Mahjong: Solitaire
 Classic Mahjong Solitaire: 150 calm levels, a free Daily Puzzle, offline play.
 ```
 
-### Full description (1596/4000)
+### Full description (1534/4000)
 ```text
-Veya Mahjong is a calm, classic Mahjong Solitaire game. Match. Bloom. Relax.
+LiShi Mahjong is a calm, classic Mahjong Solitaire game. Match. Bloom. Relax.
 
-Find pairs of matching free tiles and clear the board, one gentle move at a time. Any Flower matches any Flower, and any Season matches any Season. This is traditional Mahjong Solitaire – not a tile-connect or match-3 game.
+Find pairs of identical free tiles and clear the board, one gentle move at a time. This is traditional Mahjong Solitaire – not a tile-connect or match-3 game.
 
 150 HANDCRAFTED LEVELS IN 3 WORLDS
 Travel through three illustrated worlds: Aurora Garden, Pearl Coast and Crystal Nocturne. Every layout was designed by hand.
@@ -29,7 +29,7 @@ A FREE DAILY PUZZLE
 A new Daily Puzzle is waiting every day, and it plays offline too. Missed a day? Puzzles from the last 30 days stay playable, and there are no streaks to keep up. Optional daily tasks are there whenever you feel like them.
 
 WATCH YOUR WORLD BLOOM
-Each new level you solve earns a Veya Light. Every 5 Lights, a new decoration or discovery appears in the illustrated world – 30 discoveries to find in Veya Bloom.
+Each new level you solve earns a LiShi Light. Every 5 Lights, a new decoration or discovery appears in the illustrated world – 30 discoveries to find in LiShi Bloom.
 
 PLAY AT YOUR OWN PACE
 • Hint, unlimited Undo and Shuffle are always free
@@ -51,9 +51,9 @@ Take a quiet moment, match a few tiles, and let your world bloom.
 
 ## Apple App Store
 
-### Name (23/30)
+### Name (24/30)
 ```text
-Veya Mahjong: Solitaire
+LiShi Mahjong: Solitaire
 ```
 
 ### Subtitle (26/30)
@@ -66,11 +66,11 @@ Calm Tile Matching Puzzles
 Match. Bloom. Relax. Solve 150 handcrafted Mahjong Solitaire levels across 3 illustrated worlds, plus a free Daily Puzzle every day – even offline.
 ```
 
-### Description (1596/4000)
+### Description (1534/4000)
 ```text
-Veya Mahjong is a calm, classic Mahjong Solitaire game. Match. Bloom. Relax.
+LiShi Mahjong is a calm, classic Mahjong Solitaire game. Match. Bloom. Relax.
 
-Find pairs of matching free tiles and clear the board, one gentle move at a time. Any Flower matches any Flower, and any Season matches any Season. This is traditional Mahjong Solitaire – not a tile-connect or match-3 game.
+Find pairs of identical free tiles and clear the board, one gentle move at a time. This is traditional Mahjong Solitaire – not a tile-connect or match-3 game.
 
 150 HANDCRAFTED LEVELS IN 3 WORLDS
 Travel through three illustrated worlds: Aurora Garden, Pearl Coast and Crystal Nocturne. Every layout was designed by hand.
@@ -79,7 +79,7 @@ A FREE DAILY PUZZLE
 A new Daily Puzzle is waiting every day, and it plays offline too. Missed a day? Puzzles from the last 30 days stay playable, and there are no streaks to keep up. Optional daily tasks are there whenever you feel like them.
 
 WATCH YOUR WORLD BLOOM
-Each new level you solve earns a Veya Light. Every 5 Lights, a new decoration or discovery appears in the illustrated world – 30 discoveries to find in Veya Bloom.
+Each new level you solve earns a LiShi Light. Every 5 Lights, a new decoration or discovery appears in the illustrated world – 30 discoveries to find in LiShi Bloom.
 
 PLAY AT YOUR OWN PACE
 • Hint, unlimited Undo and Shuffle are always free
@@ -111,3 +111,5 @@ majong,pairs,classic,relaxing,offline,daily,zen,logic,board,game,garden,flowers,
 - "vibration can be turned off": the in-game note says vibration works on phones and tablets only.
 - Subtitle "Calm Tile Matching Puzzles" was chosen for search; the tagline "Match. Bloom. Relax." (20 chars) is an alternative subtitle.
 - Keyword "majong" is a common misspelling; "zen" and "quiet" are mood words, not wellness claims.
+- Rename: the game is now "LiShi Mahjong" (features "LiShi Bloom" and the LiShi Light term). The in-game translations use the same names.
+- Rule change: every tile, including Flowers and Seasons, now matches only an identical tile. The old sentence saying any Flower matches any Flower (and any Season any Season) was removed, so the listing only says to match pairs of identical free tiles. Do not add it back. The in-game tutorial (`tut_step_bonus`) already teaches the identical-tiles rule.

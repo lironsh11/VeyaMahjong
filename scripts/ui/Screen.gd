@@ -16,6 +16,8 @@ func _ready() -> void:
 	LocalizationService.locale_changed.connect(_on_relayout)
 	UITheme.theme_rebuilt.connect(_on_relayout)
 	get_viewport().size_changed.connect(_update_safe_area)
+	if not AdsService.banner_layout_changed.is_connected(_update_safe_area):
+		AdsService.banner_layout_changed.connect(_update_safe_area)
 	_rebuild()
 
 
@@ -81,7 +83,7 @@ func _update_safe_area() -> void:
 	safe.add_theme_constant_override("margin_left", BASE_PAD + int(ins.x))
 	safe.add_theme_constant_override("margin_top", BASE_PAD + int(ins.y))
 	safe.add_theme_constant_override("margin_right", BASE_PAD + int(ins.z))
-	safe.add_theme_constant_override("margin_bottom", 10 + int(ins.w))
+	safe.add_theme_constant_override("margin_bottom", 10 + int(ins.w) + AdsService.banner_canvas_inset(get_viewport()))
 
 
 func t(key: String, vars: Dictionary = {}) -> String:

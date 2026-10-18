@@ -1,15 +1,15 @@
 # Monetization
 
-**Current state: no ads, no purchases.** Both are integrated as tested *facades* with safe
-disabled states. No ad SDK or billing plugin is installed, so nothing could be sold or shown even
-if the flags were turned on. The game is fully playable and never asks for money or ad views.
+**Current state: a bottom banner on Android.** Rewarded ads and purchases stay off. The banner
+uses Unity LevelPlay with Meta Audience Network bidding. Nothing in the game requires watching
+an ad or paying.
 
 ## Principles enforced in code (independent of any SDK)
 
 - Hint, Undo, Shuffle/Rescue, level completion and continued play never require an ad or a purchase.
 - No lives, energy, timers, currencies, loot boxes or pay-to-unblock dialogs exist.
 - Rewarded ads are optional bonuses only. The single wired placement is `bonus_light` on the Win
-  dialog: watching earns one bonus Veya Light, once per newly completed level, capped at
+  dialog: watching earns one bonus LiShi Light, once per newly completed level, capped at
   `rewarded_daily_cap` (3) per day. The button appears **only** when a real ad has actually
   loaded (`AdsService.is_rewarded_ready`), so there are no fake buttons.
 - A reward is granted once per `grant_id` (persisted). Duplicate SDK callbacks, restarts mid-ad
@@ -18,7 +18,9 @@ if the flags were turned on. The game is fully playable and never asks for money
   in the tutorial, never within 2 minutes of launch (so not right after a crash/restart), at most
   `interstitial_daily_cap` per day with `interstitial_min_levels_between`, never for players who
   own Remove Ads (tested).
-- No banners.
+- Bottom banner (`banner_ads_enabled`): fixed 320×50 via LevelPlay. The slot stays collapsed
+  until a real ad loads, then the safe area grows so it sits under the UI. Hidden when consent is
+  denied or the player owns Remove Ads. Rewarded ads and interstitials stay off.
 - `AdsService.initialize()` refuses to initialize any provider until `PrivacyService` has recorded
   a CMP consent result (tested).
 
@@ -26,7 +28,8 @@ if the flags were turned on. The game is fully playable and never asks for money
 
 | Flag | Default | Meaning |
 |---|---|---|
-| `ads_enabled` | false | Master switch for any ad provider |
+| `ads_enabled` | false | Master switch for rewarded/interstitial providers |
+| `banner_ads_enabled` | true | Bottom LevelPlay banner |
 | `rewarded_ads_enabled` | false | Optional rewarded placements |
 | `interstitials_enabled` | false | Natural-break interstitials |
 | `rewarded_daily_cap` / `interstitial_daily_cap` / `interstitial_min_levels_between` | 3 / 4 / 4 | Caps |
@@ -102,3 +105,36 @@ App Store transactions (App Store Server API) and returns signed entitlements. N
 - App Store Connect: create the non-consumable IAPs and use Sandbox testers / TestFlight.
 - Fill the platform IDs, rebuild, then verify purchase, cancel, pending (Play "slow test card"),
   restore after reinstall, and refund handling.
+
+## After the package ID change (com.veyamahjong.app → com.lishimahjong.app, 2026-10-18)
+
+Nothing external was changed; these are owner actions.
+
+**Not bound to the package ID (no action needed):**
+- LevelPlay app keys `28d197415` (Android) / `28d19e725` (iOS) and their banner ad units. The
+  setup script created them with only a name, a platform and a COPPA flag (no package or store
+  URL). Verified on the emulator: with the new ID, `LevelPlay.init(28d197415)` downloads the app's
+  banner configuration. `data/config/levelplay.json` is unchanged.
+
+**To update / check (external dashboards):**
+1. **Meta Monetization Manager** (app ID `2738184516598537`, placements in `tools/setup_levelplay.mjs`):
+   open the property's platform settings and check which Android package name and iOS bundle ID
+   are registered. If they say `com.veyamahjong.app`, change them to `com.lishimahjong.app`
+   (add the platforms if none are set). Meta matches bid requests against the registered app, so a
+   mismatch usually means no fill in production. This could not be checked from the repo: the Meta
+   setup was done outside this script.
+2. **LevelPlay dashboard**: after publishing, link each app to its store listing (Play URL
+   `…?id=com.lishimahjong.app`; App Store ID of bundle `com.lishimahjong.app`). Optional now: rename
+   the dashboard apps "Veya Mahjong" → "LiShi Mahjong". If you do, change `appName` in
+   `tools/setup_levelplay.mjs` in the same step, or the script will create duplicate apps.
+3. **Local secrets file** `~/.cursor/secrets/monetization.env` still has
+   `VEYA_ANDROID_PACKAGE`/`VEYA_IOS_BUNDLE` = the old ID (not edited here). Edit those two lines by
+   hand, or rerun `node tools/setup_levelplay.mjs`. The rerun calls the LevelPlay API; it reuses the
+   existing apps by name, so the keys stay the same.
+4. **app-ads.txt**: publish it on the developer website listed in the store pages (LevelPlay and
+   Meta entries). It is tied to the store listing, which must use the new ID.
+5. **Play Console / App Store Connect**: create the apps with `com.lishimahjong.app` (neither exists yet).
+
+**Devices:** builds with the old ID are a separate app (on the emulator and any phone). Their
+progress does not carry over; uninstall the old "LiShi Mahjong" copy to avoid duplicates.
+

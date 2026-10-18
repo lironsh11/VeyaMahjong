@@ -1,4 +1,4 @@
-# Veya Mahjong – Store listing draft: Russian (ru)
+# LiShi Mahjong – Store listing draft: Russian (ru)
 
 > DRAFT – AI-written. Must be reviewed by a native Russian speaker and the owner before submission. Text inside each `text` block is the exact store text; counts in parentheses are script-computed (Unicode characters; Apple keywords in UTF-8 bytes). See `README.md`.
 
@@ -6,9 +6,9 @@ Suggested store locales: Google Play `ru-RU` · Apple `Russian`. Check current s
 
 ## Google Play
 
-### App name (21/30)
+### App name (22/30)
 ```text
-Veya Mahjong: пасьянс
+LiShi Mahjong: пасьянс
 ```
 
 ### Short description (78/80)
@@ -16,11 +16,11 @@ Veya Mahjong: пасьянс
 Классический маджонг-пасьянс: 150 спокойных уровней и головоломка дня, офлайн.
 ```
 
-### Full description (1746/4000)
+### Full description (1666/4000)
 ```text
-Veya Mahjong — спокойный классический маджонг-пасьянс. Пары. Цветение. Покой.
+LiShi Mahjong — спокойный классический маджонг-пасьянс. Пары. Цветение. Покой.
 
-Находите пары одинаковых свободных фишек и шаг за шагом освобождайте поле — без спешки. Любой Цветок подходит к любому Цветку, а любое Время года — к любому Времени года. Это традиционный маджонг-пасьянс, а не игра на соединение фишек и не «три в ряд».
+Находите пары одинаковых свободных фишек и шаг за шагом освобождайте поле — без спешки. Это традиционный маджонг-пасьянс, а не игра на соединение фишек и не «три в ряд».
 
 150 УРОВНЕЙ РУЧНОЙ РАБОТЫ В 3 МИРАХ
 Путешествуйте по трём иллюстрированным мирам: Сад Авроры, Жемчужный берег и Хрустальный ноктюрн. Каждая раскладка создана вручную.
@@ -29,7 +29,7 @@ Veya Mahjong — спокойный классический маджонг-па
 Каждый день вас ждёт новая Головоломка дня — даже без интернета. Пропустили день? Головоломки за последние 30 дней остаются доступными, и никаких серий, которые нужно поддерживать. Задания дня необязательны — выполняйте их, когда захочется.
 
 ВАШ МИР РАСЦВЕТАЕТ
-За каждый новый пройденный уровень вы получаете огонёк Veya. Каждые 5 огоньков в иллюстрированном мире появляется новое украшение или находка — всего 30 находок в Veya Bloom.
+За каждый новый пройденный уровень вы получаете огонёк LiShi. Каждые 5 огоньков в иллюстрированном мире появляется новое украшение или находка — всего 30 находок в LiShi Bloom.
 
 ИГРАЙТЕ В СВОЁМ ТЕМПЕ
 • Подсказка, отмена ходов без ограничений и перемешивание — всегда бесплатно
@@ -51,9 +51,9 @@ Veya Mahjong — спокойный классический маджонг-па
 
 ## Apple App Store
 
-### Name (21/30)
+### Name (22/30)
 ```text
-Veya Mahjong: пасьянс
+LiShi Mahjong: пасьянс
 ```
 
 ### Subtitle (25/30)
@@ -66,11 +66,11 @@ Veya Mahjong: пасьянс
 Пары. Цветение. Покой. 150 уровней маджонг-пасьянса ручной работы в 3 иллюстрированных мирах и бесплатная Головоломка дня — даже без интернета.
 ```
 
-### Description (1746/4000)
+### Description (1666/4000)
 ```text
-Veya Mahjong — спокойный классический маджонг-пасьянс. Пары. Цветение. Покой.
+LiShi Mahjong — спокойный классический маджонг-пасьянс. Пары. Цветение. Покой.
 
-Находите пары одинаковых свободных фишек и шаг за шагом освобождайте поле — без спешки. Любой Цветок подходит к любому Цветку, а любое Время года — к любому Времени года. Это традиционный маджонг-пасьянс, а не игра на соединение фишек и не «три в ряд».
+Находите пары одинаковых свободных фишек и шаг за шагом освобождайте поле — без спешки. Это традиционный маджонг-пасьянс, а не игра на соединение фишек и не «три в ряд».
 
 150 УРОВНЕЙ РУЧНОЙ РАБОТЫ В 3 МИРАХ
 Путешествуйте по трём иллюстрированным мирам: Сад Авроры, Жемчужный берег и Хрустальный ноктюрн. Каждая раскладка создана вручную.
@@ -79,7 +79,7 @@ Veya Mahjong — спокойный классический маджонг-па
 Каждый день вас ждёт новая Головоломка дня — даже без интернета. Пропустили день? Головоломки за последние 30 дней остаются доступными, и никаких серий, которые нужно поддерживать. Задания дня необязательны — выполняйте их, когда захочется.
 
 ВАШ МИР РАСЦВЕТАЕТ
-За каждый новый пройденный уровень вы получаете огонёк Veya. Каждые 5 огоньков в иллюстрированном мире появляется новое украшение или находка — всего 30 находок в Veya Bloom.
+За каждый новый пройденный уровень вы получаете огонёк LiShi. Каждые 5 огоньков в иллюстрированном мире появляется новое украшение или находка — всего 30 находок в LiShi Bloom.
 
 ИГРАЙТЕ В СВОЁМ ТЕМПЕ
 • Подсказка, отмена ходов без ограничений и перемешивание — всегда бесплатно
@@ -107,8 +107,10 @@ Veya Mahjong — спокойный классический маджонг-па
 ## Notes for native reviewer
 
 - "вы" form, matching the in-game `ru.json`. The letter "ё" is used (огонёк, ждёт, трём, своём, расцветёт) as in the game.
-- "огонёк Veya" declension: "огонёк Veya", "5 огоньков" – confirm natural with the Latin brand.
+- "огонёк LiShi" declension: "огонёк LiShi", "5 огоньков" – confirm natural with the Latin brand.
 - Accessibility option names are paraphrased in lowercase inside the sentence ("высокий контраст", "затемнение закрытых фишек"); in-game labels are "Высокий контраст" and "Затемнять закрытые фишки". Switch to exact labels in quotes if preferred.
 - "игра на соединение фишек" for tile-connect and «три в ряд» for match-3 – check clarity.
 - "маджонг" in keywords is the Cyrillic genre word, not a literal repeat of the Latin app name; "маджонг-пасьянс" variants did not fit the 100-byte limit (each Cyrillic letter costs 2 bytes).
 - Apple subtitle "Спокойный поиск пар фишек" – alternative "Спокойный пасьянс из фишек".
+- Rename: the game is now "LiShi Mahjong" (features "LiShi Bloom" and the LiShi Light term). The in-game translations use the same names.
+- Rule change: every tile, including Flowers and Seasons, now matches only an identical tile. The old sentence saying any Flower matches any Flower (and any Season any Season) was removed, so the listing only says to match pairs of identical free tiles. Do not add it back. The in-game tutorial (`tut_step_bonus`) already teaches the identical-tiles rule.

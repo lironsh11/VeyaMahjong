@@ -67,4 +67,6 @@ URL must be provided (Play requires a deletion link for apps that collect data).
   are original. No competitor branding, art, sound or level sequences are used.
 - The Rubik font (SIL OFL 1.1) is redistributed with its licence. CJK uses OS fonts, which are not
   redistributed.
-- **Owner action:** trademark clearance for "Veya Mahjong" in target markets (not performed).
+- The app icon (v2) was supplied by the owner and is not covered by the pack's licence note;
+  the owner must confirm commercial rights to it (docs/BRANDING.md).
+- **Owner action:** trademark clearance for "LiShi Mahjong" in target markets (not performed).

@@ -28,10 +28,30 @@ func test_all_150_shipped_levels_valid() -> void:
 
 
 func test_levels_1_3_are_the_supplied_pack_levels() -> void:
+	# Same geometry and witness as the pack; only bonus partners copied to make identical pairs.
 	var pack: Array = JSON.parse_string(FileAccess.get_file_as_string(LevelCatalog.PACK_PATH))
 	var merged := _merged()
 	for i in 3:
-		check(JSON.stringify(merged[i]) == JSON.stringify(pack[i]), "level %d identical to the pack" % (i + 1))
+		var a: Dictionary = merged[i]
+		var b: Dictionary = pack[i]
+		check(JSON.stringify(a.verified_solution) == JSON.stringify(b.verified_solution), "level %d witness unchanged" % (i + 1))
+		for k in a.tiles.size():
+			var ta: Dictionary = a.tiles[k]
+			var tb: Dictionary = b.tiles[k]
+			check(ta.x == tb.x and ta.y == tb.y and ta.z == tb.z, "level %d tile %d same position" % [i + 1, k])
+			if ta.face != tb.face:
+				check(MahjongRules.is_bonus(str(tb.face)), "level %d: only bonus faces adjusted" % (i + 1))
+
+
+func test_every_pair_is_identical() -> void:
+	# Owner rule: each match key appears an even number of times = each face, so every pair
+	# in every shipped board is two identical tiles.
+	for d in _merged():
+		var counts := {}
+		for t in d.tiles:
+			counts[t.face] = int(counts.get(t.face, 0)) + 1
+		for f in counts:
+			check(counts[f] % 2 == 0, "level %d face %s appears %d times" % [d.id, f, counts[f]])
 
 
 func test_levels_4_50_keep_pack_shapes() -> void:
@@ -164,12 +184,14 @@ func test_stored_metrics_reproduce() -> void:
 		check(is_equal_approx(float(an.dead_end_rate), float(d.metrics.dead_end_rate)), "level %d dead-end rate reproduces" % id)
 
 
-func test_original_pack_file_still_fully_valid() -> void:
+func test_pack_fallback_stays_valid_under_identical_rule() -> void:
+	# If a generated file were missing, LevelCatalog falls back to pack boards normalised to
+	# identical pairs; those must still be legal.
 	var pack: Array = JSON.parse_string(FileAccess.get_file_as_string(LevelCatalog.PACK_PATH))
 	check_eq(pack.size(), 150)
 	for d in pack:
-		var L := LevelDefinition.from_dict(d)
-		check(L.is_valid() and BoardSolver.replay_is_legal(L.build_state(), L.solution), "pack level %d witness" % L.id)
+		var L := LevelDefinition.from_dict(LevelCatalog.identical_pairs(d))
+		check(L.is_valid() and BoardSolver.replay_is_legal(L.build_state(), L.solution), "normalised pack level %d witness" % L.id)
 
 
 func test_level_worlds_match_world_ranges() -> void:

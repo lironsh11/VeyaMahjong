@@ -19,7 +19,7 @@ func build() -> void:
 	var v := UIKit.vbox(18)
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	safe.add_child(v)
-	var logo := UIKit.texrect(ContentService.tex("branding/veya_logo_stacked_dark.png"), Vector2(320, 200))
+	var logo := UIKit.texrect(ContentService.tex("branding/lishi_logo_stacked_dark.png"), Vector2(320, 200))
 	v.add_child(logo)
 	v.add_child(UIKit.label(t("app_tagline"), UITheme.FONT_H2, false, UITheme.text_soft(), HORIZONTAL_ALIGNMENT_CENTER))
 	_status = UIKit.label(t("loading"), UITheme.FONT_BODY, false, UITheme.text_soft(), HORIZONTAL_ALIGNMENT_CENTER)

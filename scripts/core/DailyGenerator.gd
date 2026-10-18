@@ -7,7 +7,7 @@ extends RefCounted
 ## were already generated: changing the algorithm requires bumping VERSION, and saved
 ## completions are keyed by date, not by board contents.
 
-const VERSION := "daily-1"
+const VERSION := "daily-2"  ## daily-2: identical-tiles-only pairs (owner rule, 2026-10-18)
 const LAYOUTS_PATH := "res://data/levels/layouts_50.json"
 const WORLDS := ["aurora_garden", "pearl_coast", "crystal_nocturne"]
 

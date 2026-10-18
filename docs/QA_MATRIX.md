@@ -23,7 +23,7 @@ Environment: Godot 4.7.stable, Windows 11, 2026-10-18.
 | # | Area | How | Status |
 |---|---|---|---|
 | 1 | All 150 levels have legal step-by-step solutions | `test_levels` + validator (witness replay and independent solve); levels 4-150 also checked for pack-geometry preservation (4-50), no mirrored-twin pattern, monotonic order, a smooth trickiness ramp across the 50/51 boundary, and reproducible metrics; screenshots of the largest/deepest/half-offset boards in `docs/screenshots/levels/` | **PASS** |
-| 2 | Matching for every family incl. Flowers/Seasons | `test_matching_semantics`, `test_flower_season_pairs_in_play`; emulator: 春+夏 and 菊+竹 pairs matched by touch | **PASS** |
+| 2 | Matching: identical tiles only, incl. Flowers/Seasons (owner rule) | `test_matching_semantics`, `test_flower_season_pairs_in_play` (different flowers rejected), `test_every_pair_is_identical` (all 150 boards) | **PASS** |
 | 3 | Free-tile geometry: left/right/covered/stacked/partial overlap | `test_row_left_right_blocking`, `test_top_cover_blocks`, `test_partial_overlap_half_units`, `test_half_row_offset_side_blocking`, `test_cover_released_after_removal` | **PASS** |
 | 4 | Selection state, duplicate taps, removals | `test_tap_flow_and_invalid_picks`, `test_mismatch_moves_selection`; emulator blocked-tap toast | **PASS** |
 | 5 | Undo restoration across repeated moves | `test_undo_restores_exact_state` (counters + hash), `test_shuffle_preserves_faces_and_is_solvable` (undo shuffle); emulator undo | **PASS** |

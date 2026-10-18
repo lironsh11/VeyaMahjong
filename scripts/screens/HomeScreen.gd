@@ -32,7 +32,7 @@ func build() -> void:
 	top.add_child(UIKit.spacer(0, true))
 	top.add_child(UIKit.icon_button("settings", t("settings"), func() -> void: Router.go("settings"), 60))
 	root.add_child(top)
-	var logo := UIKit.texrect(ContentService.tex("branding/veya_logo_stacked_dark.png"), Vector2(300, 170))
+	var logo := UIKit.texrect(ContentService.tex("branding/lishi_logo_stacked_dark.png"), Vector2(300, 170))
 	root.add_child(logo)
 	root.add_child(UIKit.spacer(0, true))
 	# Continue card

@@ -1,5 +1,5 @@
 extends Screen
-## Veya Bloom: a mostly static illustrated world that fills with discoveries as Lights are
+## LiShi Bloom: a mostly static illustrated world that fills with discoveries as Lights are
 ## earned. Decorations are separate sprites placed from data/config/bloom.json; tapping one
 ## plays a tiny bounce and shows its short story line. New discoveries get a brief,
 ## skippable sparkle the first time they are seen. No timers, no currency, no pressure.

@@ -19,6 +19,7 @@ const DEFAULTS := {
 	"rewarded_daily_cap": 3,
 	"qa_mock_services": false,
 	"show_session_timer_option": true,
+	"banner_ads_enabled": false,
 }
 
 var _flags: Dictionary = DEFAULTS.duplicate()

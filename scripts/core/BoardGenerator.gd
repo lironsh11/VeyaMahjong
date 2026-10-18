@@ -64,18 +64,24 @@ func _pick_partner(geo: BoardGeometry, free: PackedInt32Array, a: int, rng: Seed
 
 static func face_pairs_for(tile_count: int, rng: SeededRng, allow_bonus: bool = true) -> Array:
 	## Builds tile_count/2 matching face pairs. Faces are used in sets of four (two pairs),
-	## like a real Mahjong set; Flowers/Seasons are paired across different bonus faces.
+	## like a real Mahjong set. Every pair is two IDENTICAL faces (owner rule), so the
+	## Flowers/Seasons each contribute two identical pairs of two different bonus faces.
 	var groups: Array = []
 	for f in MahjongRules.FACES:
 		if not MahjongRules.is_bonus(f):
 			groups.append([[f, f], [f, f]])
 	if allow_bonus:
-		var fl: Array = MahjongRules.DEFAULT_GROUPS.flower.duplicate()
-		var se: Array = MahjongRules.DEFAULT_GROUPS.season.duplicate()
+		# Fresh copies: shuffling must never touch the shared constants (that broke determinism).
+		var fl: Array = []
+		for f in MahjongRules.FLOWERS:
+			fl.append(f)
+		var se: Array = []
+		for f in MahjongRules.SEASONS:
+			se.append(f)
 		rng.shuffle(fl)
 		rng.shuffle(se)
-		groups.append([[fl[0], fl[1]], [fl[2], fl[3]]])
-		groups.append([[se[0], se[1]], [se[2], se[3]]])
+		groups.append([[fl[0], fl[0]], [fl[1], fl[1]]])
+		groups.append([[se[0], se[0]], [se[1], se[1]]])
 	rng.shuffle(groups)
 	var pairs: Array = []
 	var gi := 0

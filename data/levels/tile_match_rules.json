@@ -1,19 +1,7 @@
 {
-  "standard_matching": "identical face ids",
-  "bonus_matching": {
-    "flower": [
-      "flower_plum",
-      "flower_orchid",
-      "flower_chrysanthemum",
-      "flower_bamboo_flower"
-    ],
-    "season": [
-      "season_spring",
-      "season_summer",
-      "season_autumn",
-      "season_winter"
-    ]
-  },
+  "standard_matching": "identical face ids - for ALL tiles, including Flowers and Seasons",
+  "bonus_matching": {},
+  "owner_rule": "2026-10-18: a tile matches only an identical tile (same picture and colour). The asset pack originally let any Flower match any Flower and any Season match any Season; that grouping is disabled here. The original file is kept unchanged in VeyaMahjong_AssetPack_v1/levels/.",
   "free_tile_rule": "No tile at (x,y,z+1), plus at least one of (x-1,y,z) and (x+1,y,z) is empty",
   "tile_coordinate_system": "positive integer grid x,y,z; layers overlap exactly",
   "limitations": "A solvable starting arrangement can become unsolvable after arbitrary moves; engine must provide undo/shuffle/rescue"

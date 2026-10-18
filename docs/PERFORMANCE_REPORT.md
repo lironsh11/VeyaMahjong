@@ -44,16 +44,16 @@ hint (≤ 24 solver runs) is bounded at 700 ms and always runs on a worker threa
 ## How to measure on a device
 
 ```bash
-adb shell run-as com.veyamahjong.app touch files/perf_log.flag
+adb shell run-as com.lishimahjong.app touch files/perf_log.flag
 ```
 ```bash
 adb logcat -s godot | grep PERF
 ```
 ```bash
-adb shell dumpsys meminfo com.veyamahjong.app
+adb shell dumpsys meminfo com.lishimahjong.app
 ```
 ```bash
-adb shell am start -W -n com.veyamahjong.app/com.godot.game.GodotAppLauncher
+adb shell am start -W -n com.lishimahjong.app/com.godot.game.GodotAppLauncher
 ```
 
 The perf logger exists only in debug builds. For thermal behaviour, play for 15-20 minutes,

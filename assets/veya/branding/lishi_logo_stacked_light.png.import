@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c47cri2yclje3"
-path="res://.godot/imported/veya_logo_stacked_dark.png-9ad789746365577e0efcbae5346f2e97.ctex"
+uid="uid://cby3sht2hbokh"
+path="res://.godot/imported/lishi_logo_stacked_light.png-7b07b4bb792fac526caa7daff3ce6b1a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/veya/branding/veya_logo_stacked_dark.png"
-dest_files=["res://.godot/imported/veya_logo_stacked_dark.png-9ad789746365577e0efcbae5346f2e97.ctex"]
+source_file="res://assets/veya/branding/lishi_logo_stacked_light.png"
+dest_files=["res://.godot/imported/lishi_logo_stacked_light.png-7b07b4bb792fac526caa7daff3ce6b1a.ctex"]
 
 [params]
 

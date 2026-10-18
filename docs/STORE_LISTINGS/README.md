@@ -1,4 +1,4 @@
-# Veya Mahjong – Store listing drafts
+# LiShi Mahjong – Store listing drafts
 
 **Status: AI-drafted. Not reviewed. Not submitted anywhere.**
 
@@ -47,19 +47,22 @@ Google Play and Apple support different locales, use different codes, and split 
 
 ## What the drafts claim, and what they deliberately do not
 
-**Claimed (verified as implemented):** traditional Mahjong Solitaire rules (pairs of free tiles; Flowers match Flowers, Seasons match Seasons); 150 handcrafted levels in 3 illustrated worlds (Aurora Garden, Pearl Coast, Crystal Nocturne); a free Daily Puzzle every day, playable offline, with the last 30 days still playable and no streaks; optional daily tasks; Veya Bloom (a Veya Light for each new level solved, a decoration or discovery every 5 Lights, 30 discoveries); 4 tile themes unlocked through play; Hint, unlimited Undo and Shuffle always free; when stuck, a free Shuffle of the remaining tiles or a free rewind to the last solvable point; no timers, lives or energy; fully playable offline, no account needed; Large Tiles, High Contrast, Reduce Motion, Dim Blocked Tiles, adjustable sound, vibration can be turned off; 10 languages; an interactive tutorial.
+**Claimed (verified as implemented):** traditional Mahjong Solitaire rules (match pairs of identical free tiles; every tile, including Flowers and Seasons, matches only an identical tile); 150 handcrafted levels in 3 illustrated worlds (Aurora Garden, Pearl Coast, Crystal Nocturne); a free Daily Puzzle every day, playable offline, with the last 30 days still playable and no streaks; optional daily tasks; LiShi Bloom (a LiShi Light for each new level solved, a decoration or discovery every 5 Lights, 30 discoveries); 4 tile themes unlocked through play; Hint, unlimited Undo and Shuffle always free; when stuck, a free Shuffle of the remaining tiles or a free rewind to the last solvable point; no timers, lives or energy; fully playable offline, no account needed; Large Tiles, High Contrast, Reduce Motion, Dim Blocked Tiles, adjustable sound, vibration can be turned off; 10 languages; an interactive tutorial.
 
-**Not claimed, on purpose:** level counts beyond 150; awards, rankings or superlatives; cloud save; multiplayer; anything about ads (no "no ads" or "ad-free" claim, because ads may be added later); "Shuffle always solvable" (it is not true in rare stacked end-states); prices, "free to play" business-model wording, or any specific in-app purchase (the shop is not live); health or cognitive benefits; child-directed positioning; competitor names.
+**Not claimed, on purpose:** that any Flower matches any Flower or any Season any Season (no longer true: every tile matches only an identical tile); level counts beyond 150; awards, rankings or superlatives; cloud save; multiplayer; anything about ads (no "no ads" or "ad-free" claim, because ads may be added later); "Shuffle always solvable" (it is not true in rare stacked end-states); prices, "free to play" business-model wording, or any specific in-app purchase (the shop is not live); health or cognitive benefits; child-directed positioning; competitor names.
 
 **Re-check before each release:**
 
 - If ads or in-app purchases are added, update the descriptions where needed. Also update Google Play's Data safety form, Apple's privacy labels, and the "Contains ads" / "In-app purchases" flags. Those forms are separate from these drafts.
 - Shuffle claim (RESOLVED): earlier drafts said "Shuffle always gives you a solvable layout", which is false in rare stacked end-states. All 10 locales now say instead: "Stuck? Shuffle the remaining tiles for free, or go back to your last solvable point", with each language using its in-game "rewind" term. If the rewind or restart behaviour changes, update this bullet.
+- Matching rule: every tile, including Flowers and Seasons, matches only an identical tile. The drafts no longer mention Flower/Season matching. The in-game tutorial (`tut_step_bonus`, all 10 languages) already teaches the identical-tiles rule.
 - "Free Daily Puzzle" and "Hint, Undo and Shuffle are always free" describe features, not the app's price. Keep them true if monetisation changes.
 
 ## Terminology
 
-In-game terms come from the shipped localisation files in `data/localization/*.json`: tagline, Daily Puzzle, daily tasks/challenges, Hint/Undo/Shuffle, accessibility option names, theme names, world names, and the Veya Light term (ヴェヤの光, 베야의 빛, 薇雅之光, Veya-Licht, Lumière Veya, Luz de Veya, אור Veya, огонёк Veya). The brand **Veya Mahjong** and the feature name **Veya Bloom** stay in Latin letters in every language. If the in-game text changes, update the listings to match.
+In-game terms come from the shipped localisation files in `data/localization/*.json`: tagline, Daily Puzzle, daily tasks/challenges, Hint/Undo/Shuffle, accessibility option names, theme names, world names, and the LiShi Light term (LiShiの光, LiShi의 빛, LiShi之光, LiShi-Licht, Lumière LiShi, Luz de LiShi, אור LiShi, огонёк LiShi). The brand **LiShi Mahjong** and the feature name **LiShi Bloom** stay in Latin letters in every language. If the in-game text changes, update the listings to match.
+
+**Rename (October 2026):** the game was renamed to **LiShi Mahjong**. The feature names are now **LiShi Bloom** and **LiShi Light(s)**. In Japanese, Korean and Traditional Chinese the Light term now uses the Latin brand (LiShiの光, LiShi의 빛, LiShi之光). The in-game translations (`data/localization/*.json`) use the same names, so game and listings match.
 
 ## Character counts
 
@@ -78,4 +81,4 @@ Store consoles may count slightly differently (for example, line breaks in long 
 
 CJK descriptions (Japanese, Korean, Chinese) are much shorter in characters than the European ones while saying the same thing. That is expected.
 
-Apple keyword rules followed: comma-separated, no spaces after commas, no duplicates, and no repeats of the words "Veya" or "Mahjong" from the app name. Native-script spellings of the genre (マージャン, 마장, маджонг, מהג'ונג) were kept as separate search terms. Reviewers may swap keywords freely, but must stay within 100 bytes.
+Apple keyword rules followed: comma-separated, no spaces after commas, no duplicates, and no repeats of the words "LiShi" or "Mahjong" from the app name. Native-script spellings of the genre (マージャン, 마장, маджонг, מהג'ונג) were kept as separate search terms. Reviewers may swap keywords freely, but must stay within 100 bytes.

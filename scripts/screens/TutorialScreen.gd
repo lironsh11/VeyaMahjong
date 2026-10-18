@@ -10,7 +10,7 @@ const STEPS := [
 	{"key": "tut_step_stack", "rows": ["XXXX"], "layers": [[".XX."]],
 		"faces": ["bamboo_9", "dragon_green", "dragon_green", "bamboo_9", "circle_7", "circle_7"], "hint": [4, 5]},
 	{"key": "tut_step_bonus", "rows": ["XX", "XX"], "layers": [],
-		"faces": ["flower_plum", "season_spring", "season_winter", "flower_orchid"], "hint": [0, 3]},
+		"faces": ["flower_plum", "flower_chrysanthemum", "flower_chrysanthemum", "flower_plum"], "hint": [0, 3]},
 ]
 
 var _step: int = 0

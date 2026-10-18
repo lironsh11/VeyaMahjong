@@ -1,4 +1,4 @@
-# Veya Mahjong
+# LiShi Mahjong
 
 *Match. Bloom. Relax.* An offline-first, traditional Mahjong Solitaire game for Android and iOS,
 built with **Godot 4.7** (GDScript, GL Compatibility renderer) from the supplied
@@ -16,12 +16,12 @@ built with **Godot 4.7** (GDScript, GL Compatibility renderer) from the supplied
 
 ## What's in the game
 
-- Correct Mahjong Solitaire rules (covered / left-right blocking, half-tile geometry, Flowers and
-  Seasons), 150 verified levels in 3 worlds, unlimited free Undo, solver-backed Hint, and a
+- Mahjong Solitaire rules (covered / left-right blocking, half-tile geometry; every tile, Flowers
+  and Seasons included, matches only an identical tile), 150 verified levels in 3 worlds, unlimited free Undo, solver-backed Hint, and a
   solvable Shuffle/Rescue with free fallbacks. Levels 1-3 are the supplied pack;
   4-50 keep the pack shapes with re-scattered tiles, and 51-150 are generated. All are validated and
   ordered by measured difficulty. No timers, lives, energy or currencies.
-- Veya Bloom: Lights from new levels unlock 30 discoveries in illustrated worlds.
+- LiShi Bloom: Lights from new levels unlock 30 discoveries in illustrated worlds.
 - Four tile themes, a deterministic offline Daily Puzzle with a 30-day archive, and optional daily tasks.
 - 10 languages, including Hebrew RTL, with instant switching. Accessibility options: Large Tiles,
   High Contrast, Reduce Motion, Dim Blocked Tiles, Soften Background, a Low graphics profile,
@@ -76,6 +76,7 @@ godot --path . --resolution 540x960 -- --tour=C:/tmp/shots --save-dir=user://tou
 | [KNOWN_ISSUES](docs/KNOWN_ISSUES.md) | Open problems and blocked dependencies |
 | [PROGRESS](docs/PROGRESS.md) | Phase tracker |
 | [DEPENDENCY_LOCK](docs/DEPENDENCY_LOCK.md) | Verified versions and store requirements |
+| [BRANDING](docs/BRANDING.md) | App icon source, generated variants, regeneration |
 | [STORE_LISTINGS](docs/STORE_LISTINGS/README.md) | Draft listings in 10 languages |
 
 ## Layout

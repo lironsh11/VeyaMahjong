@@ -1,6 +1,6 @@
 extends Node
 ## Earned progression. Everything here is idempotent and derived from immutable records:
-## - A Veya Light is recorded by its SOURCE key ("level:12", "daily:2026-10-18",
+## - A LiShi Light is recorded by its SOURCE key ("level:12", "daily:2026-10-18",
 ##   "tasks:2026-10-18", "ad:<grant id>"). Recording the same source twice is a no-op, so
 ##   replays, double taps, crashes-and-reloads and duplicate callbacks cannot farm Lights.
 ## - Bloom discoveries unlocked = floor(lights / lights_per_discovery) (capped), and tile

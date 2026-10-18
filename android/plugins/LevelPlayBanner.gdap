@@ -1,0 +1,16 @@
+[config]
+
+name="LevelPlayBanner"
+binary_type="local"
+binary="LevelPlayBanner.aar"
+
+[dependencies]
+
+remote=["com.unity3d.ads-mediation:mediation-sdk:9.6.0", "com.unity3d.ads-mediation:facebook-adapter:5.4.0", "com.facebook.android:audience-network-sdk:6.22.0", "com.google.android.gms:play-services-ads-identifier:18.0.1", "com.google.android.gms:play-services-appset:16.0.2", "com.google.android.gms:play-services-basement:18.3.0"]
+custom_maven_repos=[]
+
+[permissions]
+
+"android.permission.INTERNET"=true
+"android.permission.ACCESS_NETWORK_STATE"=true
+"com.google.android.gms.permission.AD_ID"=true

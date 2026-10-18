@@ -7,26 +7,46 @@ extends Node
 ##   app restarts mid-ad or double taps cannot double-grant.
 ## - Rewarded daily cap; interstitials only at natural breaks, never mid-board, never in the
 ##   tutorial, never right after a crash/restart, capped per day, and never with Remove Ads.
-## - initialize() refuses to run before PrivacyService records a CMP consent result.
+## - initialize() refuses to run a rewarded/interstitial provider before PrivacyService records
+##   a CMP consent result.
+## - The bottom banner is separate: it shows when banner_ads_enabled is on, hides for Remove Ads
+##   and for a denied consent, and reserves no space until a real ad loads.
 ## - is_rewarded_ready() is false unless a real (or QA-mock, debug-only) ad is loaded, so
 ##   the UI never shows a fake "watch ad" button.
 
 signal rewarded_result(placement: String, status: String)  # granted | not_completed | unavailable | duplicate | capped
+signal banner_layout_changed
 
 enum State { DISABLED, NO_PROVIDER, WAITING_CONSENT, READY }
 
 const LOAD_TIMEOUT_S := 8.0
+const LEVELPLAY_CONFIG := "res://data/config/levelplay.json"
 
 var state: int = State.DISABLED
 var state_reason: String = ""
 var provider: AdProviderBase = null
+var banner_height_px: int = 0
 var _session_started_unix: int = 0
 var _loading: Dictionary = {}   # placement -> start msec
+var _banner_started: bool = false
 
 
 func _ready() -> void:
 	_session_started_unix = int(Time.get_unix_time_from_system())
 	initialize()
+	if not PrivacyService.consent_changed.is_connected(_sync_banner):
+		PrivacyService.consent_changed.connect(_sync_banner)
+	if not IAPService.entitlements_changed.is_connected(_sync_banner):
+		IAPService.entitlements_changed.connect(_sync_banner)
+	call_deferred("_connect_banner_lifecycle")
+	_sync_banner()
+
+
+func _connect_banner_lifecycle() -> void:
+	if not Router.app_paused.is_connected(_on_banner_pause):
+		Router.app_paused.connect(_on_banner_pause)
+	if not Router.app_resumed.is_connected(_on_banner_resume):
+		Router.app_resumed.connect(_on_banner_resume)
 
 
 func initialize() -> void:
@@ -170,3 +190,84 @@ func dispose() -> void:
 		provider.dispose()
 	provider = null
 	state = State.DISABLED
+
+
+# --- bottom banner (LevelPlay + Meta) ------------------------------------------------
+
+func banner_allowed() -> bool:
+	if not FeatureFlags.enabled("banner_ads_enabled"):
+		return false
+	if IAPService.has_entitlement("remove_ads"):
+		return false
+	return PrivacyService.ads_consent() != "denied"
+
+
+func banner_canvas_inset(vp: Viewport) -> int:
+	## Extra bottom margin, in canvas pixels, once a real banner is on screen.
+	if banner_height_px <= 0 or not banner_allowed():
+		return 0
+	var win := DisplayServer.window_get_size()
+	if win.y <= 0:
+		return 0
+	return int(ceil(float(banner_height_px) * vp.get_visible_rect().size.y / float(win.y)))
+
+
+func _sync_banner() -> void:
+	var plugin := _banner_plugin()
+	if not banner_allowed():
+		banner_height_px = 0
+		if plugin:
+			plugin.set_enabled(false)
+		banner_layout_changed.emit()
+		return
+	if plugin == null:
+		return
+	var cfg := _levelplay_config()
+	if cfg.is_empty():
+		return
+	var personalized := PrivacyService.ads_consent() in ["obtained", "not_required"]
+	if not _banner_started:
+		if not plugin.banner_visibility.is_connected(_on_banner_visibility):
+			plugin.banner_visibility.connect(_on_banner_visibility)
+		plugin.start(str(cfg.app_key), str(cfg.banner_ad_unit_id), personalized)
+		_banner_started = true
+	else:
+		plugin.set_personalized(personalized)
+		plugin.set_enabled(true)
+
+
+func _levelplay_config() -> Dictionary:
+	if not (OS.has_feature("android") or OS.has_feature("ios")):
+		return {}
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(LEVELPLAY_CONFIG))
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return {}
+	var section: Variant = parsed.get("ios" if OS.has_feature("ios") else "android", {})
+	if typeof(section) != TYPE_DICTIONARY:
+		return {}
+	if str(section.get("app_key", "")) == "" or str(section.get("banner_ad_unit_id", "")) == "":
+		return {}
+	return section
+
+
+func _banner_plugin() -> Object:
+	if Engine.has_singleton("LevelPlayBanner"):
+		return Engine.get_singleton("LevelPlayBanner")
+	return null
+
+
+func _on_banner_visibility(visible: bool, height_px: int) -> void:
+	banner_height_px = height_px if visible and banner_allowed() else 0
+	banner_layout_changed.emit()
+
+
+func _on_banner_pause() -> void:
+	var plugin := _banner_plugin()
+	if plugin:
+		plugin.on_pause()
+
+
+func _on_banner_resume() -> void:
+	var plugin := _banner_plugin()
+	if plugin and banner_allowed():
+		plugin.on_resume()
