@@ -1,8 +1,8 @@
 {
-  "_comment": "Owner must supply real, published URLs before release. Empty values disable the corresponding Settings entry with a visible reason. Never invent links.",
-  "privacy_policy_url": "",
-  "terms_url": "",
-  "support_url": "",
-  "support_email": "",
-  "data_deletion_url": ""
+  "_comment": "Published pages on mahjong.bylishi.com. Empty or non-https values disable the corresponding Settings entry.",
+  "privacy_policy_url": "https://mahjong.bylishi.com/privacy/",
+  "terms_url": "https://mahjong.bylishi.com/terms/",
+  "support_url": "https://mahjong.bylishi.com/contact/",
+  "support_email": "support@bylishi.com",
+  "data_deletion_url": "https://mahjong.bylishi.com/privacy/#delete"
 }

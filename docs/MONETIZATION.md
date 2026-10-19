@@ -15,8 +15,10 @@ coin packs and a starter bundle are sold.
   `tools/setup_levelplay.mjs`) and the ironSource bidder. The publisher Instances API still returns
   ERR-1401 for new Meta instances; these six were added in the LevelPlay dashboard.
 - Consent: the game's own dialog, Europe/UK only (see Consent). No Google UMP, no AdMob app id.
-- Purchases: catalogue and consumable flow done; the billing plugin and the store product ids are
-  still owner/engineering TODOs (see below).
+- Purchases: catalogue and consumable flow done. Play one-time products are active and their
+  ids are in `products.json`. Closed testing is on 0.1.2 (version code 3), which includes the
+  billing permission. Not device-tested yet. App Store products are Ready to Submit and their
+  ids are in `products.json`; StoreKit still needs the Paid Apps agreement, then a new iOS build.
 
 ## Economy (`data/config/economy.json`, `EconomyService`, `AssistPolicy`)
 
@@ -180,9 +182,14 @@ empty until the owner creates the products (empty = hidden). Prices come only fr
   without a server, and balances never go negative.
 
 **Providers:**
-- **Android:** `GooglePlayBillingProvider` targets godot-google-play-billing 3.x, now with
-  `consume()`. **Not installed and not device-tested.** Install the plugin and verify the method
-  and signal names in internal testing.
+- **Android:** `GooglePlayBillingProvider` uses godot-google-play-billing **3.3.0, installed**
+  (`addons/GodotGooglePlayBilling/`, enabled in `project.godot`), with `consume()`.
+  - Gradle builds carry Billing Library 9.1.0 and the BILLING permission. 0.1.2 (version code 3)
+    is on the closed-testing track and was the build that unlocked product creation.
+  - `google_play_id` in `products.json` matches the active Play product ids. Prices come from
+    the store: Remove Ads $3.99, Tile Theme Bundle $2.99, coin packs $1.99 / $4.99 / $9.99,
+    Starter Bundle $4.99.
+  - **Not device-tested yet.**
 - **iOS:** `AppStoreProvider` over the project's StoreKit 2 plugin `LiShiStoreKit` (native/storekit/ios), selected when the plugin is present. Minimum iOS 15. **Only compiled by the iOS CI workflow; not device-tested** (docs/IOS_BUILD.md).
 - **QA mock:** debug builds with `qa_mock_services`. It simulates success, cancel,
   pending→complete, duplicate callbacks, lost consumes, refunds and restores. Automated tests use
@@ -193,10 +200,13 @@ backend (Play Developer API / App Store Server API); none is configured.
 
 ### Store setup (owner)
 
-- Play Console: create the in-app products (remove_ads, theme_bundle, coins_s, coins_m, coins_l, starter_bundle; whether one is consumable is decided in app code), activate them, add
-  license testers, and upload an AAB to the internal testing track. Test purchases are free test
-  transactions, not revenue.
-- App Store Connect: create the same ids (coin packs as consumables, the rest non-consumable) and use Sandbox testers / TestFlight.
+- Play Console: the six one-time products exist and are active (consumable vs non-consumable is
+  decided in app code). Add license testers if they are not already on the closed-testing list.
+  Test purchases are free test transactions, not revenue. A payout bank account is only needed
+  to receive real sales.
+- App Store Connect: the same six product ids exist and are Ready to Submit (coin packs consumable,
+  the rest non-consumable). Accept the Paid Apps agreement and use Sandbox testers / a new TestFlight
+  build; builds 4 and 5 were uploaded before `app_store_id` was filled.
 - Fill the platform IDs, rebuild, then verify purchase, cancel, pending (Play "slow test card"),
   restore after reinstall, and refund handling.
 

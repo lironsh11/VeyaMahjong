@@ -1,11 +1,11 @@
 {
-  "_comment": "Platform IDs are intentionally EMPTY until the owner creates the products in Play Console / App Store Connect (empty ID = hidden). Prices are NEVER stored here; they come from the store at runtime. type: non_consumable products grant entitlements and are restorable; consumable products grant economy contents (data/config/economy.json iap_contents) and are consumed after the grant is saved. The starter bundle is a one-time non-consumable that also grants contents.",
+  "_comment": "google_play_id and app_store_id match the store product ids. Prices are NEVER stored here; they come from the store at runtime. type: non_consumable products grant entitlements and are restorable; consumable products grant economy contents (data/config/economy.json iap_contents) and are consumed after the grant is saved. The starter bundle is a one-time non-consumable that also grants contents.",
   "products": [
-    {"id": "remove_ads", "type": "non_consumable", "title_key": "product_remove_ads", "desc_key": "product_remove_ads_desc", "google_play_id": "", "app_store_id": "", "grants": ["remove_ads"]},
-    {"id": "theme_bundle", "type": "non_consumable", "title_key": "product_theme_bundle", "desc_key": "product_theme_bundle_desc", "google_play_id": "", "app_store_id": "", "grants": ["theme_bundle"]},
-    {"id": "coins_s", "type": "consumable", "title_key": "product_coins_s", "desc_key": "product_coins_s_desc", "google_play_id": "", "app_store_id": "", "grants": []},
-    {"id": "coins_m", "type": "consumable", "title_key": "product_coins_m", "desc_key": "product_coins_m_desc", "google_play_id": "", "app_store_id": "", "grants": []},
-    {"id": "coins_l", "type": "consumable", "title_key": "product_coins_l", "desc_key": "product_coins_l_desc", "google_play_id": "", "app_store_id": "", "grants": []},
-    {"id": "starter_bundle", "type": "non_consumable", "title_key": "product_starter_bundle", "desc_key": "product_starter_bundle_desc", "google_play_id": "", "app_store_id": "", "grants": ["remove_ads"], "bundle": true}
+    {"id": "remove_ads", "type": "non_consumable", "title_key": "product_remove_ads", "desc_key": "product_remove_ads_desc", "google_play_id": "remove_ads", "app_store_id": "remove_ads", "grants": ["remove_ads"]},
+    {"id": "theme_bundle", "type": "non_consumable", "title_key": "product_theme_bundle", "desc_key": "product_theme_bundle_desc", "google_play_id": "theme_bundle", "app_store_id": "theme_bundle", "grants": ["theme_bundle"]},
+    {"id": "coins_s", "type": "consumable", "title_key": "product_coins_s", "desc_key": "product_coins_s_desc", "google_play_id": "coins_s", "app_store_id": "coins_s", "grants": []},
+    {"id": "coins_m", "type": "consumable", "title_key": "product_coins_m", "desc_key": "product_coins_m_desc", "google_play_id": "coins_m", "app_store_id": "coins_m", "grants": []},
+    {"id": "coins_l", "type": "consumable", "title_key": "product_coins_l", "desc_key": "product_coins_l_desc", "google_play_id": "coins_l", "app_store_id": "coins_l", "grants": []},
+    {"id": "starter_bundle", "type": "non_consumable", "title_key": "product_starter_bundle", "desc_key": "product_starter_bundle_desc", "google_play_id": "starter_bundle", "app_store_id": "starter_bundle", "grants": ["remove_ads"], "bundle": true}
   ]
 }

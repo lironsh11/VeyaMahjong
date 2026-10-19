@@ -136,19 +136,20 @@ Personalized ads follow consent: `LPMPrivacySettings setGDPRConsent:` is set fro
 ## Owner TODOs
 
 1. **Apple Team ID** in the iOS preset (and approve the bundle id `com.lishimahjong.app`).
-2. **App Store Connect → In-App Purchases:** create these products and put their ids into
-   `data/config/products.json` → `app_store_id`. Empty ids stay hidden in the shop.
+2. **App Store Connect in-app purchases:** created and Ready to Submit. `app_store_id` in
+   `products.json` matches the product id. A new iOS build is required before TestFlight can
+   show them; builds 4 and 5 were uploaded while the ids were empty.
 
-   | Product id | Type |
-   |---|---|
-   | `remove_ads` | Non-Consumable |
-   | `theme_bundle` | Non-Consumable |
-   | `starter_bundle` | Non-Consumable |
-   | `coins_s` | Consumable |
-   | `coins_m` | Consumable |
-   | `coins_l` | Consumable |
+   | Product id | Type | Price |
+   |---|---|---|
+   | `remove_ads` | Non-Consumable | $3.99 |
+   | `theme_bundle` | Non-Consumable | $2.99 |
+   | `starter_bundle` | Non-Consumable | $4.99 |
+   | `coins_s` | Consumable | $1.99 |
+   | `coins_m` | Consumable | $4.99 |
+   | `coins_l` | Consumable | $9.99 |
 
-   Also accept the Paid Apps agreement and fill in banking/tax, or StoreKit returns no products.
+   Accept the Paid Apps agreement and fill in banking/tax, or StoreKit returns no products.
 3. **Sandbox tester:** App Store Connect → Users and Access → Sandbox. On the device, sign in
    under Settings → Developer → Sandbox Apple Account, then test buy, cancel, Ask to Buy
    (pending), restore on a second device, and a refund (revocation).

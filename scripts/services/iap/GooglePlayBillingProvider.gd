@@ -4,10 +4,10 @@ extends IAPProviderBase
 ## whose GDScript wrapper is `class_name BillingClient extends Node` backed by the
 ## "GodotGooglePlayBilling" Android singleton. API per the plugin's 3.3.0 docs.
 ##
-## STATUS: written against the documented API but NOT yet exercised on a device - the plugin
-## is not installed in this repository. It is only selected when the plugin's singleton and
-## wrapper class are both present at runtime. Validate with Play Console internal testing
-## before enabling the shop in a release (docs/MONETIZATION.md).
+## STATUS: the plugin (3.3.0, Billing Library 9.1.0) is installed in res://addons and enabled
+## in project.godot; field names were checked against its Utils.kt. NOT yet exercised on a
+## device: validate with Play Console testing once the products exist (docs/MONETIZATION.md).
+## It is only selected when the plugin's singleton and wrapper class are both present.
 ##
 ## The wrapper is resolved dynamically so this file parses even without the addon.
 
@@ -98,7 +98,11 @@ func _on_details(response: Dictionary) -> void:
 	for d in response.get("product_details", []):
 		# Field names follow Billing Library ProductDetails; formatted price is store-localized.
 		var pid := str(d.get("product_id", d.get("productId", "")))
-		var offer: Variant = d.get("one_time_purchase_offer_details", d.get("oneTimePurchaseOfferDetails", {}))
+		# 3.3.0 sends a list ("one_time_purchase_offer_details_list", Billing Library 8+);
+		# older builds sent a single dictionary.
+		var offer: Variant = d.get("one_time_purchase_offer_details_list", d.get("one_time_purchase_offer_details", d.get("oneTimePurchaseOfferDetails", {})))
+		if offer == null:
+			offer = {}
 		var price := ""
 		if typeof(offer) == TYPE_DICTIONARY:
 			price = str(offer.get("formatted_price", offer.get("formattedPrice", "")))
