@@ -74,6 +74,10 @@ On a GitHub macOS runner, the workflow:
 It catches compile and link errors only. It does not show ads, run consent, ATT or purchases,
 and it does not check the Godot ↔ plugin ABI at runtime. That needs a device.
 
+## Appetize
+
+**iOS — Simulator (Appetize)** on Codemagic, or **iOS — Godot Appetize** on GitHub Actions, builds an unsigned x86_64 Simulator `.app` and zips it with `LiShiMahjong.app` at the root. No App Store Connect secrets. Upload that zip at https://appetize.io/. Details: `.github/GITHUB_ACTIONS_SETUP.md`.
+
 ## TestFlight CI (GitHub Actions and Codemagic)
 
 Manual workflow **iOS — Godot TestFlight** (`.github/workflows/ios-testflight.yml` and

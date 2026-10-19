@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Appetize run: Codemagic **iOS — Simulator (Appetize)** and GitHub Actions **iOS — Godot Appetize** build an unsigned x86_64 Simulator `.app` (Godot's simulator slice) with `LiShiMahjong.app` at the zip root. No App Store Connect secrets.
 - iOS TestFlight CI on GitHub Actions and Codemagic (same three App Store Connect
   secrets as Riftstrike). See `.github/GITHUB_ACTIONS_SETUP.md`. The unsigned
   Simulator compile check in `.github/workflows/ios.yml` is unchanged.

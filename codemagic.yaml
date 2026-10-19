@@ -47,3 +47,38 @@ workflows:
         # Upload only. External beta review needs Beta App Information in
         # App Store Connect. Set this to true after that form is filled.
         submit_to_testflight: false
+
+  # Unsigned Simulator .app for https://appetize.io/ — no App Store Connect secrets.
+  ios-simulator-appetize:
+    name: iOS — Simulator (Appetize)
+    instance_type: mac_mini_m2
+    max_build_duration: 120
+    environment:
+      xcode: latest
+      cocoapods: default
+      vars:
+        BUNDLE_ID: com.lishimahjong.app
+        APPLE_DEVELOPMENT_TEAM: 7BLH4NFZDD
+        GODOT_VERSION: "4.7.2"
+        GODOT_TAG: "4.7.2-stable"
+        IOS_EXPORT_PRESET: iOS
+        IOS_EXPORT_PATH: build/ios/LiShiMahjong.ipa
+        XCODE_PROJECT: build/ios/LiShiMahjong.xcodeproj
+        BUILD_DIR: $CM_BUILD_DIR/build
+        SIMULATOR_DERIVED_DATA: $CM_BUILD_DIR/build/DerivedDataSimulator
+        APPETIZE_STAGING_DIR: $CM_BUILD_DIR/build/appetize-staging
+        APPETIZE_ZIP: $CM_BUILD_DIR/build/LiShiMahjong-simulator-appetize.zip
+    cache:
+      cache_paths:
+        - $HOME/.cache/lishi-godot
+        - "$HOME/Library/Application Support/Godot/export_templates"
+        - $CM_BUILD_DIR/.ci-godot
+    scripts:
+      - name: Build unsigned Simulator app for Appetize
+        script: |
+          set -euxo pipefail
+          chmod +x .github/scripts/*.sh native/levelplay/ios/build.sh native/storekit/ios/build.sh native/levelplay/ios/scripts/*.sh
+          bash .github/scripts/godot-ios-appetize-run.sh
+    artifacts:
+      - $CM_BUILD_DIR/build/LiShiMahjong-simulator-appetize.zip
+      - $CM_BUILD_DIR/build/appetize-staging/*.app

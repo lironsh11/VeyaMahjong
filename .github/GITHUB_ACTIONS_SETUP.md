@@ -49,7 +49,24 @@ Optional, off by default:
 
 - **Upload IPA to GitHub Artifacts** — TestFlight does not need the artifact.
 - **Also build an iOS Simulator zip for Appetize** — soft-fail, so a Simulator problem does not fail the upload.
-- **iOS — Godot Appetize** — Simulator zip only, no secrets.
+
+## Appetize (separate run, no secrets)
+
+Godot's iOS templates only include an **x86_64** simulator `libgodot`. This run links `ARCHS=x86_64` and does not sign or talk to App Store Connect. Same script on both hosts: `.github/scripts/godot-ios-appetize-run.sh`.
+
+| Host | Where |
+|------|--------|
+| Codemagic | **iOS — Simulator (Appetize)** |
+| GitHub Actions | **iOS — Godot Appetize** |
+
+The zip has `LiShiMahjong.app/` at its root. That is the file Appetize accepts.
+
+**Codemagic:** download the artifact `LiShiMahjong-simulator-appetize.zip` and upload that zip at [appetize.io](https://appetize.io/).
+
+**GitHub Actions:** download one of these:
+
+1. **`ios-simulator-appetize-<run>`** — unzip once so `LiShiMahjong.app` is at the root, then upload that zip to Appetize.
+2. **`appetize-zip-<run>`** — this GitHub zip contains `LiShiMahjong-simulator-appetize.zip`. Upload **that inner zip**, not the GitHub wrapper. Uploading the wrapper produces "No .app folder found".
 
 ## Repo constants
 
