@@ -196,46 +196,75 @@ ci_install_build_tools() {
   ruby -e 'require "xcodeproj"'
 }
 
-ci_discover_xcode_scheme() {
-  local discovered=""
-  if [ -n "${XCODE_WORKSPACE_ABS:-}" ] && [ -d "$XCODE_WORKSPACE_ABS" ]; then
-    discovered=$(xcodebuild -list -workspace "$XCODE_WORKSPACE_ABS" -json 2>/dev/null | python3 -c "
+# The CocoaPods workspace lists every pod (FBAudienceNetwork sorts before the app).
+# The Godot app scheme is the one shared on the .xcodeproj.
+_ci_pick_app_scheme() {
+  local prefer="$1"
+  python3 -c '
 import json, sys
-data = json.load(sys.stdin)
-schemes = data.get('workspace', {}).get('schemes', [])
-for s in schemes:
-    if not str(s).startswith('Pods'):
-        print(s)
-        break
-" 2>/dev/null || true)
-    if [ -n "$discovered" ]; then
-      export XCODE_SCHEME="$discovered"
-      echo "Discovered Xcode scheme (workspace): $XCODE_SCHEME"
-      if [ -n "${GITHUB_ENV:-}" ]; then
-        echo "XCODE_SCHEME=$XCODE_SCHEME" >> "$GITHUB_ENV"
-      fi
-      return 0
-    fi
-  fi
+prefer = sys.argv[1]
+raw = sys.stdin.read().strip()
+if not raw:
+    raise SystemExit(0)
+try:
+    data = json.loads(raw)
+except json.JSONDecodeError:
+    raise SystemExit(0)
+container = data.get("project") or data.get("workspace") or {}
+schemes = [str(s) for s in container.get("schemes", [])]
+print("schemes: " + ", ".join(schemes), file=sys.stderr)
+blocked = (
+    "fbaudience", "ironsource", "unityads", "facebookadapter",
+    "lishilevelplay", "lishistorekit",
+)
+def is_pod(name):
+    compact = name.replace(" ", "").lower()
+    if compact.startswith("pods"):
+        return True
+    return any(part in compact for part in blocked)
+prefer_compact = prefer.replace(" ", "")
+for scheme in schemes:
+    if scheme == prefer or scheme.replace(" ", "") == prefer_compact:
+        print(scheme)
+        raise SystemExit(0)
+for scheme in schemes:
+    if not is_pod(scheme):
+        print(scheme)
+        raise SystemExit(0)
+' "$prefer"
+}
+
+ci_discover_xcode_scheme() {
+  local discovered="" prefer
+  prefer="$(basename "$XCODE_PROJECT_ABS" .xcodeproj)"
   if [ ! -d "$XCODE_PROJECT_ABS" ]; then
     echo "ERROR: Xcode project not found: $XCODE_PROJECT_ABS" >&2
     exit 1
   fi
-  discovered=$(xcodebuild -list -project "$XCODE_PROJECT_ABS" -json 2>/dev/null | python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-schemes = data.get('project', {}).get('schemes', [])
-print(schemes[0] if schemes else '')
-" 2>/dev/null || true)
+  echo "=== Discover app scheme (prefer $prefer) ==="
+  discovered=$(xcodebuild -list -project "$XCODE_PROJECT_ABS" -json 2>/dev/null | _ci_pick_app_scheme "$prefer" || true)
+  if [ -z "$discovered" ] && [ -n "${XCODE_WORKSPACE_ABS:-}" ] && [ -d "$XCODE_WORKSPACE_ABS" ]; then
+    discovered=$(xcodebuild -list -workspace "$XCODE_WORKSPACE_ABS" -json 2>/dev/null | _ci_pick_app_scheme "$prefer" || true)
+  fi
   if [ -z "$discovered" ]; then
-    discovered=$(xcodebuild -list -project "$XCODE_PROJECT_ABS" 2>/dev/null | awk '/Schemes:/{flag=1;next} flag && NF{print $1; exit}')
+    discovered=$(xcodebuild -list -project "$XCODE_PROJECT_ABS" 2>/dev/null | awk '
+      /Schemes:/{flag=1; next}
+      flag && NF { sub(/^[[:space:]]+/, ""); print; exit }
+    ')
   fi
-  if [ -n "$discovered" ]; then
-    export XCODE_SCHEME="$discovered"
-    echo "Discovered Xcode scheme: $XCODE_SCHEME"
-  else
-    echo "Using default Xcode scheme: $XCODE_SCHEME"
+  if [ -z "$discovered" ]; then
+    echo "ERROR: Could not find the app Xcode scheme in $XCODE_PROJECT_ABS" >&2
+    xcodebuild -list -project "$XCODE_PROJECT_ABS" >&2 || true
+    exit 1
   fi
+  case "$(printf '%s' "$discovered" | tr '[:upper:]' '[:lower:]' | tr -d ' ')" in
+    pods*|fbaudience*|ironsource*|unityads*|lishilevelplay*|lishistorekit*)
+      echo "ERROR: Refusing pod scheme '$discovered'. Expected the Godot app scheme ($prefer)." >&2
+      exit 1
+      ;;
+  esac
+  export XCODE_SCHEME="$discovered"
+  echo "Discovered Xcode scheme: $XCODE_SCHEME"
   if [ -n "${GITHUB_ENV:-}" ]; then
     echo "XCODE_SCHEME=$XCODE_SCHEME" >> "$GITHUB_ENV"
   fi

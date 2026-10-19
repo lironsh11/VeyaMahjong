@@ -172,15 +172,20 @@ fi
 APP_PATH="$BUILD_DIR/build.xcarchive/Products/Applications/${XCODE_SCHEME}.app"
 if [ ! -d "$APP_PATH" ]; then
   APP_PATH=""
+  shopt -s nullglob
   for candidate in "$BUILD_DIR/build.xcarchive/Products/Applications/"*.app; do
     if [ -d "$candidate" ]; then
       APP_PATH="$candidate"
       break
     fi
   done
+  shopt -u nullglob
 fi
-test -n "$APP_PATH"
-test -d "$APP_PATH"
+if [ -z "$APP_PATH" ] || [ ! -d "$APP_PATH" ]; then
+  echo "::error::Archive contains no .app. Scheme was '$XCODE_SCHEME'." >&2
+  find "$BUILD_DIR/build.xcarchive/Products" -maxdepth 3 \( -type d -o -type f \) >&2 || true
+  exit 1
+fi
 ARCHIVED_BUNDLE="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_PATH/Info.plist")"
 ARCHIVED_BUILD="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_PATH/Info.plist")"
 ARCHIVED_MARKETING="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PATH/Info.plist")"
