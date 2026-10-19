@@ -32,8 +32,8 @@ TU MUNDO FLORECE
 Cada nivel nuevo que resuelves te da una Luz de LiShi. Cada 5 Luces aparece una nueva decoración o descubrimiento en el mundo ilustrado: 30 descubrimientos te esperan en LiShi Bloom.
 
 A TU RITMO
-• Pista, Deshacer ilimitado y Mezclar siempre son gratis
-• ¿Sin salida? Mezcla gratis las fichas restantes o vuelve al último punto con solución
+• Gana monedas mientras juegas: usa Pista, Deshacer y Mezclar cuando los necesites
+• ¿Sin salida? Una mezcla gratis cuando no quedan movimientos, y volver al último punto con solución siempre es gratis
 • Sin cronómetro, sin vidas, sin energía
 • Se puede jugar por completo sin conexión y sin crear una cuenta
 • 4 temas de fichas que desbloqueas jugando: Clásico, Sakura, Océano y Nocturno
@@ -82,8 +82,8 @@ TU MUNDO FLORECE
 Cada nivel nuevo que resuelves te da una Luz de LiShi. Cada 5 Luces aparece una nueva decoración o descubrimiento en el mundo ilustrado: 30 descubrimientos te esperan en LiShi Bloom.
 
 A TU RITMO
-• Pista, Deshacer ilimitado y Mezclar siempre son gratis
-• ¿Sin salida? Mezcla gratis las fichas restantes o vuelve al último punto con solución
+• Gana monedas mientras juegas: usa Pista, Deshacer y Mezclar cuando los necesites
+• ¿Sin salida? Una mezcla gratis cuando no quedan movimientos, y volver al último punto con solución siempre es gratis
 • Sin cronómetro, sin vidas, sin energía
 • Se puede jugar por completo sin conexión y sin crear una cuenta
 • 4 temas de fichas que desbloqueas jugando: Clásico, Sakura, Océano y Nocturno

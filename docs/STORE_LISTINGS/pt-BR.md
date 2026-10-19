@@ -32,8 +32,8 @@ SEU MUNDO FLORESCE
 Cada nível novo que você resolve rende uma Luz de LiShi. A cada 5 Luzes, uma nova decoração ou descoberta aparece no mundo ilustrado – são 30 descobertas esperando por você no LiShi Bloom.
 
 NO SEU RITMO
-• Dica, Desfazer ilimitado e Embaralhar são sempre grátis
-• Sem saída? Embaralhe as peças restantes de graça ou volte ao último ponto com solução
+• Ganhe moedas enquanto joga – use Dica, Desfazer e Embaralhar quando precisar
+• Travou? Uma embaralhada grátis quando não houver jogadas, e voltar ao último ponto com solução é sempre grátis
 • Sem cronômetro, sem vidas, sem energia
 • Totalmente jogável offline, sem precisar de conta
 • 4 temas de peças para desbloquear jogando: Clássico, Sakura, Oceano e Noturno
@@ -82,8 +82,8 @@ SEU MUNDO FLORESCE
 Cada nível novo que você resolve rende uma Luz de LiShi. A cada 5 Luzes, uma nova decoração ou descoberta aparece no mundo ilustrado – são 30 descobertas esperando por você no LiShi Bloom.
 
 NO SEU RITMO
-• Dica, Desfazer ilimitado e Embaralhar são sempre grátis
-• Sem saída? Embaralhe as peças restantes de graça ou volte ao último ponto com solução
+• Ganhe moedas enquanto joga – use Dica, Desfazer e Embaralhar quando precisar
+• Travou? Uma embaralhada grátis quando não houver jogadas, e voltar ao último ponto com solução é sempre grátis
 • Sem cronômetro, sem vidas, sem energia
 • Totalmente jogável offline, sem precisar de conta
 • 4 temas de peças para desbloquear jogando: Clássico, Sakura, Oceano e Noturno

@@ -1,0 +1,21 @@
+; StoreKit 2 in-app purchases (singleton "LiShiStoreKit"), used by
+; scripts/services/iap/AppStoreProvider.gd.
+; Binaries: LiShiStoreKit.debug.xcframework / LiShiStoreKit.release.xcframework, built by
+; native/storekit/ios/build.sh (macOS). The Swift StoreKit code is the local CocoaPod
+; native/storekit/ios/pod, added by native/levelplay/ios/scripts/prepare_xcode_project.sh.
+
+[config]
+
+name="LiShiStoreKit"
+binary="LiShiStoreKit.xcframework"
+initialization="lishi_storekit_init"
+deinitialization="lishi_storekit_deinit"
+
+[dependencies]
+
+linked=[]
+embedded=[]
+system=["StoreKit.framework"]
+capabilities=[]
+files=[]
+linker_flags=[]

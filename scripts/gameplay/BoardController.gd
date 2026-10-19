@@ -32,6 +32,8 @@ var combo: int = 0
 var dead_known: bool = false
 var _gen: int = 0
 var _hint_busy: bool = false
+var _hint_shown_gen: int = -1   ## _gen at which the last hint was shown (repeat is free)
+var _hint_last: Dictionary = {}
 var _clock_start: int = -1
 
 
@@ -140,6 +142,7 @@ func undo() -> bool:
 
 
 func undo_to_checkpoint() -> int:
+	## Free rescue: rewinds to the last state proven solvable (never charged by the economy).
 	var n := 0
 	while session.history.size() > session.checkpoint and session.can_undo():
 		undo()
@@ -167,11 +170,22 @@ func shuffle() -> Dictionary:
 	return res
 
 
+func can_repeat_hint() -> bool:
+	return _hint_shown_gen == _gen and _hint_last.get("pair") != null
+
+
 func request_hint() -> void:
 	if _hint_busy or session.completed:
 		return
+	if can_repeat_hint():
+		# Nothing changed since the last hint: show the same pair again (free).
+		var p: Vector2i = _hint_last.pair
+		view.show_hint(p.x, p.y)
+		var again := _hint_last.duplicate()
+		again["repeat"] = true
+		hint_result.emit(again)
+		return
 	_hint_busy = true
-	session.stats.hints += 1
 	var st := session.state.clone()
 	var gen := _gen
 	Jobs.run(func() -> Dictionary: return BoardController.compute_hint(st),
@@ -186,6 +200,11 @@ func _on_hint_done(res: Variant, gen: int) -> void:
 		var p: Vector2i = res.pair
 		view.show_hint(p.x, p.y)
 		AudioService.play("hint")
+		# Counted (for no-hint records and tasks) only when a useful pair was actually shown.
+		if not bool(res.get("dead", false)):
+			session.stats.hints += 1
+			_hint_shown_gen = gen
+			_hint_last = res
 	save()
 	hint_result.emit(res)
 

@@ -1,0 +1,2 @@
+/* App Tracking Transparency prompt (NSUserTrackingUsageDescription). */
+"NSUserTrackingUsageDescription" = "추적을 허용하면 더 관련성 높은 광고를 보여 드릴 수 있습니다. 어느 쪽을 선택해도 게임은 똑같이 이용할 수 있습니다.";

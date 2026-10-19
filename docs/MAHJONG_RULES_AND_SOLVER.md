@@ -109,7 +109,9 @@ order is computed for the **current** geometry, and pairs are assigned along it.
 replay-validated. Shuffle never changes which tiles are removed, the face multiset, progress or
 purchases, and it can be undone. If the remaining geometry has no clearing order, the player gets
 free alternatives: rewind to the last checkpoint proven solvable (kept by the background check)
-or restart. A rewarded ad is never required.
+or restart. A rewarded ad is never required. With the booster economy, Shuffle is a booster,
+but one rescue Shuffle per board is free when no moves remain and rewinding/restarting stay free
+(docs/MONETIZATION.md), so no board can be locked behind a price.
 
 ## Content validation
 
@@ -179,7 +181,8 @@ harder than the previous one on both axes; stored metrics reproduce exactly.
 
 *(The validator's table uses 24 playouts, seed 7; the stored build metrics use 32 playouts,
 seed 11.)* The dead-end rate measures **random** play. Real players dead-end far less,
-and Undo/Shuffle are free, so tester feedback should still calibrate the top end.
+and helpers are now boosters (with free rescue paths), so tester feedback on worlds 2-3 should
+calibrate both the top end and the economy numbers.
 
 ## Tests
 

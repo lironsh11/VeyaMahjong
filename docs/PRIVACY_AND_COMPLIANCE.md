@@ -8,28 +8,46 @@ APPI, PIPA, Israeli privacy law or store policies.
 
 | Area | Behaviour |
 |---|---|
-| Network | **None.** The Android manifest requests no INTERNET permission. The game makes no network calls. |
+| Network | Only the ad SDKs (LevelPlay, Meta) and the store billing. The game itself makes no network calls. |
 | Accounts | None. No login, no cloud save. |
-| Device identifiers | None read (no advertising ID, Android ID, IDFA/IDFV use, no fingerprinting). |
-| Permissions | Android: `VIBRATE` only (optional haptics). iOS: none. |
+| Device identifiers | The game reads none. The ad SDKs use the advertising ID (Android `AD_ID`; IDFA on iOS only after ATT allows it). |
+| Permissions | Android: `VIBRATE` (optional haptics), `INTERNET`, `ACCESS_NETWORK_STATE`, `AD_ID` (ads). iOS: ATT prompt. |
 | Local storage | `user://save/veya_save.json` (+ `.bak`/`.tmp`): progress, settings, daily records, cosmetic choices, entitlement records. Stays on the device. Android backup is disabled (`user_data_backup/allow=false`). |
 | Analytics | An event schema and consent gate exist, but **no provider is integrated and `analytics_enabled` is false**. In debug builds only, a local in-memory ring buffer shows recent events; it is never transmitted. |
-| Ads | Not integrated (`ads_enabled=false`). |
+| Ads | LevelPlay banner, rewarded and interstitial (Android + iOS); demand: ironSource bidder and Meta Audience Network only. Consent through the game's own dialog (below). |
 | Purchases | Not live (no product IDs, no billing plugin). |
 | Crash reporting | None integrated. |
 | Clipboard | "Share" on the Daily screen copies a short text (app name, date, "solved") only when the player taps it. |
 
-Because nothing is collected or transmitted, the build shows **no launch consent prompt**.
+The only launch consent prompt is the ads consent dialog, and only on Europe/UK devices (below).
 Declining or never seeing consent cannot affect gameplay.
 
-## Consent architecture (for when SDKs are added)
+## Consent architecture
 
-- `PrivacyService.needs_launch_prompt()` becomes true only when a data-collecting feature is enabled.
+- `PrivacyService.needs_launch_prompt()` (analytics) becomes true only when a data-collecting
+  feature is enabled.
 - Analytics queue only if: flag on **and** consent `granted` **and** a provider is attached.
   Withdrawing consent clears queued events.
-- Ads: `AdsService.initialize()` waits until a CMP result is recorded (`record_ads_consent`). Use
-  Google UMP (certified CMP, IAB TCF v2.2) for the EEA/UK/Switzerland. Call ATT on iOS only if
-  tracking is actually performed.
+- Ads: the game's own dialog (`scripts/ui/ConsentDialog.gd`, logic in `PrivacyService`). Google
+  UMP and any AdMob app id were removed from the game and both native plugins.
+  - At launch `PrivacyService.resolve_ads_consent_region()` treats consent as **required** when
+    the device region (OS locale) is in the EEA, the UK or Switzerland, **or** the time zone
+    starts with `Europe/` (plus Atlantic/Canary, Madeira, Azores, Reykjavik, Faroe,
+    Arctic/Longyearbyen, Asia/Nicosia, Asia/Famagusta). BootScreen then shows the dialog once:
+    non-dismissible, Accept and Decline equally prominent, privacy policy link.
+  - Elsewhere consent is recorded as `not_required` (personalized ads, no dialog). A device that
+    later moves into Europe/UK after `not_required` is asked again; dialog answers (`obtained` /
+    `denied`) are kept.
+  - Settings → Privacy choices reopens the dialog for everyone and shows the current state.
+  - Decline = non-personalized ads (`LevelPlay.setConsent(false)` / `LPMPrivacySettings
+    setGDPRConsent:NO`); banner, rewarded and interstitials still run. The banner is hidden only
+    while a Europe/UK device has not answered yet; `AdsService.initialize()` waits for an answer.
+  - iOS: the ATT prompt is requested after the consent answer.
+- **Not an IAB TCF certified CMP.** No TC string is written. This is acceptable only because no
+  Google demand (AdMob / Ad Manager) is in the LevelPlay waterfall: today it is the ironSource
+  bidder and Meta only, which take consent through the LevelPlay consent API. **If Google demand
+  is ever added, a Google-certified CMP (IAB TCF v2.2) is required first.** Counsel should
+  confirm the dialog text (`consent_body`, 10 languages) and the region detection.
 - Settings → Privacy shows the analytics choice; it is disabled with "This version doesn't collect
   any usage statistics" while no provider exists.
 
@@ -42,14 +60,20 @@ invented. **Owner action:** publish the policies and fill these values before su
 
 ## Store disclosures (based on this build)
 
-- **Google Play Data safety (draft):** "No data collected", "No data shared". No ads (do not
-  declare "contains ads" until an ad SDK ships). Re-do this form whenever an SDK is added
-  (AdMob collects device/advertising IDs, approximate location, diagnostics).
-- **Apple App Privacy (draft):** "Data Not Collected". `PrivacyInfo.xcprivacy` is generated by
+- **Google Play Data safety (with ads, LevelPlay + Meta):** declare **Contains ads** and
+  **In-app purchases**. The ad SDKs collect and share device or other IDs (advertising ID),
+  approximate location (IP) and app interactions / diagnostics for advertising, fraud prevention
+  and analytics; data is encrypted in transit; users can request deletion through the SDK
+  providers. Re-check against the current LevelPlay and Meta SDK data-safety guidance before
+  submission.
+- **Apple App Privacy (with ads):** Identifiers (device ID / IDFA after ATT consent), Usage
+  Data and Diagnostics, used for third-party advertising and analytics; tracking is declared
+  because the ATT prompt is shown. `PrivacyInfo.xcprivacy` is generated by
   Godot's iOS export. Review its required-reason API declarations (e.g. file timestamps,
   UserDefaults) in Xcode before submission.
 - **Age rating:** content is a tile puzzle with no violence, chat, user-generated content or
-  gambling mechanics (no loot boxes, no currency). Expect the lowest ratings (e.g. IARC 3+/PEGI 3,
+  gambling mechanics (no loot boxes or randomized paid rewards). It has an in-game currency
+  (coins) and in-app purchases of known items; answer "in-app purchases: yes". Expect the lowest ratings (e.g. IARC 3+/PEGI 3,
   Apple 4+). Confirm with the actual questionnaires. The game is **not** designed as
   child-directed. If ads are added, configure non-personalized/age-appropriate treatment as
   required, and do not opt into Google Play Families unless all family-policy requirements are met.

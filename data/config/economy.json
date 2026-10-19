@@ -1,0 +1,39 @@
+{
+  "_comment": "Booster economy (owner-approved 2026-10-19). Coins and boosters are added ONLY through EconomyService.grant() with a unique grant id (idempotent ledger). Tune numbers here; prices of real-money products live in the stores, not here.",
+  "version": 1,
+  "items": ["hint", "shuffle", "undo"],
+  "start_grant": {"id": "start_v1", "coins": 300, "hint": 3, "shuffle": 3, "undo": 5},
+  "legacy_welcome_grant": {"id": "welcome_existing_v1", "coins": 500, "hint": 5, "shuffle": 5, "undo": 10},
+  "free_undos_per_board": 2,
+  "free_rescue_shuffles_per_board": 1,
+  "rewards": {
+    "level_first_clear": [
+      {"from": 1, "to": 50, "coins": 20},
+      {"from": 51, "to": 100, "coins": 30},
+      {"from": 101, "to": 150, "coins": 40}
+    ],
+    "world_complete": 250,
+    "daily_first_clear": 50,
+    "daily_tasks_claim": 75
+  },
+  "prices": {
+    "hint": {"1": 120, "5": 480},
+    "shuffle": {"1": 150, "5": 600},
+    "undo": {"1": 60, "5": 240}
+  },
+  "limits": {"max_coins": 999999, "max_item": 999},
+  "rewarded": {
+    "win_double": {"ad_unit": "rewarded_bonus_coins", "daily_cap": 6},
+    "booster": {"ad_unit": "rewarded_bonus_coins", "daily_cap": 5, "item_qty": 1},
+    "shop_coins": {"ad_unit": "rewarded_bonus_coins", "daily_cap": 3, "coins": 60},
+    "bloom_bonus": {"ad_unit": "rewarded_bloom_bonus", "daily_cap": 1}
+  },
+  "interstitial": {"ad_unit": "interstitial_level_complete"},
+  "iap_contents": {
+    "coins_s": {"coins": 1200},
+    "coins_m": {"coins": 3500},
+    "coins_l": {"coins": 8000},
+    "starter_bundle": {"coins": 1500, "hint": 5, "shuffle": 5, "undo": 10}
+  },
+  "starter_bundle_min_level": 5
+}

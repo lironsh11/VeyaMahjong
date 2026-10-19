@@ -40,7 +40,8 @@ tools/               Headless validators, script checker, asset usage report
 | AnalyticsService | Schema-validated, consent-gated, batched; no network provider shipped |
 | PrivacyService | Consent state, legal links (blank = disabled with reason), ad-init gating |
 | IAPService | Product catalogue, store adapters, entitlement ledger (transaction dedupe, pending, revocation) |
-| AdsService | Ad policy facade (OFF by default): reward dedupe, caps, consent gate, natural breaks only |
+| EconomyService | Coins + booster inventory (data/config/economy.json): idempotent grant ledger, buy/consume, rewards, start/welcome packs |
+| AdsService | Ad policy facade: per-placement rewarded caps, reward dedupe, interstitial pacing, consent gate, banner; providers in scripts/services/ads/ (LevelPlay native, QA mock) |
 | ProgressionService | Idempotent Lights by source key; derived Bloom discoveries and theme unlocks |
 | DailyService | Local-date daily boards (async generation), 30-day archive, optional tasks |
 | Router | Navigation, back-button handling, modal stack, toasts, lifecycle saves, memory warnings |

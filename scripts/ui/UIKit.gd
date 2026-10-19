@@ -265,3 +265,54 @@ static func scroll(content: Control) -> ScrollContainer:
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	s.add_child(content)
 	return s
+
+
+static func set_tool_badge(b: Button, text: String, style: String) -> void:
+	## Count badge on a tool_button's top-end corner (mirrors to top-left in RTL). An empty
+	## text removes it.
+	var old := b.get_node_or_null("Badge")
+	if old:
+		b.remove_child(old)
+		old.queue_free()
+	if text == "":
+		return
+	var c := chip(text, style)
+	c.name = "Badge"
+	b.add_child(c)  # attach before positioning (RTL mirrors the corner automatically)
+	c.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 4)
+	c.position.y = -6
+	c.z_index = 1
+
+
+static func coin_pill(on_press: Callable = Callable(), light: bool = true) -> Button:
+	## Coin balance; live-updates from EconomyService and opens the shop when tapped.
+	var b := Button.new()
+	b.theme_type_variation = "FlatTool"
+	b.focus_mode = Control.FOCUS_ALL
+	b.custom_minimum_size = Vector2(0, 52)
+	var p := panel("HudPill")
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	b.add_child(p)
+	var h := hbox(6)
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.alignment = BoxContainer.ALIGNMENT_CENTER
+	p.add_child(h)
+	h.add_child(texrect(ContentService.icon("coin", light), Vector2(26, 26)))
+	var l := label("", UITheme.FONT_BODY, true, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, false)
+	l.name = "Amount"
+	h.add_child(l)
+	var refresh := func() -> void:
+		if is_instance_valid(l):
+			l.text = LocalizationService.format_number(EconomyService.coins())
+			AccessibilityService.set_access_name(b, LocalizationService.t("a11y_coins", {"count": EconomyService.coins()}))
+			b.custom_minimum_size.x = maxf(96.0, l.get_minimum_size().x + 64.0)
+	refresh.call()
+	EconomyService.wallet_changed.connect(refresh)
+	b.tree_exiting.connect(func() -> void:
+		if EconomyService.wallet_changed.is_connected(refresh):
+			EconomyService.wallet_changed.disconnect(refresh))
+	b.pressed.connect(func() -> void: AudioService.play("button"))
+	if on_press.is_valid():
+		b.pressed.connect(on_press)
+	return b

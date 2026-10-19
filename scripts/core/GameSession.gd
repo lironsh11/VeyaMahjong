@@ -20,6 +20,9 @@ var stats := {
 }
 ## history.size() at which the board was last proven solvable (0 = the verified start).
 var checkpoint: int = 0
+## Per-board helper allowances used so far (free undos, free rescue shuffle). Saved with the
+## board so quitting and resuming cannot refill them; a restart starts a fresh board.
+var assists := {"free_undos_used": 0, "rescue_shuffles_used": 0}
 var completed: bool = false
 var shuffle_counter: int = 0
 
@@ -148,7 +151,7 @@ func to_dict() -> Dictionary:
 	return {
 		"v": SAVE_VERSION, "level_key": level.key, "faces": Array(state.faces),
 		"removed": Array(state.removed_indices()), "history": hist, "stats": stats.duplicate(),
-		"checkpoint": checkpoint, "shuffle_counter": shuffle_counter,
+		"checkpoint": checkpoint, "shuffle_counter": shuffle_counter, "assists": assists.duplicate(),
 	}
 
 
@@ -191,5 +194,9 @@ static func restore(p_level: LevelDefinition, d: Dictionary) -> GameSession:
 		s.stats[k] = int(st.get(k, 0))
 	s.checkpoint = clampi(int(d.get("checkpoint", 0)), 0, s.history.size())
 	s.shuffle_counter = int(d.get("shuffle_counter", 0))
+	var asg: Variant = d.get("assists", {})  # absent in snapshots from before the economy
+	if typeof(asg) == TYPE_DICTIONARY:
+		for k in s.assists:
+			s.assists[k] = maxi(0, int(asg.get(k, 0)))
 	s.completed = s.state.remaining == 0
 	return s

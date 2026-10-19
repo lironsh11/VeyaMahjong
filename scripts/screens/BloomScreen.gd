@@ -63,6 +63,26 @@ func build() -> void:
 		iv.add_child(UIKit.label(t("lights_to_next", {"count": np.y - np.x, "have": np.x, "need": np.y}), UITheme.FONT_SMALL, false, UITheme.text_soft(), HORIZONTAL_ALIGNMENT_CENTER))
 	else:
 		iv.add_child(UIKit.label(t("all_discoveries_found"), UITheme.FONT_SMALL, false, UITheme.text_soft(), HORIZONTAL_ALIGNMENT_CENTER))
+	if np.x >= 0 and AdsService.is_rewarded_ready("bloom_bonus"):
+		var ad := UIKit.button(t("bloom_ad_light"), "violet", "small")
+		ad.pressed.connect(func() -> void:
+			ad.disabled = true
+			AdsService.rewarded_result.connect(func(placement: String, status: String) -> void:
+				if placement != "bloom_bonus":
+					return
+				if status == "granted":
+					AudioService.play("reward")
+					_on_relayout()
+				elif status != "not_completed":
+					Router.toast(t("ad_unavailable"))
+					_on_relayout()
+				elif is_instance_valid(ad):
+					ad.disabled = false, CONNECT_ONE_SHOT)
+			var gid := AdsService.next_grant_id("bloom_bonus")
+			AdsService.show_rewarded("bloom_bonus", gid, ProgressionService.award_light.bind(gid)))
+		iv.add_child(ad)
+	elif np.x >= 0:
+		AdsService.load_rewarded("bloom_bonus")
 	root.add_child(info)
 	root.add_child(UIKit.spacer(0, true))
 	var cap_panel := UIKit.panel("HudPill")

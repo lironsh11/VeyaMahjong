@@ -1,7 +1,10 @@
 extends Screen
 ## Main gameplay: minimal HUD, the board as the hero, and an icon+text toolbar
-## (Shuffle / Hint / Undo) that is always free. No timers gate anything; the optional clock
-## is a personal statistic hidden by default.
+## (Shuffle / Hint / Undo) backed by the booster economy (EconomyService + AssistPolicy):
+## each button shows how many the player owns; the first undos of a board, one rescue shuffle
+## when no moves remain, rewinding to the last solvable point and restarting are free, so a
+## board can never be locked behind a price. No timers gate anything; the optional clock is
+## a personal statistic hidden by default.
 ##
 ## Params: {"mode": "level", "level": int, "restart": bool}  |  {"mode": "daily", "date": "YYYY-MM-DD"}
 ## If the saved active session matches the requested board it is resumed exactly.
@@ -31,6 +34,8 @@ func _ready() -> void:
 		Router.replace.call_deferred("home")
 		return
 	super._ready()
+	EconomyService.inventory_changed.connect(_on_inventory_changed)
+	AdsService.on_level_started()
 	controller.start_clock()
 	AudioService.play_world_music(level.world if level.world != "" else "aurora_garden")
 	ContentService.active_world = level.world
@@ -103,6 +108,7 @@ func build() -> void:
 	sl.add_theme_constant_override("outline_size", 5)
 	titles.add_child(sl)
 	hud.add_child(titles)
+	hud.add_child(UIKit.coin_pill(_open_shop))
 	var pill := UIKit.panel("HudPill")
 	pill.custom_minimum_size = Vector2(60, 56)
 	var pv := UIKit.vbox(0)
@@ -182,13 +188,76 @@ func _refresh_hud() -> void:
 	_hud_timer.text = _fmt_time(controller.elapsed_ms())
 	if not controller.dead_known and _banner:
 		_banner.visible = false
+	_refresh_badges()
+
+
+func _economy_on() -> bool:
+	return not EconomyService.helpers_free()
+
+
+func _refresh_badges() -> void:
+	if _btn_hint == null or not is_instance_valid(_btn_hint):
+		return
+	if not _economy_on():
+		for b in [_btn_shuffle, _btn_hint, _btn_undo]:
+			UIKit.set_tool_badge(b, "", "")
+		return
+	_set_count_badge(_btn_hint, EconomyService.count("hint"))
+	_set_count_badge(_btn_shuffle, EconomyService.count("shuffle"))
+	if AssistPolicy.free_undos_left(session.assists, EconomyService.free_undos_per_board()) > 0:
+		UIKit.set_tool_badge(_btn_undo, t("badge_free"), "BadgeGreen")
+	else:
+		_set_count_badge(_btn_undo, EconomyService.count("undo"))
+
+
+func _set_count_badge(b: Button, n: int) -> void:
+	if n > 0:
+		UIKit.set_tool_badge(b, LocalizationService.format_number(n), "BadgeGold")
+	else:
+		UIKit.set_tool_badge(b, "+", "BadgeRed")
+
+
+func _on_inventory_changed(_item: String) -> void:
+	_refresh_badges()
+
+
+func _exit_tree() -> void:
+	if EconomyService.inventory_changed.is_connected(_on_inventory_changed):
+		EconomyService.inventory_changed.disconnect(_on_inventory_changed)
+
+
+func _open_shop() -> void:
+	if _won:
+		return
+	controller.stop_clock()
+	controller.save()
+	AnalyticsService.track("shop_opened", {"from": "gameplay"})
+	Router.go("shop")
+
+
+func _track_booster(item: String, free: bool) -> void:
+	AnalyticsService.track("booster_used", {"item": item, "level": level.id, "free": free})
 
 
 # --- toolbar -------------------------------------------------------------------------
 
 func _on_undo_pressed() -> void:
-	if not controller.undo():
+	if not session.can_undo():
 		Router.toast(t("undo_nothing"))
+		return
+	var cost := AssistPolicy.undo_cost(session.assists, EconomyService.free_undos_per_board(), EconomyService.count("undo"), _economy_on())
+	if not cost.allowed:
+		_open_get_more("undo")
+		return
+	if not controller.undo():
+		return
+	if cost.free:
+		session.assists.free_undos_used = int(session.assists.free_undos_used) + 1
+	else:
+		EconomyService.consume("undo")
+	controller.save()
+	_track_booster("undo", cost.free)
+	_refresh_badges()
 
 
 func _on_hint_pressed() -> void:
@@ -197,32 +266,87 @@ func _on_hint_pressed() -> void:
 	if not session.has_moves():
 		_on_no_moves()
 		return
+	if _economy_on() and EconomyService.count("hint") <= 0 and not controller.can_repeat_hint():
+		_open_get_more("hint")
+		return
 	controller.request_hint()
 
 
 func _on_hint(res: Dictionary) -> void:
-	AnalyticsService.track("hint_used", {"level": level.id, "safe": bool(res.get("safe", false))})
+	var charged := AssistPolicy.hint_should_charge(res, _economy_on())
+	if charged:
+		EconomyService.consume("hint")
+		controller.save()
+		_track_booster("hint", false)
+	AnalyticsService.track("hint_used", {"level": level.id, "safe": bool(res.get("safe", false)), "charged": charged})
 	if res.get("pair") == null:
 		_on_no_moves()
 	elif res.get("dead", false):
 		Router.toast(t("hint_dead"), 3.5)
-	elif not res.get("safe", false):
+	elif not res.get("safe", false) and not res.get("repeat", false):
 		Router.toast(t("hint_unverified"), 3.0)
 
 
 func _on_shuffle_pressed() -> void:
-	_do_shuffle(false)
+	_try_shuffle(false)
 
 
-func _do_shuffle(from_rescue: bool) -> void:
+func _shuffle_cost() -> Dictionary:
+	return AssistPolicy.shuffle_cost(session.assists, EconomyService.free_rescue_shuffles_per_board(), not session.has_moves(), EconomyService.count("shuffle"), _economy_on())
+
+
+func _try_shuffle(from_rescue: bool) -> void:
+	var cost := _shuffle_cost()
+	if not cost.allowed:
+		_open_get_more("shuffle", from_rescue)
+		return
+	_do_shuffle(from_rescue, cost.free)
+
+
+func _do_shuffle(from_rescue: bool, free: bool) -> void:
 	var res := controller.shuffle()
 	if res.ok:
+		# Charged only for a shuffle that actually happened.
+		if free:
+			if _economy_on():
+				session.assists.rescue_shuffles_used = int(session.assists.rescue_shuffles_used) + 1
+		else:
+			EconomyService.consume("shuffle")
+		controller.save()
+		_track_booster("shuffle", free)
 		_banner.visible = false
 		if from_rescue:
 			AnalyticsService.track("level_rescued", {"level": level.id, "method": "shuffle"})
 		_refresh_hud()
 		return
 	_open_shuffle_failed()
+
+
+func _open_get_more(item: String, rescue: bool = false) -> void:
+	controller.stop_clock()
+	var can_rewind := rescue and session.checkpoint < session.history.size()
+	var m := GetMoreDialog.open(self, item, can_rewind, rescue)
+	m.closed.connect(_on_get_more_closed)
+
+
+func _on_get_more_closed(r: String) -> void:
+	match r:
+		"shop":
+			_open_shop()
+		"rewind":
+			_rewind()
+		"restart":
+			_confirm_restart()
+		_:
+			controller.start_clock()
+			_refresh_badges()
+
+
+func _rewind() -> void:
+	var n := controller.undo_to_checkpoint()
+	AnalyticsService.track("level_rescued", {"level": level.id, "method": "rewind"})
+	Router.toast(t("rewound_n", {"count": n}))
+	controller.start_clock()
 
 
 func _on_blocked(_i: int) -> void:
@@ -285,9 +409,19 @@ func _on_no_moves() -> void:
 
 
 func _open_rescue(no_moves: bool) -> void:
+	## Free ways forward first: the free rescue shuffle (no moves left), then rewinding to the
+	## last solvable point; paid helpers after; restart always.
 	var title := t("no_moves") if no_moves else t("stuck_title")
 	var m := ModalDialog.open(self, title, t("rescue_body"))
-	m.add_action(t("shuffle_free"), "shuffle", "green")
+	var sc := _shuffle_cost()
+	if sc.free:
+		m.add_action(t("shuffle_free"), "shuffle", "green")
+	elif sc.allowed:
+		m.add_action("%s (%s)" % [t("shuffle"), LocalizationService.format_number(EconomyService.count("shuffle"))], "shuffle", "green")
+	if session.checkpoint < session.history.size():
+		m.add_action(t("rewind_free"), "rewind", "green" if not sc.allowed else "cream", "small")
+	if not sc.allowed:
+		m.add_action(t("get_shuffles"), "get_shuffle", "gold", "small")
 	if session.can_undo():
 		m.add_action(t("undo"), "undo", "cream", "small")
 	m.add_action(t("restart"), "restart", "cream", "small")
@@ -297,9 +431,13 @@ func _open_rescue(no_moves: bool) -> void:
 func _on_rescue_closed(r: String) -> void:
 	match r:
 		"shuffle":
-			_do_shuffle(true)
+			_try_shuffle(true)
+		"get_shuffle":
+			_open_get_more("shuffle", true)
+		"rewind":
+			_rewind()
 		"undo":
-			controller.undo()
+			_on_undo_pressed()
 		"restart":
 			_confirm_restart()
 
@@ -315,9 +453,7 @@ func _open_shuffle_failed() -> void:
 func _on_shuffle_failed_closed(r: String) -> void:
 	match r:
 		"rewind":
-			var n := controller.undo_to_checkpoint()
-			AnalyticsService.track("level_rescued", {"level": level.id, "method": "rewind"})
-			Router.toast(t("rewound_n", {"count": n}))
+			_rewind()
 		"restart":
 			_confirm_restart()
 
@@ -365,6 +501,7 @@ func _open_win(result: Dictionary, stats: Dictionary) -> void:
 		AudioService.play("reward")
 	elif not result.first_time:
 		box.add_child(UIKit.label(t("replay_no_light"), UITheme.FONT_SMALL, false, UITheme.text_soft(), HORIZONTAL_ALIGNMENT_CENTER))
+	_add_coin_rows(box, result)
 	if bool(GameState.setting("show_timer")):
 		box.add_child(UIKit.label(t("time_taken", {"time": _fmt_time(int(stats.elapsed_ms))}), UITheme.FONT_SMALL, false, UITheme.text_soft(), HORIZONTAL_ALIGNMENT_CENTER))
 	for d in result.discoveries:
@@ -385,9 +522,6 @@ func _open_win(result: Dictionary, stats: Dictionary) -> void:
 		m.add_action(t("next_level"), "next", "green")
 	if not result.discoveries.is_empty():
 		m.add_action(t("see_bloom"), "bloom", "gold", "small")
-	# Optional rewarded bonus: shown ONLY when a real ad is loaded (never in this build).
-	if result.first_time and mode == "level" and AdsService.is_rewarded_ready("bonus_light"):
-		m.add_action(t("ad_bonus_light"), "ad", "violet", "small")
 	m.add_action(t("home"), "home", "cream", "small")
 	m.closed.connect(_on_win_closed.bind(result, stats))
 
@@ -395,28 +529,58 @@ func _open_win(result: Dictionary, stats: Dictionary) -> void:
 func _on_win_closed(r: String, result: Dictionary, stats: Dictionary) -> void:
 	match r:
 		"next":
-			AdsService.show_interstitial("level_complete_continue", _go_next_level)
+			# The continue callback lives on an autoload, so it is safe even if this screen is
+			# gone by the time the ad closes.
+			AdsService.show_interstitial("level_complete_continue", level.id,
+				Router.replace.bind("gameplay", {"mode": "level", "level": level.id + 1}))
 		"daily":
 			Router.replace("daily")
 		"bloom":
 			Router.replace("bloom", {"world": str(result.discoveries[0].world)})
-		"ad":
-			AdsService.show_rewarded("bonus_light", "ad:level:%d" % level.id, _grant_ad_light)
-			_open_win(_refreshed_result(), stats)
 		_:
 			Router.reset_to("home")
 
 
-func _go_next_level() -> void:
-	Router.replace("gameplay", {"mode": "level", "level": level.id + 1})
-
-
-func _grant_ad_light() -> void:
-	ProgressionService.award_light("ad:level:%d" % level.id)
-
-
-func _refreshed_result() -> Dictionary:
-	return {"first_time": false, "light_awarded": false, "discoveries": [], "themes": [], "world_unlocked": "", "next_progress": ProgressionService.lights_progress()}
+func _add_coin_rows(box: VBoxContainer, result: Dictionary) -> void:
+	var coins := int(result.get("coins", 0))
+	if coins <= 0:
+		return
+	var row := UIKit.hbox(8)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(UIKit.texrect(ContentService.icon("coin"), Vector2(34, 34)))
+	var amount := UIKit.label(t("coin_reward", {"count": coins}), UITheme.FONT_H2, true, null, HORIZONTAL_ALIGNMENT_CENTER, false)
+	row.add_child(amount)
+	box.add_child(row)
+	var bonus := int(result.get("world_bonus", 0))
+	if bonus > 0:
+		box.add_child(UIKit.label(t("world_bonus", {"count": bonus}), UITheme.FONT_BODY, true, UITheme.GREEN, HORIZONTAL_ALIGNMENT_CENTER))
+	AudioService.play("coin")
+	# Optional: double the level's coins by watching a video (only when a real ad is loaded).
+	if not AdsService.is_rewarded_ready("win_double"):
+		AdsService.load_rewarded("win_double")
+		return
+	var key := ("daily:" + date) if mode == "daily" else ("level:%d" % level.id)
+	var gid := "ad:win_double:" + key
+	var dbl := UIKit.button(t("watch_ad_double"), "violet", "small")
+	box.add_child(dbl)
+	dbl.pressed.connect(func() -> void:
+		dbl.disabled = true
+		AdsService.rewarded_result.connect(func(placement: String, status: String) -> void:
+			if placement != "win_double":
+				return
+			if status == "granted":
+				if is_instance_valid(amount):
+					amount.text = t("coin_reward", {"count": coins * 2})
+				if is_instance_valid(dbl):
+					dbl.queue_free()
+				AudioService.play("coin")
+			elif is_instance_valid(dbl):
+				if status == "not_completed":
+					dbl.disabled = false
+				else:
+					dbl.visible = false
+					Router.toast(t("ad_unavailable")), CONNECT_ONE_SHOT)
+		AdsService.show_rewarded("win_double", gid, EconomyService.grant.bind(gid, {"coins": coins}, "ad_win_double")))
 
 
 func on_back() -> bool:

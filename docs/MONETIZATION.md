@@ -1,108 +1,184 @@
 # Monetization
 
-**Current state: a bottom banner on Android.** Rewarded ads and purchases stay off. The banner
-uses Unity LevelPlay with Meta Audience Network bidding. Nothing in the game requires watching
-an ad or paying.
+**Model (owner-approved 2026-10-19): booster economy + ads + purchases, like commercial
+mahjong / tile-match games.** Hint, Shuffle and Undo are boosters the player owns and spends;
+coins are earned by playing (or bought) and buy more boosters; rewarded videos give boosters,
+coins, double level coins or a bonus LiShi Light; interstitials run between levels; Remove Ads,
+coin packs and a starter bundle are sold.
 
-## Principles enforced in code (independent of any SDK)
+**Current state:**
+- Economy: on (`economy_enabled`), fully implemented and tested on desktop with QA mocks.
+- Banner: on, Android (LevelPlay + Meta bidding).
+- Rewarded ads and interstitials: flags ON. LevelPlay ad units `rewarded_bonus_coins`, `rewarded_bloom_bonus`
+  and `interstitial_level_complete` exist on Android and iOS (ids in `data/config/levelplay.json`).
+  Each of those groups, plus the banners, has a live Meta Audience Network bidder (placement ids in
+  `tools/setup_levelplay.mjs`) and the ironSource bidder. The publisher Instances API still returns
+  ERR-1401 for new Meta instances; these six were added in the LevelPlay dashboard.
+- Consent: the game's own dialog, Europe/UK only (see Consent). No Google UMP, no AdMob app id.
+- Purchases: catalogue and consumable flow done; the billing plugin and the store product ids are
+  still owner/engineering TODOs (see below).
 
-- Hint, Undo, Shuffle/Rescue, level completion and continued play never require an ad or a purchase.
-- No lives, energy, timers, currencies, loot boxes or pay-to-unblock dialogs exist.
-- Rewarded ads are optional bonuses only. The single wired placement is `bonus_light` on the Win
-  dialog: watching earns one bonus LiShi Light, once per newly completed level, capped at
-  `rewarded_daily_cap` (3) per day. The button appears **only** when a real ad has actually
-  loaded (`AdsService.is_rewarded_ready`), so there are no fake buttons.
-- A reward is granted once per `grant_id` (persisted). Duplicate SDK callbacks, restarts mid-ad
-  and double taps cannot double-grant (tested).
-- Interstitials (flag OFF): only at the natural break after "Next Level", never mid-board, never
-  in the tutorial, never within 2 minutes of launch (so not right after a crash/restart), at most
-  `interstitial_daily_cap` per day with `interstitial_min_levels_between`, never for players who
-  own Remove Ads (tested).
-- Bottom banner (`banner_ads_enabled`): fixed 320×50 via LevelPlay. The slot stays collapsed
-  until a real ad loads, then the safe area grows so it sits under the UI. Hidden when consent is
-  denied or the player owns Remove Ads. Rewarded ads and interstitials stay off.
-- `AdsService.initialize()` refuses to initialize any provider until `PrivacyService` has recorded
-  a CMP consent result (tested).
+## Economy (`data/config/economy.json`, `EconomyService`, `AssistPolicy`)
+
+| | Value |
+|---|---|
+| Start pack (new players) | 300 coins, 3 Hints, 3 Shuffles, 5 Undos (`start_v1`) |
+| Welcome pack (players from before the economy) | 500 coins, 5 / 5 / 10 (`welcome_existing_v1`) + one-time explanation on Home |
+| First clear of a level | 20 coins (1-50), 30 (51-100), 40 (101-150); replays 0 |
+| World complete | 250 |
+| Daily puzzle / daily tasks | 50 / 75 |
+| Prices | Hint 120 (5 for 480) · Shuffle 150 (5 for 600) · Undo 60 (5 for 240) |
+
+**Free ways forward (never a paywall soft-lock):** restart; rewinding to the last proven-solvable
+point; one free rescue Shuffle per board when no moves remain; the first 2 Undos of each board; a
+Shuffle that fails costs nothing; a Hint is charged only when a useful pair is shown (not for "no
+pairs", a dead-end pair, or re-showing the same hint). The tutorial is free.
+
+**Safety:**
+- `EconomyService.grant(id, contents)` is the only way to add coins or boosters. Every grant id
+  is recorded in a ledger before saving, so retries, duplicate SDK callbacks, IAP replays and
+  double taps never pay twice.
+- Balances never go negative and are clamped to the configured limits.
+- Ad grant ids use a lifetime sequence; daily caps use a high-water day, so turning the clock
+  back neither resets a cap nor replays a grant.
+- Per-board allowances (`GameSession.assists`) are saved with the board, so quitting can't refill
+  them.
+- A local reset re-grants the start pack. Restore brings back Remove Ads, the theme bundle and the
+  starter bundle's contents; **bought coins can't be restored** (there is no server record). The
+  reset dialog says so.
+- `economy_enabled=false` is a kill switch: helpers become free and unlimited again.
+
+**Tuning:** change numbers in `economy.json` (it needs a new build; there is no remote config).
+Log `currency_earned`, `currency_spent`, `booster_used` and `booster_out` so tuning can use real
+data once analytics is enabled.
+
+## Rewarded placements
+
+| App placement | Reward | Daily cap | LevelPlay ad unit (Meta placement behind it) |
+|---|---|---|---|
+| `win_double` | Doubles the level's coins (Win dialog) | 6 | `rewarded_bonus_coins` |
+| `booster` | +1 of the missing booster ("Out of …" dialog) | 5 | `rewarded_bonus_coins` |
+| `shop_coins` | +60 coins (Shop) | 3 | `rewarded_bonus_coins` |
+| `bloom_bonus` | +1 LiShi Light (Bloom) | 1 | `rewarded_bloom_bonus` |
+
+The global cap is `rewarded_daily_cap` (12). A button appears **only** when a real ad has loaded,
+so there are no fake buttons. A reward is granted once per grant id (tested).
+
+## Interstitials ("balanced")
+
+Interstitials appear only when the player taps "Next level" after a win, and only when all of
+these hold:
+- From level 6 (`interstitial_first_level`).
+- At least 2 levels since the last one (`interstitial_min_levels_between`).
+- At least 90 s after any full-screen ad, rewarded included (`fullscreen_min_seconds_between`).
+  App start counts as one.
+- Not right after a rewarded ad in the same level.
+- Not in the tutorial, not for Remove Ads owners, and within the daily cap
+  (`interstitial_daily_cap`, 6).
+
+Progress and coins are saved before the ad. "Continue" always runs exactly once, guarded by a
+watchdog.
+
+## Banner
+
+Shown on all screens, gameplay included, at the bottom. The slot stays collapsed until a real ad
+loads; then the safe area grows. Hidden for Remove Ads owners, and while a Europe/UK device has
+not answered the consent dialog yet. After a decline it runs non-personalized.
+
+## Consent
+
+The game's own dialog (`scripts/ui/ConsentDialog.gd`, logic in `PrivacyService`); no Google UMP
+and no AdMob app id. At launch, when ads are on, `PrivacyService.resolve_ads_consent_region()`
+decides whether consent is required:
+- **Required** when the device region (from `OS.get_locale()`) is in the EEA, the UK or
+  Switzerland, **or** the time zone starts with `Europe/` (plus `Atlantic/Canary`, `Madeira`,
+  `Azores`, `Reykjavik`, `Faroe`, `Arctic/Longyearbyen`, `Asia/Nicosia`, `Asia/Famagusta`; the
+  native `device_time_zone()` gives the IANA id). BootScreen then shows the dialog once:
+  non-dismissible, Accept and Decline equally prominent, privacy policy link.
+- **Elsewhere** consent is recorded as `not_required` (personalized ads, no dialog). A device
+  that later moves into Europe/UK after `not_required` is asked again; dialog answers
+  (`obtained` / `denied`) are kept.
+
+Settings → "Privacy choices" reopens the dialog for everyone (when ads are on) and shows the
+current state. Decline = non-personalized ads; banner, rewarded and interstitials still run.
+Rewarded ads and interstitials never start before an answer is recorded. On iOS, the ATT prompt
+follows the consent answer. Each dialog answer logs `ads_consent {status}`.
+`ads_allow_unset_consent` exists for internal test builds only.
 
 ## Feature flags (`data/config/feature_flags.json`)
 
 | Flag | Default | Meaning |
 |---|---|---|
-| `ads_enabled` | false | Master switch for rewarded/interstitial providers |
+| `economy_enabled` | true | Booster economy (false = free unlimited helpers) |
+| `ads_enabled` | true | Master switch for rewarded/interstitial providers |
 | `banner_ads_enabled` | true | Bottom LevelPlay banner |
-| `rewarded_ads_enabled` | false | Optional rewarded placements |
-| `interstitials_enabled` | false | Natural-break interstitials |
-| `rewarded_daily_cap` / `interstitial_daily_cap` / `interstitial_min_levels_between` | 3 / 4 / 4 | Caps |
-| `shop_enabled` | true | Shows the Shop tab (with an honest "not available" state until products load) |
-| `qa_mock_services` | false | Debug builds only: QA mock ad/store providers (clearly labelled, no real money) |
+| `rewarded_ads_enabled` | true | Rewarded placements |
+| `interstitials_enabled` | true | Interstitials |
+| `rewarded_daily_cap` | 12 | Global rewarded cap per day |
+| `interstitial_first_level` / `interstitial_min_levels_between` / `fullscreen_min_seconds_between` / `interstitial_daily_cap` | 6 / 2 / 90 / 6 | Interstitial pacing |
+| `ads_allow_unset_consent` | false | Internal test builds only |
+| `shop_enabled` | true | Shop tab |
+| `qa_mock_services` | false | Debug builds only: QA mock ad/store providers |
 
-## Ads: integration plan
+## Ads: native integration (LevelPlay, Android + iOS)
 
-Recommended provider: **godot-sdk-integrations/godot-admob v7.0** (states Godot 4.7 support; AdMob
-+ UMP consent + ATT; Android and iOS). See DEPENDENCY_LOCK.md.
+The contract is in docs/NATIVE_ADS_API.md. The GDScript side is done: `LevelPlayAdProvider` is
+selected when the plugin exposes `init_sdk` and `data/config/levelplay.json` has ad unit ids.
 
-1. Install the plugin (Android v2 plugin requires the Gradle build: use the "Android AAB (Gradle)"
-   preset, which this repo has already built successfully).
-2. Write `scripts/services/ads/AdMobProvider.gd` extending `AdProviderBase`. Map:
-   `initialize()` → plugin initialize; `load_rewarded`/`is_rewarded_loaded`/`show_rewarded`
-   → rewarded APIs, calling `on_done(true)` from `rewarded_ad_user_earned_reward` and `on_done(false)`
-   on dismiss without reward; interstitial equivalents.
-3. Run the UMP flow first and map its result to `PrivacyService.record_ads_consent("obtained"|"not_required"|"denied")`.
-   On iOS, request ATT **only** if personalized ads/tracking are actually used.
-4. Select the provider in `AdsService.initialize()` when `Engine.has_singleton("AdmobPlugin")`.
-5. Ad unit IDs: read from a non-committed config (`config/secrets*.json` is git-ignored). Use
-   **Google test ad unit IDs** for all QA builds. Never hard-code publisher IDs.
-6. Validate in exported builds on real devices: load, no-fill, 8 s load timeout, close early,
-   duplicate callbacks, background during an ad, consent declined, offline. Then enable
-   `ads_enabled` + `rewarded_ads_enabled` for a soft launch, and leave interstitials off until
-   UX testing shows they're acceptable.
+Remaining steps:
+1. Done: the rewarded and interstitial ad units (`rewarded_bonus_coins`, `rewarded_bloom_bonus`,
+   `interstitial_level_complete`) exist on both platforms and their ids are in `levelplay.json`;
+   `ads_enabled`, `rewarded_ads_enabled` and `interstitials_enabled` are on.
+2. Done: Meta bidding instances for both rewarded units and the interstitial are live on Android
+   and iOS, each only in that ad unit's All Countries group (alongside the ironSource bidder).
+   `node tools/setup_levelplay.mjs --dry-run` finds them by placement id.
+3. Verify on the Android emulator or a device with the LevelPlay Integration Test Suite. Register
+   the device as a test device in LevelPlay and in Meta Monetization Manager. Check exactly one
+   grant per reward, interstitial pacing, the banner after full-screen ads, and the consent
+   dialog with the device region set to Germany.
 
 ## In-app purchases
 
-Catalogue (`data/config/products.json`): **non-consumables only**.
+Catalogue (`data/config/products.json`):
 
-| id | Grants | google_play_id | app_store_id |
+| id | Type | Grants | Suggested price |
 |---|---|---|---|
-| `remove_ads` | `remove_ads` | *(empty - owner creates)* | *(empty)* |
-| `theme_bundle` | `theme_bundle` (unlocks Sakura, Ocean, Nocturne immediately) | *(empty)* | *(empty)* |
+| `remove_ads` | non-consumable | `remove_ads` | ~$3.99 |
+| `theme_bundle` | non-consumable | `theme_bundle` (Sakura, Ocean, Nocturne themes) | - |
+| `coins_s` / `coins_m` / `coins_l` | consumable | 1,200 / 3,500 / 8,000 coins | $1.99 / $4.99 / $9.99 |
+| `starter_bundle` | non-consumable, one-time | `remove_ads` + 1,500 coins, 5 Hints, 5 Shuffles, 10 Undos | $4.99 |
 
-A product is offered only when it has a platform ID **and** the store returned details with a
-localized price. Prices are never stored or invented. With empty IDs, the Shop shows
-"The shop isn't available in this version", and Restore is disabled with the reason shown.
+The starter bundle is offered from level 5 and hidden once Remove Ads is owned. Platform ids are
+empty until the owner creates the products (empty = hidden). Prices come only from the store.
 
-Entitlement ledger (`GameState.data.entitlements` + `processed_transactions`):
-- Purchased → active (once per transaction id; duplicate callbacks report "already owned").
-- Pending → nothing granted until the store confirms.
-- Cancelled → nothing granted, no error dialog.
-- Restore/startup sync reconciles with the store's owned list. Items the store no longer reports
-  (refund/chargeback) become `revoked`.
-- Local data reset clears the local copy; Restore brings purchases back (tested).
-- Earned cosmetics (themes unlocked by play) are derived from progress and are separate from paid
-  entitlements.
+**Ledger:**
+- Non-consumables use `GameState.data.entitlements` plus `processed_transactions`.
+- Consumables and bundle contents use `EconomyService` grants with id `iap:<transaction>`. They
+  are saved **before** the store is told to consume. If the app dies in between, the next store
+  sync replays the purchase: the ledger blocks a second grant, and the consume is retried
+  (tested).
+- Pending purchases grant nothing until completed.
+- Refunds of non-consumables are revoked on the next sync. Consumable refunds can't be detected
+  without a server, and balances never go negative.
 
-Providers:
-- **Android:** `GooglePlayBillingProvider` targets godot-google-play-billing 3.x (`BillingClient`
-  wrapper; query details, purchase, acknowledge, query purchases). It is resolved dynamically and
-  selected only if the plugin's singleton and wrapper class exist. **Status: written against the
-  documented API; not installed and not device-tested.** Some response field names (product
-  details price keys) are not documented by the plugin and are read defensively. Verify them in
-  internal testing.
-- **iOS:** no adapter yet. Options: StoreKit 1 `InAppStore` (build from source) or StoreKit 2
-  plugins (API unstable) — see DEPENDENCY_LOCK.md. Implement `IAPProviderBase` the same way.
-- **QA mock:** debug builds with `qa_mock_services`. It shows "TEST 0.00" prices and a red
-  "QA MOCK STORE" label and simulates success, cancel, pending→complete, duplicate callbacks,
-  refund and restore. Automated tests use it.
+**Providers:**
+- **Android:** `GooglePlayBillingProvider` targets godot-google-play-billing 3.x, now with
+  `consume()`. **Not installed and not device-tested.** Install the plugin and verify the method
+  and signal names in internal testing.
+- **iOS:** `AppStoreProvider` over the project's StoreKit 2 plugin `LiShiStoreKit` (native/storekit/ios), selected when the plugin is present. Minimum iOS 15. **Only compiled by the iOS CI workflow; not device-tested** (docs/IOS_BUILD.md).
+- **QA mock:** debug builds with `qa_mock_services`. It simulates success, cancel,
+  pending→complete, duplicate callbacks, lost consumes, refunds and restores. Automated tests use
+  it.
 
-**Security caveat:** client-side entitlement checks are not fraud-proof. For server-side
-verification, add a backend that validates Google Play purchase tokens (Play Developer API) and
-App Store transactions (App Store Server API) and returns signed entitlements. None is configured.
+**Security caveat:** client-side checks are not fraud-proof. Server-side verification needs a
+backend (Play Developer API / App Store Server API); none is configured.
 
 ### Store setup (owner)
 
-- Play Console: create the in-app products with IDs matching `products.json`, activate them, add
+- Play Console: create the in-app products (remove_ads, theme_bundle, coins_s, coins_m, coins_l, starter_bundle; whether one is consumable is decided in app code), activate them, add
   license testers, and upload an AAB to the internal testing track. Test purchases are free test
   transactions, not revenue.
-- App Store Connect: create the non-consumable IAPs and use Sandbox testers / TestFlight.
+- App Store Connect: create the same ids (coin packs as consumables, the rest non-consumable) and use Sandbox testers / TestFlight.
 - Fill the platform IDs, rebuild, then verify purchase, cancel, pending (Play "slow test card"),
   restore after reinstall, and refund handling.
 

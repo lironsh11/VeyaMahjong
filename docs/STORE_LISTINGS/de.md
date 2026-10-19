@@ -32,8 +32,8 @@ DEINE WELT ERBLÜHT
 Für jede neu gelöste Stufe erhältst du ein LiShi-Licht. Alle 5 Lichter erscheint eine neue Dekoration oder Entdeckung in der illustrierten Welt – insgesamt 30 Entdeckungen in LiShi Bloom.
 
 IN DEINEM EIGENEN TEMPO
-• Tipp, unbegrenztes Zurück und Mischen sind immer kostenlos
-• Festgefahren? Mische die übrigen Steine kostenlos oder geh zurück zum letzten lösbaren Punkt
+• Sammle beim Spielen Münzen – nutze Tipp, Zurück und Mischen, wann immer du sie brauchst
+• Festgefahren? Einmal gratis mischen, wenn keine Züge mehr gehen – und zurück zum letzten lösbaren Punkt ist immer gratis
 • Keine Zeitlimits, keine Leben, keine Energie
 • Vollständig offline spielbar, kein Konto nötig
 • 4 Stein-Designs, die du beim Spielen freischaltest: Klassisch, Sakura, Ozean und Nocturne
@@ -82,8 +82,8 @@ DEINE WELT ERBLÜHT
 Für jede neu gelöste Stufe erhältst du ein LiShi-Licht. Alle 5 Lichter erscheint eine neue Dekoration oder Entdeckung in der illustrierten Welt – insgesamt 30 Entdeckungen in LiShi Bloom.
 
 IN DEINEM EIGENEN TEMPO
-• Tipp, unbegrenztes Zurück und Mischen sind immer kostenlos
-• Festgefahren? Mische die übrigen Steine kostenlos oder geh zurück zum letzten lösbaren Punkt
+• Sammle beim Spielen Münzen – nutze Tipp, Zurück und Mischen, wann immer du sie brauchst
+• Festgefahren? Einmal gratis mischen, wenn keine Züge mehr gehen – und zurück zum letzten lösbaren Punkt ist immer gratis
 • Keine Zeitlimits, keine Leben, keine Energie
 • Vollständig offline spielbar, kein Konto nötig
 • 4 Stein-Designs, die du beim Spielen freischaltest: Klassisch, Sakura, Ozean und Nocturne

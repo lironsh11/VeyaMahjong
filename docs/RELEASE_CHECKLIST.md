@@ -38,7 +38,9 @@ production ad serving and any spending need explicit owner approval.
 - [ ] Capture real store screenshots from the running game on each required device class.
 
 ## Gate 6 — Monetization (only if enabled)
-- [ ] Install and verify the ad plugin; UMP consent flow in EEA/UK; ATT only if tracking; test ad unit IDs in QA; no-fill/timeout/duplicate-callback checks on device.
+- [ ] Install and verify the ad plugin; in-game consent dialog on a Europe/UK device (region Germany) and no dialog elsewhere; ATT after the consent answer; test ad unit IDs in QA; no-fill/timeout/duplicate-callback checks on device.
+- [ ] Rebuild and compile the iOS LevelPlay plugin after the UMP removal (CI workflow `.github/workflows/ios.yml`).
+- [ ] Keep Google demand (AdMob / Ad Manager) out of the LevelPlay waterfall, or add a certified IAB TCF CMP first (PRIVACY_AND_COMPLIANCE.md).
 - [ ] Billing: create products, fill IDs in `products.json`, test purchase/cancel/pending/restore/refund in Play internal testing and App Store Sandbox.
 - [ ] Consider server-side receipt validation (needs a backend).
 - [ ] Update the Data safety / App Privacy forms and the "contains ads" declaration.

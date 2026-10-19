@@ -14,6 +14,18 @@ func _ready() -> void:
 	super._ready()
 	AudioService.play_world_music(str(_world.get("id", "aurora_garden")))
 	ContentService.active_world = str(_world.get("id", "aurora_garden"))
+	if EconomyService.welcome_notice_pending():
+		_show_welcome.call_deferred()
+
+
+func _show_welcome() -> void:
+	## One-time explanation for players from before the booster economy, with their gift.
+	var g := EconomyService.welcome_contents()
+	var m := ModalDialog.open(self, t("welcome_title"), t("welcome_body", {"coins": int(g.get("coins", 0)),
+		"hint": int(g.get("hint", 0)), "shuffle": int(g.get("shuffle", 0)), "undo": int(g.get("undo", 0))}))
+	m.add_action(t("ok"), "ok", "green")
+	m.closed.connect(func(_r: String) -> void: EconomyService.clear_welcome_notice())
+	AudioService.play("reward")
 
 
 func build_background() -> void:
@@ -29,6 +41,8 @@ func build() -> void:
 	var top := UIKit.hbox(10)
 	var bloom_btn := UIKit.icon_button("flower", t("veya_bloom"), func() -> void: Router.go("bloom"), 60)
 	top.add_child(bloom_btn)
+	top.add_child(UIKit.spacer(0, true))
+	top.add_child(UIKit.coin_pill(func() -> void: Router.go("shop", {"from": "home"})))
 	top.add_child(UIKit.spacer(0, true))
 	top.add_child(UIKit.icon_button("settings", t("settings"), func() -> void: Router.go("settings"), 60))
 	root.add_child(top)

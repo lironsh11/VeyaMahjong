@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+- Consent without Google UMP: UMP and every AdMob app id dependency removed from GDScript and
+  both native plugins (Android plugin + gdap, iOS pod/podspec + Godot glue,
+  `GADApplicationIdentifier` in the iOS plist, the UMP checks in the iOS CI). New in-game dialog
+  (scripts/ui/ConsentDialog.gd, logic in PrivacyService): shown once at launch only where the
+  device region (OS locale) is in the EEA/UK/Switzerland or the time zone is European
+  (new native `device_time_zone()`); elsewhere consent is `not_required` (personalized, no
+  dialog), re-asked if the device later moves into Europe/UK. Accept and Decline equally
+  prominent; Decline = non-personalized ads, every format still runs. Settings > Privacy choices
+  reopens it for everyone. iOS ATT follows the answer. Analytics event `ads_consent`, strings in
+  10 languages. Not an IAB TCF CMP: fine while no Google demand is in the LevelPlay waterfall.
+  Native API: `consent_request`, `privacy_options_required`, `show_privacy_options` and
+  `consent_result` removed. Android AAR rebuilt; **the iOS plugin was not rebuilt or compiled**
+  (needs the CI workflow). See docs/PRIVACY_AND_COMPLIANCE.md and docs/NATIVE_ADS_API.md.
+- Rewarded ads and interstitials on: LevelPlay ad units `rewarded_bonus_coins`,
+  `rewarded_bloom_bonus` and `interstitial_level_complete` on Android and iOS
+  (data/config/levelplay.json). Meta Audience Network bidding is connected to those units and to
+  the banners on both platforms (each instance only in that unit's All Countries group, with the
+  ironSource bidder). The publisher API still cannot create Meta instances (ERR-1401); these were
+  added in the LevelPlay dashboard.
+- Booster economy (owner-approved): Hint, Shuffle and Undo are boosters with counts on the
+  toolbar; coins from first clears (20/30/40), world completion (250), daily (50) and tasks (75)
+  buy more (data/config/economy.json). Free ways forward stay: restart, rewind to the last
+  solvable point, one free rescue Shuffle per board, the first 2 Undos per board; Hints are
+  charged only when a useful pair is shown. Start pack for new players, welcome pack + one-time
+  explanation for existing players (save schema v2). Shop rebuilt (boosters for coins, free coins
+  by video, starter bundle, coin packs, Remove Ads). Rewarded placements win_double / booster /
+  shop_coins / bloom_bonus and "balanced" interstitials (from level 6, every 2 levels, 90 s floor)
+  in AdsService + LevelPlayAdProvider (flags off until the native plugin is verified). Consumable
+  IAP with an idempotent ledger, UMP consent + ATT wiring, Privacy choices in Settings. Store
+  listings no longer promise free helpers. See docs/MONETIZATION.md and docs/NATIVE_ADS_API.md.
 - Blocked tiles are no longer dimmed by default (it gave away which tiles are free). "Dim Blocked
   Tiles" stays in Settings as an opt-in assist. Existing saves are switched off once (settings
   rev 1, `GameState.migrate`); a player who turns it back on keeps it.

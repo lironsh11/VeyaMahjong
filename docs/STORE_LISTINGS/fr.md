@@ -32,8 +32,8 @@ VOTRE MONDE FLEURIT
 Chaque nouveau niveau résolu vous rapporte une Lumière LiShi. Toutes les 5 Lumières, une nouvelle décoration ou découverte apparaît dans le monde illustré – 30 découvertes vous attendent dans LiShi Bloom.
 
 À VOTRE RYTHME
-• Indice, Annuler (sans limite) et Mélanger sont toujours gratuits
-• En cas de blocage : mélangez gratuitement les tuiles restantes ou revenez au dernier point résoluble
+• Gagnez des pièces en jouant – utilisez Indice, Annuler et Mélanger quand vous en avez besoin
+• Bloqué ? Un mélange gratuit quand il ne reste aucun coup, et revenir au dernier point résoluble est toujours gratuit
 • Pas de chrono, pas de vies, pas d'énergie
 • Entièrement jouable hors ligne, sans compte
 • 4 thèmes de tuiles à débloquer en jouant : Classique, Sakura, Océan et Nocturne
@@ -82,8 +82,8 @@ VOTRE MONDE FLEURIT
 Chaque nouveau niveau résolu vous rapporte une Lumière LiShi. Toutes les 5 Lumières, une nouvelle décoration ou découverte apparaît dans le monde illustré – 30 découvertes vous attendent dans LiShi Bloom.
 
 À VOTRE RYTHME
-• Indice, Annuler (sans limite) et Mélanger sont toujours gratuits
-• En cas de blocage : mélangez gratuitement les tuiles restantes ou revenez au dernier point résoluble
+• Gagnez des pièces en jouant – utilisez Indice, Annuler et Mélanger quand vous en avez besoin
+• Bloqué ? Un mélange gratuit quand il ne reste aucun coup, et revenir au dernier point résoluble est toujours gratuit
 • Pas de chrono, pas de vies, pas d'énergie
 • Entièrement jouable hors ligne, sans compte
 • 4 thèmes de tuiles à débloquer en jouant : Classique, Sakura, Océan et Nocturne

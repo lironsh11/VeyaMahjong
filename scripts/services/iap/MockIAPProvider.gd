@@ -7,7 +7,10 @@ extends IAPProviderBase
 enum Outcome { SUCCESS, CANCEL, PENDING, FAIL, DUPLICATE }
 
 static var next_outcome: int = Outcome.SUCCESS
-var owned: Dictionary = {}     # platform id -> transaction
+var owned: Dictionary = {}     # platform id -> transaction (consumables stay until consumed)
+var consumed: Array = []       # transactions consumed, for tests
+## Test hook: when false, consume() is "lost" (simulates the app dying before the store call).
+static var consume_works: bool = true
 var _counter: int = 0
 
 
@@ -66,3 +69,12 @@ func refund(platform_id: String) -> void:
 
 func acknowledge(_transaction: String) -> void:
 	pass
+
+
+func consume(transaction: String) -> void:
+	if not consume_works:
+		return
+	consumed.append(transaction)
+	for pid in owned.keys():
+		if owned[pid] == transaction:
+			owned.erase(pid)

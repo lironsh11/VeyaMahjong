@@ -3,13 +3,14 @@
   "_comment": "Allowed events and parameter types. Unknown events/params are rejected. No personal data, no free text.",
   "events": {
     "first_open": {},
+    "ads_consent": {"status": "str"},
     "tutorial_started": {},
     "tutorial_completed": {"skipped": "bool"},
     "level_started": {"level": "int", "world": "str", "resumed": "bool"},
     "level_completed": {"level": "int", "moves": "int", "hints": "int", "undos": "int", "shuffles": "int", "first_time": "bool"},
     "level_abandoned": {"level": "int", "progress_pct": "int"},
     "level_rescued": {"level": "int", "method": "str"},
-    "hint_used": {"level": "int", "safe": "bool"},
+    "hint_used": {"level": "int", "safe": "bool", "charged": "bool"},
     "undo_used": {"level": "int"},
     "shuffle_used": {"level": "int", "ok": "bool"},
     "no_moves_encountered": {"level": "int", "remaining": "int"},
@@ -22,6 +23,13 @@
     "iap_attempted": {"product": "str"},
     "iap_completed": {"product": "str"},
     "iap_failed": {"product": "str", "reason": "str"},
-    "error_nonfatal": {"code": "str"}
+    "error_nonfatal": {"code": "str"},
+    "currency_earned": {"source": "str", "amount": "int"},
+    "currency_spent": {"item": "str", "qty": "int", "amount": "int"},
+    "booster_used": {"item": "str", "level": "int", "free": "bool"},
+    "booster_out": {"item": "str", "level": "int"},
+    "rewarded_ad_failed": {"placement": "str", "reason": "str"},
+    "interstitial_shown": {"level": "int"},
+    "shop_opened": {"from": "str"}
   }
 }

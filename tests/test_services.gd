@@ -59,7 +59,7 @@ func test_tmp_recovery_after_interrupted_rename() -> void:
 func test_migration_from_v0() -> void:
 	var old := {"schema_version": 0, "progress": {"completed": [1, 2, 3]}, "settings": {"music_on": false}}
 	var m := GameState.migrate(old)
-	check_eq(int(m.schema_version), 1)
+	check_eq(int(m.schema_version), 2)
 	check(typeof(m.progress.completed) == TYPE_DICTIONARY and m.progress.completed.has("2"), "list migrated to dict")
 	check_eq(m.settings.music_on, false, "existing settings kept")
 	check(m.settings.has("reduced_motion"), "missing defaults filled")
@@ -206,14 +206,16 @@ func test_daily_tasks_claim() -> void:
 
 # --- ads -----------------------------------------------------------------------------
 
-func test_ads_disabled_by_default() -> void:
+func test_ads_never_ready_without_native_plugin() -> void:
+	## Flags ship on; headless desktop has no LevelPlay plugin, so nothing may look ready.
 	_reset()
-	check_eq(AdsService.state, AdsService.State.DISABLED)
-	check(not AdsService.is_rewarded_ready("bonus_light"), "never a fake ready ad")
-	check(not AdsService.can_show_interstitial_now("level_complete_continue"))
+	check(AdsService.state in [AdsService.State.DISABLED, AdsService.State.NO_PROVIDER], "no provider on desktop")
+	check(not AdsService.is_rewarded_ready("win_double"), "never a fake ready ad")
+	check(not AdsService.can_show_interstitial_now("level_complete_continue", 50))
 
 
 func _ads_mock(mode: int) -> void:
+	AdsService.dispose()
 	FeatureFlags.set_override("ads_enabled", true)
 	FeatureFlags.set_override("rewarded_ads_enabled", true)
 	FeatureFlags.set_override("qa_mock_services", true)
@@ -228,59 +230,133 @@ func test_ads_wait_for_consent() -> void:
 	FeatureFlags.set_override("qa_mock_services", true)
 	AdsService.initialize()
 	check_eq(AdsService.state, AdsService.State.WAITING_CONSENT, "no SDK init before consent")
+	FeatureFlags.set_override("ads_allow_unset_consent", true)
+	AdsService.initialize()
+	check_eq(AdsService.state, AdsService.State.READY, "internal builds may run with consent unset")
+	_reset()
 
 
 func test_rewarded_duplicate_callback_grants_once() -> void:
 	_reset()
 	_ads_mock(MockAdProvider.Mode.DUPLICATE_CALLBACK)
-	AdsService.load_rewarded("bonus_light")
-	check(AdsService.is_rewarded_ready("bonus_light"))
+	AdsService.load_rewarded("shop_coins")
+	check(AdsService.is_rewarded_ready("shop_coins"))
 	var grants := [0]
-	AdsService.show_rewarded("bonus_light", "ad:level:1", func() -> void: grants[0] += 1)
+	var gid := AdsService.next_grant_id("shop_coins")
+	AdsService.show_rewarded("shop_coins", gid, func() -> void: grants[0] += 1)
 	check_eq(grants[0], 1, "duplicate SDK callback granted once")
-	AdsService.load_rewarded("bonus_light")
-	AdsService.show_rewarded("bonus_light", "ad:level:1", func() -> void: grants[0] += 1)
+	AdsService.load_rewarded("shop_coins")
+	AdsService.show_rewarded("shop_coins", gid, func() -> void: grants[0] += 1)
 	check_eq(grants[0], 1, "same grant id never granted twice")
+	check(AdsService.next_grant_id("shop_coins") != gid, "next id moves on after a grant")
 	_reset()
 
 
-func test_rewarded_no_fill_and_not_completed() -> void:
+func test_rewarded_no_fill_not_completed_and_show_failure() -> void:
 	_reset()
 	_ads_mock(MockAdProvider.Mode.NO_FILL)
-	AdsService.load_rewarded("bonus_light")
-	check(not AdsService.is_rewarded_ready("bonus_light"), "no-fill -> no button")
-	_ads_mock(MockAdProvider.Mode.NOT_COMPLETED)
-	AdsService.load_rewarded("bonus_light")
-	var grants := [0]
-	AdsService.show_rewarded("bonus_light", "ad:x", func() -> void: grants[0] += 1)
-	check_eq(grants[0], 0, "closing early grants nothing")
+	AdsService.load_rewarded("booster")
+	check(not AdsService.is_rewarded_ready("booster"), "no-fill -> no button")
+	var statuses: Array = []
+	var cb := func(_p: String, s: String) -> void: statuses.append(s)
+	AdsService.rewarded_result.connect(cb)
+	for mode in [MockAdProvider.Mode.NOT_COMPLETED, MockAdProvider.Mode.SHOW_FAILS]:
+		_ads_mock(mode)
+		AdsService.load_rewarded("booster")
+		var grants := [0]
+		AdsService.show_rewarded("booster", AdsService.next_grant_id("booster"), func() -> void: grants[0] += 1)
+		check_eq(grants[0], 0, "no grant when the ad was not finished or failed to show")
+		check(not AdsService._showing, "busy flag cleared after the callback")
+	AdsService.rewarded_result.disconnect(cb)
+	check(statuses.has("not_completed") and statuses.has("failed"), "both outcomes reported: %s" % [statuses])
 	_reset()
 
 
-func test_rewarded_daily_cap() -> void:
+func test_rewarded_caps_per_placement_and_global() -> void:
 	_reset()
 	_ads_mock(MockAdProvider.Mode.FILL)
-	FeatureFlags.set_override("rewarded_daily_cap", 2)
+	var cap := int(EconomyService.rewarded_cfg("bloom_bonus").daily_cap)
 	var grants := [0]
-	for k in 3:
-		AdsService.load_rewarded("p")
-		AdsService.show_rewarded("p", "g%d" % k, func() -> void: grants[0] += 1)
-	check_eq(grants[0], 2, "capped per day")
+	for k in cap + 2:
+		AdsService.load_rewarded("bloom_bonus")
+		AdsService.show_rewarded("bloom_bonus", AdsService.next_grant_id("bloom_bonus"), func() -> void: grants[0] += 1)
+	check_eq(grants[0], cap, "per-placement daily cap")
+	check(AdsService.placement_remaining_today("shop_coins") > 0, "other placements unaffected")
+	FeatureFlags.set_override("rewarded_daily_cap", cap + 1)
+	AdsService.load_rewarded("shop_coins")
+	AdsService.show_rewarded("shop_coins", AdsService.next_grant_id("shop_coins"), func() -> void: grants[0] += 1)
+	AdsService.load_rewarded("shop_coins")
+	AdsService.show_rewarded("shop_coins", AdsService.next_grant_id("shop_coins"), func() -> void: grants[0] += 1)
+	check_eq(grants[0], cap + 1, "global cap applies across placements")
 	_reset()
+
+
+func test_rewarded_cap_survives_clock_rollback() -> void:
+	_reset()
+	_ads_mock(MockAdProvider.Mode.FILL)
+	GameState.data.economy.clock_hw_day = "2099-01-01"   # a later day was already seen
+	AdsService.load_rewarded("bloom_bonus")
+	AdsService.show_rewarded("bloom_bonus", AdsService.next_grant_id("bloom_bonus"), func() -> void: pass)
+	check_eq(AdsService.placement_remaining_today("bloom_bonus"), 0, "cap counted on the high-water day")
+	check_eq(str(GameState.data.ads.rewarded_day), "2099-01-01", "today (earlier) never resets the cap")
+	_reset()
+
+
+func test_rewarded_busy_guard() -> void:
+	_reset()
+	_ads_mock(MockAdProvider.Mode.FILL)
+	AdsService._showing = true
+	var statuses: Array = []
+	var cb := func(_p: String, s: String) -> void: statuses.append(s)
+	AdsService.rewarded_result.connect(cb)
+	AdsService.show_rewarded("booster", "ad:booster:x", func() -> void: pass)
+	AdsService.rewarded_result.disconnect(cb)
+	check_eq(statuses, ["busy"], "a second show while one is on screen is refused")
+	_reset()
+
+
+func _interstitial_ready_state() -> void:
+	_ads_mock(MockAdProvider.Mode.FILL)
+	FeatureFlags.set_override("interstitials_enabled", true)
+	GameState.data.tutorial_done = true
+	AdsService._last_fullscreen_ticks -= 600000
+	GameState.data.ads.last_fullscreen_unix = 0
+	GameState.data.ads.levels_since_interstitial = 10
+	AdsService.on_level_started()
+	AdsService.load_interstitial()
 
 
 func test_interstitial_policy() -> void:
 	_reset()
-	_ads_mock(MockAdProvider.Mode.FILL)
-	FeatureFlags.set_override("interstitials_enabled", true)
-	GameState.data.tutorial_done = true
-	AdsService._session_started_unix -= 600
+	_interstitial_ready_state()
+	check(not AdsService.can_show_interstitial_now("board", 20), "never mid-board")
+	check(AdsService.can_show_interstitial_now("level_complete_continue", 20), "allowed at natural break")
+	check(not AdsService.can_show_interstitial_now("level_complete_continue", 5), "none before level 6")
+	GameState.data.ads.levels_since_interstitial = 1
+	check(not AdsService.can_show_interstitial_now("level_complete_continue", 20), "every 2 levels at most")
 	GameState.data.ads.levels_since_interstitial = 10
-	AdsService.load_interstitial()
-	check(not AdsService.can_show_interstitial_now("board"), "never mid-board")
-	check(AdsService.can_show_interstitial_now("level_complete_continue"), "allowed at natural break")
+	AdsService._last_fullscreen_ticks = Time.get_ticks_msec()
+	check(not AdsService.can_show_interstitial_now("level_complete_continue", 20), "90 s after any full-screen ad")
+	_interstitial_ready_state()
+	AdsService._rewarded_since_level_start = true
+	check(not AdsService.can_show_interstitial_now("level_complete_continue", 20), "never right after a rewarded ad")
+	_interstitial_ready_state()
 	GameState.data.entitlements["remove_ads"] = {"state": "active"}
-	check(not AdsService.can_show_interstitial_now("level_complete_continue"), "Remove Ads respected")
+	check(not AdsService.can_show_interstitial_now("level_complete_continue", 20), "Remove Ads respected")
+	_reset()
+
+
+func test_interstitial_continue_runs_exactly_once() -> void:
+	_reset()
+	_interstitial_ready_state()
+	var calls := [0]
+	AdsService.show_interstitial("level_complete_continue", 20, func() -> void: calls[0] += 1)
+	check_eq(calls[0], 1, "continued after the ad")
+	AdsService._finish_interstitial(AdsService._close_serial)   # late watchdog
+	check_eq(calls[0], 1, "watchdog never continues twice")
+	AdsService.show_interstitial("level_complete_continue", 20, func() -> void: calls[0] += 1)
+	check_eq(calls[0], 2, "not due -> continues immediately")
+	check_eq(int(GameState.data.ads.levels_since_interstitial), 0, "counter reset by the shown ad")
 	_reset()
 
 
@@ -349,6 +425,55 @@ func test_local_reset_keeps_store_restorable() -> void:
 	check(mock != null)
 
 
+func test_iap_consumables_and_bundle() -> void:
+	_reset()
+	EconomyService._apply_start_grants()
+	var mock := _iap_mock()
+	var c0 := EconomyService.coins()
+	var pack := int(EconomyService.iap_contents("coins_s").coins)
+	check(not IAPService.is_owned(IAPService._product_by_platform_id("qa.coins_s")), "consumables are never 'owned'")
+	IAPService.purchase("coins_s")
+	check_eq(EconomyService.coins(), c0 + pack, "coins credited")
+	check_eq(mock.consumed.size(), 1, "consumed after the grant")
+	IAPService.purchase("coins_s")
+	check_eq(EconomyService.coins(), c0 + pack * 2, "can be bought again")
+	# App dies before the consume reaches the store: the next sync replays it once.
+	MockIAPProvider.consume_works = false
+	IAPService.purchase("coins_m")
+	MockIAPProvider.consume_works = true
+	var after := EconomyService.coins()
+	IAPService.restore()
+	check_eq(EconomyService.coins(), after, "replayed purchase not credited twice")
+	check(mock.owned.is_empty() or not mock.owned.has("qa.coins_m"), "and finally consumed")
+	# Duplicate store callback for a consumable.
+	MockIAPProvider.next_outcome = MockIAPProvider.Outcome.DUPLICATE
+	var c1 := EconomyService.coins()
+	IAPService.purchase("coins_l")
+	check_eq(EconomyService.coins(), c1 + int(EconomyService.iap_contents("coins_l").coins), "duplicate callback credited once")
+	MockIAPProvider.next_outcome = MockIAPProvider.Outcome.SUCCESS
+	# Starter bundle: Remove Ads + contents, once.
+	var h0 := EconomyService.count("hint")
+	IAPService.purchase("starter_bundle")
+	check(IAPService.has_entitlement("remove_ads"), "bundle grants Remove Ads")
+	check_eq(EconomyService.count("hint"), h0 + int(EconomyService.iap_contents("starter_bundle").hint))
+	IAPService.restore()
+	check_eq(EconomyService.count("hint"), h0 + int(EconomyService.iap_contents("starter_bundle").hint), "restore does not repeat contents")
+	var results: Array = []
+	var cb := func(_p: String, s: String, _m: String) -> void: results.append(s)
+	IAPService.purchase_result.connect(cb)
+	IAPService.purchase("starter_bundle")
+	IAPService.purchase_result.disconnect(cb)
+	check_eq(results, ["already_owned"], "bundle cannot be bought twice")
+	# After a local reset, Restore brings back the bundle (entitlement + contents).
+	GameState.reset_local_data()
+	IAPService.restore()
+	check(IAPService.has_entitlement("remove_ads"), "bundle entitlement restored")
+	check(EconomyService.count("hint") >= int(EconomyService.iap_contents("starter_bundle").hint), "bundle contents restored")
+	FeatureFlags.clear_overrides()
+	IAPService.provider = null
+	IAPService.initialize()
+
+
 # --- analytics -----------------------------------------------------------------------
 
 func test_analytics_schema_and_consent() -> void:
@@ -366,10 +491,37 @@ func test_banner_respects_flag_consent_and_remove_ads() -> void:
 	FeatureFlags.set_override("banner_ads_enabled", false)
 	check(not AdsService.banner_allowed(), "flag off")
 	FeatureFlags.set_override("banner_ads_enabled", true)
-	check(AdsService.banner_allowed(), "banner on before a CMP result, non-personalized")
+	check(not AdsService.banner_allowed(), "no banner while a Europe/UK device has not answered")
 	PrivacyService.record_ads_consent("denied")
-	check(not AdsService.banner_allowed(), "declined consent hides the banner")
+	check(AdsService.banner_allowed(), "declined consent -> non-personalized banner")
 	PrivacyService.record_ads_consent("not_required")
 	check(AdsService.banner_allowed())
 	GameState.data.entitlements["remove_ads"] = {"state": "active"}
 	check(not AdsService.banner_allowed(), "Remove Ads hides the banner")
+
+
+func test_consent_region_detection() -> void:
+	check(PrivacyService.consent_region_required("DE", ""), "EU locale")
+	check(PrivacyService.consent_region_required("GB", "America/New_York"), "UK locale abroad")
+	check(PrivacyService.consent_region_required("US", "Europe/Berlin"), "US locale in a European time zone")
+	check(PrivacyService.consent_region_required("", "Atlantic/Canary"), "Canary Islands")
+	check(not PrivacyService.consent_region_required("US", "America/New_York"))
+	check(not PrivacyService.consent_region_required("IL", "Asia/Jerusalem"))
+	check(not PrivacyService.consent_region_required("", ""), "unknown region and zone")
+
+
+func test_consent_resolution_at_launch() -> void:
+	_reset()
+	PrivacyService.resolve_ads_consent_region(false)
+	check_eq(PrivacyService.ads_consent(), "not_required", "outside Europe/UK: no dialog")
+	check(not PrivacyService.needs_ads_consent_prompt())
+	PrivacyService.resolve_ads_consent_region(true)
+	check_eq(PrivacyService.ads_consent(), "unset", "moved into Europe/UK: ask again")
+	check(PrivacyService.needs_ads_consent_prompt())
+	PrivacyService.record_ads_consent("denied")
+	PrivacyService.resolve_ads_consent_region(false)
+	check_eq(PrivacyService.ads_consent(), "denied", "a dialog answer is kept")
+	PrivacyService.record_ads_consent("obtained")
+	PrivacyService.resolve_ads_consent_region(true)
+	check_eq(PrivacyService.ads_consent(), "obtained")
+	_reset()

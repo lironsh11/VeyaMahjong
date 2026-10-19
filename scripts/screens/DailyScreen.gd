@@ -192,7 +192,7 @@ func _tasks_card() -> Control:
 		var claim := UIKit.button(t("tasks_claim"), "gold", "small", func() -> void:
 			if DailyService.claim_tasks_reward():
 				AudioService.play("reward")
-				Router.toast(t("light_earned")))
+				Router.toast(t("tasks_reward", {"count": EconomyService.reward("daily_tasks_claim")})))
 		claim.disabled = not DailyService.all_tasks_done()
 		if claim.disabled:
 			claim.tooltip_text = t("tasks_claim_locked")

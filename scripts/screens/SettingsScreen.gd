@@ -41,6 +41,9 @@ func build() -> void:
 	_link_row(t("terms_of_service"), "terms")
 	_link_row(t("support"), "support")
 	_analytics_row()
+	if PrivacyService.ads_on():
+		# Everyone can review or change the ads consent answer (the dialog itself shows the state).
+		_list.add_child(UIKit.button(t("privacy_choices"), "cream", "small", func() -> void: ConsentDialog.open(self, true)))
 
 	_section(t("section_purchases"))
 	var restore := UIKit.button(t("restore_purchases"), "cream", "small", func() -> void:
@@ -58,6 +61,10 @@ func build() -> void:
 	_section(t("section_about"))
 	_note("%s %s · %s" % [t("app_name"), ProjectSettings.get_setting("application/config/version", "dev"), FeatureFlags.get_str("content_version")])
 	_list.add_child(UIKit.button(t("licenses"), "cream", "small", _show_licenses))
+	if OS.is_debug_build() and FeatureFlags.enabled("qa_mock_services"):
+		# QA only (debug builds with mock services): never in release.
+		_list.add_child(UIKit.button("QA: +1000 coins", "cream", "small", func() -> void:
+			EconomyService.grant("qa:%d" % Time.get_ticks_usec(), {"coins": 1000}, "qa")))
 	_list.add_child(UIKit.spacer(24))
 
 

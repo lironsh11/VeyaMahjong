@@ -1,5 +1,6 @@
 extends Node
-## In-app purchase facade for NON-CONSUMABLE cosmetic products and Remove Ads.
+## In-app purchase facade: non-consumables (Remove Ads, theme bundle, starter bundle) and
+## consumable coin packs.
 ##
 ## - Products come from data/config/products.json; a product is offered only when it has a
 ##   platform product ID AND the store returned details (with a store-formatted price).
@@ -7,6 +8,11 @@ extends Node
 ## - Entitlements are stored per grant with the platform transaction id/token; a
 ##   transaction is processed at most once (processed_transactions), so duplicate store
 ##   callbacks cannot double-grant. Pending purchases grant nothing until completed.
+## - Consumables (and the starter bundle's contents) are credited through
+##   EconomyService.grant("iap:<transaction>") - idempotent - and saved BEFORE the store is told
+##   to consume them. If the app dies in between, the next store sync replays the purchase: the
+##   ledger blocks a second grant and the consume is retried. Bought coins cannot be restored
+##   after a local reset (no server record); non-consumables can.
 ## - restore() reconciles with what the store reports: missing previously-granted items are
 ##   marked revoked (refund/chargeback), present ones are (re)activated.
 ## - Client-side checks are NOT fraud-proof. Server-side receipt validation needs a backend
@@ -64,6 +70,8 @@ func initialize() -> void:
 		provider = MockIAPProvider.new()
 	elif OS.has_feature("android") and GooglePlayBillingProvider.is_available():
 		provider = GooglePlayBillingProvider.new()
+	elif OS.has_feature("ios") and AppStoreProvider.is_available():
+		provider = AppStoreProvider.new()
 	else:
 		_set_status(Status.UNAVAILABLE, "no_billing_plugin")
 		return
@@ -105,26 +113,42 @@ func _on_products(details: Dictionary) -> void:
 	_set_status(Status.READY, "")
 
 
-func _on_purchase_update(purchases: Array) -> void:
+func _on_purchase_update(purchases: Array, silent: bool = false) -> void:
 	## purchases: [{"platform_id", "transaction", "state": "purchased"|"pending", "acknowledged": bool}]
+	## silent: store sync / restore - apply grants without player-facing results.
 	for pu in purchases:
 		var product := _product_by_platform_id(str(pu.platform_id))
 		if product.is_empty():
 			continue
+		var tx := str(pu.transaction)
 		match str(pu.state):
 			"purchased":
-				var newly := _grant(product, str(pu.transaction))
-				if not bool(pu.get("acknowledged", true)):
-					provider.acknowledge(str(pu.transaction))
-				purchase_result.emit(product.id, "success" if newly else "already_owned", "")
+				var newly := false
+				if is_consumable(product):
+					newly = EconomyService.grant("iap:" + tx, EconomyService.iap_contents(str(product.id)), "iap")
+					_mark_processed(tx)
+					provider.consume(tx)  # after the grant is saved; retried on the next sync if lost
+				else:
+					newly = _grant(product, tx)
+					var contents := EconomyService.iap_contents(str(product.id))
+					if not contents.is_empty() and EconomyService.grant("iap:" + tx, contents, "iap"):
+						newly = true
+					if not bool(pu.get("acknowledged", true)):
+						provider.acknowledge(tx)
 				if newly:
 					AnalyticsService.track("iap_completed", {"product": str(product.id)})
+					purchase_result.emit(product.id, "success", "")
+				elif not silent and not is_consumable(product):
+					purchase_result.emit(product.id, "already_owned", "")
 			"pending":
+				if not silent:
+					purchase_result.emit(product.id, "pending", "")
+				if is_consumable(product):
+					continue
 				for g in product.grants:
 					if not has_entitlement(g):
 						GameState.data.entitlements[g] = {"product": product.id, "state": "pending", "transaction": str(pu.transaction), "t": int(Time.get_unix_time_from_system())}
 				GameState.save_now()
-				purchase_result.emit(product.id, "pending", "")
 
 
 func _on_purchase_failed(platform_pid: String, reason: String) -> void:
@@ -145,7 +169,7 @@ func _on_owned(owned: Array) -> void:
 		if product.is_empty():
 			continue
 		owned_ids[product.id] = true
-		_on_purchase_update([o])
+		_on_purchase_update([o], true)
 	# Revocation: entitlements from this store that the store no longer reports.
 	for g in GameState.data.entitlements.keys():
 		var e: Dictionary = GameState.data.entitlements[g]
@@ -175,6 +199,17 @@ func _grant(product: Dictionary, transaction: String) -> bool:
 	if changed:
 		entitlements_changed.emit()
 	return changed and not already
+
+
+func _mark_processed(transaction: String) -> void:
+	var processed: Array = GameState.data.processed_transactions
+	if transaction != "" and not processed.has(transaction):
+		processed.append(transaction)
+		GameState.save_now()
+
+
+func is_consumable(product: Dictionary) -> bool:
+	return str(product.get("type", "non_consumable")) == "consumable"
 
 
 func has_entitlement(grant: String) -> bool:
@@ -207,6 +242,8 @@ func price_text(product_id: String) -> String:
 
 
 func is_owned(product: Dictionary) -> bool:
+	if is_consumable(product) or product.grants.is_empty():
+		return false
 	for g in product.grants:
 		if not has_entitlement(g):
 			return false
@@ -218,7 +255,7 @@ func purchase(product_id: String) -> bool:
 		return false
 	for p in configured_products():
 		if p.id == product_id:
-			if is_owned(p):
+			if is_owned(p) or (bool(p.get("bundle", false)) and has_entitlement("remove_ads")):
 				purchase_result.emit(product_id, "already_owned", "")
 				return true
 			AnalyticsService.track("iap_attempted", {"product": product_id})

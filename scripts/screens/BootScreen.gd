@@ -1,6 +1,7 @@
 extends Screen
-## Splash / loading. Verifies content loaded, shows a retry state on failure, then routes to
-## the interactive tutorial (first run) or Home. Kept deliberately short.
+## Splash / loading. Verifies content loaded, shows a retry state on failure, asks for ads
+## consent once on Europe/UK devices, then routes to the interactive tutorial (first run) or
+## Home. Kept deliberately short.
 
 const MIN_SHOW_S := 0.6
 
@@ -48,6 +49,9 @@ func _start() -> void:
 	var wait := MIN_SHOW_S - (Time.get_ticks_msec() - t0) / 1000.0
 	if wait > 0.0:
 		await get_tree().create_timer(wait).timeout
+	if PrivacyService.needs_ads_consent_prompt():
+		# Europe/UK only, once: the answer is recorded by the dialog itself.
+		await ConsentDialog.open(self).closed
 	if not bool(GameState.data.get("tutorial_done", false)):
 		Router.replace("tutorial")
 	else:

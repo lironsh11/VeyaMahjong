@@ -121,6 +121,9 @@ func claim_tasks_reward() -> bool:
 		return false
 	GameState.data.daily.tasks_claimed = true
 	var ok := ProgressionService.award_light("tasks:" + today())
+	var coins := EconomyService.reward("daily_tasks_claim")
+	if coins > 0:
+		EconomyService.grant("tasks:" + today(), {"coins": coins}, "tasks")
 	GameState.save_now()
 	tasks_changed.emit()
 	return ok

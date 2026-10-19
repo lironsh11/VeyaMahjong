@@ -1,11 +1,25 @@
 {
-  "_comment": "LevelPlay app keys and banner ad units. Meta placement IDs live in the LevelPlay dashboard, not in the game.",
+  "_comment": "LevelPlay app keys and ad unit ids per platform (written by tools/setup_levelplay.mjs). Ad unit NAMES match data/config/economy.json. Meta placement IDs live in the LevelPlay dashboard, not in the game.",
   "android": {
     "app_key": "28d197415",
-    "banner_ad_unit_id": "ytsl6jimu8h4ocxi"
+    "banner_ad_unit_id": "ytsl6jimu8h4ocxi",
+    "rewarded_ad_units": {
+      "rewarded_bonus_coins": "kaz7e8hpuis7bco3",
+      "rewarded_bloom_bonus": "o44wskuxh6f6onnt"
+    },
+    "interstitial_ad_units": {
+      "interstitial_level_complete": "cuz0gdak3vbzfqce"
+    }
   },
   "ios": {
     "app_key": "28d19e725",
-    "banner_ad_unit_id": "nbo1oxfo63n8gajg"
+    "banner_ad_unit_id": "nbo1oxfo63n8gajg",
+    "rewarded_ad_units": {
+      "rewarded_bonus_coins": "bt9766n4ikvy3tro",
+      "rewarded_bloom_bonus": "mx47znqm8ed0n9jw"
+    },
+    "interstitial_ad_units": {
+      "interstitial_level_complete": "ilkhbt25uc1k6b5p"
+    }
   }
 }

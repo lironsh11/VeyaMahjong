@@ -32,3 +32,8 @@ func purchase(_platform_id: String) -> void:
 
 func acknowledge(_transaction: String) -> void:
 	pass
+
+
+func consume(_transaction: String) -> void:
+	## Consumables only: tell the store the item was delivered so it can be bought again.
+	pass

@@ -52,6 +52,8 @@ func connect_store() -> void:
 	_client.connect("query_product_details_response", _on_details)
 	_client.connect("query_purchases_response", _on_owned)
 	_client.connect("on_purchase_updated", _on_updated)
+	if _client.has_signal("consume_purchase_response"):
+		_client.connect("consume_purchase_response", _on_consumed)
 	_client.call("start_connection")
 
 
@@ -72,6 +74,20 @@ func purchase(platform_id: String) -> void:
 
 func acknowledge(transaction: String) -> void:
 	_client.call("acknowledge_purchase", transaction)
+
+
+func consume(transaction: String) -> void:
+	## Consumables: consuming also acknowledges. If it fails (or the app dies first) the item
+	## stays owned; the next query_purchases replays it, IAPService's ledger blocks a second
+	## grant, and consume is retried.
+	if _client and transaction != "":
+		_client.call("consume_purchase", transaction)
+
+
+func _on_consumed(_response: Dictionary) -> void:
+	# Nothing to do on failure: re-querying here could loop; the next store sync (app start or
+	# Restore) replays the unconsumed purchase and retries the consume.
+	pass
 
 
 func _on_details(response: Dictionary) -> void:

@@ -14,9 +14,13 @@ const DEFAULTS := {
 	"ads_enabled": false,
 	"rewarded_ads_enabled": false,
 	"interstitials_enabled": false,
-	"interstitial_min_levels_between": 4,
-	"interstitial_daily_cap": 4,
-	"rewarded_daily_cap": 3,
+	"interstitial_min_levels_between": 2,
+	"interstitial_daily_cap": 6,
+	"interstitial_first_level": 6,
+	"fullscreen_min_seconds_between": 90,
+	"rewarded_daily_cap": 12,
+	"ads_allow_unset_consent": false,   ## internal test builds only (no consent prompt yet)
+	"economy_enabled": true,           ## kill switch: false = helpers free and unlimited
 	"qa_mock_services": false,
 	"show_session_timer_option": true,
 	"banner_ads_enabled": false,

@@ -32,8 +32,8 @@ WATCH YOUR WORLD BLOOM
 Each new level you solve earns a LiShi Light. Every 5 Lights, a new decoration or discovery appears in the illustrated world – 30 discoveries to find in LiShi Bloom.
 
 PLAY AT YOUR OWN PACE
-• Hint, unlimited Undo and Shuffle are always free
-• Stuck? Shuffle the remaining tiles for free, or go back to your last solvable point
+• Earn coins as you play – use Hint, Undo and Shuffle whenever you need them
+• Stuck? One free Shuffle when no moves are left, and going back to the last solvable point is always free
 • No timers, no lives, no energy
 • Fully playable offline, no account required
 • 4 tile themes to unlock through play: Classic, Sakura, Ocean and Nocturne
@@ -82,8 +82,8 @@ WATCH YOUR WORLD BLOOM
 Each new level you solve earns a LiShi Light. Every 5 Lights, a new decoration or discovery appears in the illustrated world – 30 discoveries to find in LiShi Bloom.
 
 PLAY AT YOUR OWN PACE
-• Hint, unlimited Undo and Shuffle are always free
-• Stuck? Shuffle the remaining tiles for free, or go back to your last solvable point
+• Earn coins as you play – use Hint, Undo and Shuffle whenever you need them
+• Stuck? One free Shuffle when no moves are left, and going back to the last solvable point is always free
 • No timers, no lives, no energy
 • Fully playable offline, no account required
 • 4 tile themes to unlock through play: Classic, Sakura, Ocean and Nocturne

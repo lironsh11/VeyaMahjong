@@ -1,0 +1,2 @@
+# Built by native/levelplay/ios/build.sh and native/storekit/ios/build.sh on macOS (CI builds them too).
+*.xcframework/

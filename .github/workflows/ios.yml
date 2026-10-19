@@ -1,0 +1,150 @@
+# iOS build check. The owner's machine is Windows, so this is the only place the iOS plugins,
+# CocoaPods integration and Xcode project are compiled and linked. It builds for the iOS
+# Simulator without signing; nothing is uploaded to Apple. See docs/IOS_BUILD.md.
+name: iOS build check
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [master]
+    paths:
+      - ".github/workflows/ios.yml"
+      - "native/levelplay/ios/**"
+      - "native/storekit/ios/**"
+      - "ios/**"
+      - "export_presets.cfg"
+      - "project.godot"
+      - "scripts/**"
+      - "data/**"
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.7.2"
+  GODOT_TAG: "4.7.2-stable"
+  # Not a credential: an obviously fake Team ID that only lets Godot write the Xcode project.
+  # It is applied to the CI checkout only and never committed.
+  IOS_DUMMY_TEAM_ID: ${{ vars.IOS_DUMMY_TEAM_ID || 'ABCDE12345' }}
+
+jobs:
+  ios-simulator-build:
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Paths
+        run: echo "EXPORT_DIR=$RUNNER_TEMP/ios-export" >> "$GITHUB_ENV"
+
+      - name: Select newest Xcode
+        run: |
+          XCODE="$(ls -d /Applications/Xcode_*.app | sort -V | tail -n 1)"
+          echo "Using $XCODE"
+          sudo xcode-select -s "$XCODE/Contents/Developer"
+          xcodebuild -version
+
+      - name: Tools (scons, CocoaPods)
+        run: |
+          pip3 install --break-system-packages scons || brew install scons
+          command -v pod || brew install cocoapods
+          pod --version
+
+      - name: Cache Godot source (engine headers for the .gdip plugins)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/lishi-godot
+          key: godot-src-${{ env.GODOT_TAG }}-v1
+
+      - name: Cache Godot editor and export templates
+        id: godot-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot-bin
+            ~/Library/Application Support/Godot/export_templates
+          key: godot-bin-${{ env.GODOT_TAG }}-v1
+
+      - name: Install Godot editor and export templates
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          base="https://github.com/godotengine/godot-builds/releases/download/${GODOT_TAG}"
+          mkdir -p ~/godot-bin
+          curl -fsSL -o /tmp/godot.zip "$base/Godot_v${GODOT_TAG}_macos.universal.zip"
+          unzip -q /tmp/godot.zip -d ~/godot-bin
+          curl -fsSL -o /tmp/templates.tpz "$base/Godot_v${GODOT_TAG}_export_templates.tpz"
+          dest="$HOME/Library/Application Support/Godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p "$dest"
+          unzip -q /tmp/templates.tpz -d /tmp/tpl
+          mv /tmp/tpl/templates/* "$dest/"
+          ls "$dest" | head
+
+      - name: Build iOS plugins (LevelPlayBanner, LiShiStoreKit)
+        run: |
+          bash native/levelplay/ios/build.sh
+          bash native/storekit/ios/build.sh
+          ls -R ios/plugins | head -n 40
+
+      - name: Export Xcode project (project only, dummy Team ID)
+        run: |
+          GODOT="$HOME/godot-bin/Godot.app/Contents/MacOS/Godot"
+          # CI checkout only: never committed.
+          sed -i '' "s/^application\/app_store_team_id=\"\"/application\/app_store_team_id=\"${IOS_DUMMY_TEAM_ID}\"/" export_presets.cfg
+          grep -q "app_store_team_id=\"${IOS_DUMMY_TEAM_ID}\"" export_presets.cfg
+          "$GODOT" --headless --path . --import || "$GODOT" --headless --path . --editor --quit
+          mkdir -p "$EXPORT_DIR"
+          "$GODOT" --headless --path . --export-debug "iOS" "$EXPORT_DIR/LiShiMahjong.ipa" 2>&1 | tee /tmp/godot-export.log
+          ls "$EXPORT_DIR"
+          test -d "$EXPORT_DIR/LiShiMahjong.xcodeproj"
+
+      - name: CocoaPods + project preparation
+        run: bash native/levelplay/ios/scripts/prepare_xcode_project.sh "$EXPORT_DIR"
+
+      - name: xcodebuild (iOS Simulator, no signing)
+        run: |
+          cd "$EXPORT_DIR"
+          WORKSPACE="$(ls -d *.xcworkspace | head -n 1)"
+          SCHEME="$(basename "$WORKSPACE" .xcworkspace)"
+          xcodebuild -list -workspace "$WORKSPACE"
+          xcodebuild \
+            -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "generic/platform=iOS Simulator" \
+            -derivedDataPath "$EXPORT_DIR/DerivedData" \
+            ARCHS=arm64 ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build 2>&1 | tee /tmp/xcodebuild.log | grep -E "error:|warning: .*(LSLevelPlay|LiShi|levelplay|storekit)|BUILD (SUCCEEDED|FAILED)" || true
+          grep -q "BUILD SUCCEEDED" /tmp/xcodebuild.log
+
+      - name: Check the app bundle
+        run: |
+          APP="$(find "$EXPORT_DIR/DerivedData/Build/Products" -maxdepth 2 -name '*.app' | head -n 1)"
+          echo "App: $APP"
+          plutil -p "$APP/Info.plist" | grep -E "NSUserTrackingUsageDescription|SKAdNetworkIdentifier|MinimumOSVersion"
+          for lang in en he ja ko de fr es pt-BR zh-Hant ru; do
+            test -f "$APP/$lang.lproj/InfoPlist.strings" || { echo "missing $lang.lproj/InfoPlist.strings"; exit 1; }
+          done
+          # Both Godot singletons and both bridges must be linked into the binary.
+          BIN="$APP/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Info.plist")"
+          nm "$BIN" > /tmp/app-symbols.txt
+          for sym in levelplay_banner_init lishi_storekit_init _lishi_sk_start '_OBJC_CLASS_$_LSLevelPlayBridge' '_OBJC_CLASS_$_LPMRewardedAd'; do
+            grep -qF -- "$sym" /tmp/app-symbols.txt || { echo "symbol not linked: $sym"; exit 1; }
+            echo "linked: $sym"
+          done
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-logs
+          path: |
+            /tmp/godot-export.log
+            /tmp/xcodebuild.log
+            /tmp/lishi-godot-scons.log
+            ${{ env.EXPORT_DIR }}/Podfile
+            ${{ env.EXPORT_DIR }}/Podfile.lock
+          if-no-files-found: ignore

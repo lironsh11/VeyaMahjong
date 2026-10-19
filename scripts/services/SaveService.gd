@@ -16,7 +16,7 @@ extends Node
 signal recovered_from_backup(source: String)
 
 const FORMAT := "veya-save"
-const SCHEMA_VERSION := 1
+const SCHEMA_VERSION := 2  ## must equal GameState.defaults().schema_version (decode copies it into the payload)
 
 var save_dir: String = "user://save"
 var file_name: String = "veya_save.json"

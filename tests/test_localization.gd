@@ -147,3 +147,15 @@ func test_date_patterns_present() -> void:
 		check(str(s.get("week_start", "")) in ["0", "1"], "%s week_start" % code)
 		for m in range(1, 13):
 			check(str(s.get("month_%d" % m, "")) != "", "%s month_%d" % [code, m])
+
+
+func test_no_free_helper_promises_left() -> void:
+	# Helpers are boosters now; only rewind/restart may still be promised as free.
+	var en: Dictionary = _load("en").get("strings", {})
+	for k in en:
+		if typeof(en[k]) != TYPE_STRING or k == "shuffle_failed_body":
+			continue
+		var s := str(en[k]).to_lower()
+		check(not s.contains("always free") or s.contains("restart"), "%s still promises free helpers" % k)
+		check(not s.contains("both are free"), "%s still promises free helpers" % k)
+		check(not s.contains("unlimited"), "%s promises unlimited helpers" % k)

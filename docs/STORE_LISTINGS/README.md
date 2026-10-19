@@ -56,7 +56,7 @@ Google Play and Apple support different locales, use different codes, and split 
 - If ads or in-app purchases are added, update the descriptions where needed. Also update Google Play's Data safety form, Apple's privacy labels, and the "Contains ads" / "In-app purchases" flags. Those forms are separate from these drafts.
 - Shuffle claim (RESOLVED): earlier drafts said "Shuffle always gives you a solvable layout", which is false in rare stacked end-states. All 10 locales now say instead: "Stuck? Shuffle the remaining tiles for free, or go back to your last solvable point", with each language using its in-game "rewind" term. If the rewind or restart behaviour changes, update this bullet.
 - Matching rule: every tile, including Flowers and Seasons, matches only an identical tile. The drafts no longer mention Flower/Season matching. The in-game tutorial (`tut_step_bonus`, all 10 languages) already teaches the identical-tiles rule.
-- "Free Daily Puzzle" and "Hint, Undo and Shuffle are always free" describe features, not the app's price. Keep them true if monetisation changes.
+- "Free Daily Puzzle" describes a feature, not the app's price. Since 2026-10-19 helpers are boosters: the listings say "Earn coins as you play - use Hint, Undo and Shuffle whenever you need them" and "Stuck? One free Shuffle when no moves are left, and going back to the last solvable point is always free". Keep both true if the economy changes.
 
 ## Terminology
 

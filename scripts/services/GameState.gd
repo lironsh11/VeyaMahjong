@@ -37,7 +37,7 @@ func _ready() -> void:
 
 static func defaults() -> Dictionary:
 	return {
-		"schema_version": 1,
+		"schema_version": 2,
 		"settings_rev": SETTINGS_REV,
 		"created_unix": int(Time.get_unix_time_from_system()),
 		"tutorial_done": false,
@@ -47,8 +47,13 @@ static func defaults() -> Dictionary:
 		"cosmetics": {"equipped_theme": "classic", "seen_themes": ["classic"]},
 		"entitlements": {},
 		"processed_transactions": [],
-		"ads": {"reward_grants": [], "rewarded_day": "", "rewarded_count": 0,
+		"ads": {"reward_grants": [], "rewarded_day": "", "rewarded_count": 0, "rewarded_counts": {},
+			"placement_seq": {}, "last_fullscreen_unix": 0,
 			"interstitial_day": "", "interstitial_count": 0, "levels_since_interstitial": 0},
+		# Coins and boosters. Balances start at zero; the start pack (and the one-time welcome
+		# pack for players from before the economy) is applied by EconomyService.grant().
+		"economy": {"coins": 0, "inv": {"hint": 0, "shuffle": 0, "undo": 0}, "ledger": {},
+			"legacy_player": false, "welcome_notice_pending": false, "clock_hw_day": ""},
 		"daily": {"completed": {}, "tasks_date": "", "task_stats": {}, "tasks_claimed": false},
 		"active_session": {},
 		"settings": DEFAULT_SETTINGS.duplicate(),
@@ -78,6 +83,11 @@ static func migrate(payload: Dictionary) -> Dictionary:
 				as_dict[str(int(id))] = {"t": 0, "best_moves": 0, "no_hint": false}
 			prog.completed = as_dict
 		v = 1
+	if v < 2:
+		# v1 saves come from before the booster economy (free helpers): a one-time welcome
+		# pack is granted by EconomyService and explained once on Home.
+		payload["economy"] = {"legacy_player": true, "welcome_notice_pending": true}
+		v = 2
 	payload["schema_version"] = v
 	# One-time settings revisions (no schema change: settings are free-form).
 	var settings: Variant = payload.get("settings")

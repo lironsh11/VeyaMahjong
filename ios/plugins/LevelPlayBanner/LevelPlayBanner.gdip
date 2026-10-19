@@ -1,0 +1,24 @@
+; LevelPlay ads and ATT (singleton "LevelPlayBanner"), contract in
+; docs/NATIVE_ADS_API.md - the same API as the Android plugin.
+; Binaries: LevelPlayBanner.debug.xcframework / LevelPlayBanner.release.xcframework, built by
+; native/levelplay/ios/build.sh (macOS). The SDKs come from CocoaPods (local pod
+; native/levelplay/ios/pod -> IronSourceSDK; plus the Meta adapter),
+; installed by native/levelplay/ios/scripts/prepare_xcode_project.sh.
+; Info.plist additions (NSUserTrackingUsageDescription, SKAdNetworkItems)
+; live in export_presets.cfg -> application/additional_plist_content.
+
+[config]
+
+name="LevelPlayBanner"
+binary="LevelPlayBanner.xcframework"
+initialization="levelplay_banner_init"
+deinitialization="levelplay_banner_deinit"
+
+[dependencies]
+
+linked=[]
+embedded=[]
+system=["AppTrackingTransparency.framework"]
+capabilities=[]
+files=[]
+linker_flags=["-ObjC"]

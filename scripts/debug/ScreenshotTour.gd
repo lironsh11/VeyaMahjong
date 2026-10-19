@@ -1,7 +1,8 @@
 extends Node
 ## DEBUG-ONLY visual QA driver. Started by Router only in debug builds when the game is
 ## launched with:  godot --path . -- --tour=<out_dir> [--locale=he] [--save-dir=user://tour]
-## Extra modes: --levels=1,7,50 (boards only), --bloom-all (every discovery unlocked).
+## Extra modes: --levels=1,7,50 (boards only), --bloom-all (every discovery unlocked),
+## --consent (ads consent dialog, first run and Settings).
 ## Visits every screen and dialog, saving viewport captures as PNG. It uses an isolated save
 ## directory (see SaveService) so real player data is never touched.
 
@@ -69,6 +70,27 @@ func _run() -> void:
 				await _shot("bloom_all_" + str(w.id))
 			get_tree().quit()
 			return
+		if a == "--economy":
+			await _economy_tour()
+			get_tree().quit()
+			return
+		if a == "--consent":
+			# Ads consent dialog as a Europe/UK device sees it at first launch, then from Settings.
+			await _wait(1.0)
+			var first := ConsentDialog.open(Router.current_screen())
+			await _wait(0.6)
+			await _shot("consent_first_run")
+			first.close("denied")
+			GameState.data.tutorial_done = true
+			await _go("settings")
+			var label := LocalizationService.t("privacy_choices")
+			var found := Router.current_screen().find_children("*", "Button", true, false).filter(func(b: Button) -> bool: return b.text == label)
+			print("TOUR privacy_choices button: ", found.size(), " consent=", PrivacyService.ads_consent())
+			ConsentDialog.open(Router.current_screen(), true)
+			await _wait(0.6)
+			await _shot("consent_settings")
+			get_tree().quit()
+			return
 	await _wait(0.35)
 	await _shot("01_boot")
 	await _wait(1.0)
@@ -123,3 +145,53 @@ func _run() -> void:
 	await _shot("15_settings")
 	print("TOUR done")
 	get_tree().quit()
+
+
+func _economy_tour() -> void:
+	## Booster economy states with QA-mock ads and store (debug only).
+	await _wait(1.5)
+	FeatureFlags.set_override("qa_mock_services", true)
+	FeatureFlags.set_override("ads_enabled", true)
+	FeatureFlags.set_override("rewarded_ads_enabled", true)
+	FeatureFlags.set_override("interstitials_enabled", true)
+	PrivacyService.record_ads_consent("not_required")
+	AdsService.dispose()
+	AdsService.initialize()
+	IAPService.provider = null
+	IAPService.initialize()
+	GameState.data.tutorial_done = true
+	for id in range(1, 13):
+		ProgressionService.complete_level(id, {"moves": 10, "hints": 0})
+	GameState.data.economy.welcome_notice_pending = true
+	await _go("home")
+	await _wait(0.6)
+	await _shot("econ_01_home_welcome")
+	GameState.data.economy.welcome_notice_pending = false
+	await _go("gameplay", {"mode": "level", "level": 13, "restart": true})
+	await _shot("econ_02_gameplay_badges")
+	var scr: Node = Router.current_screen()
+	GameState.data.economy.inv.hint = 0
+	scr._refresh_badges()
+	scr._open_get_more("hint")
+	await _wait(0.5)
+	await _shot("econ_03_out_of_hints")
+	await _go("gameplay", {"mode": "level", "level": 13, "restart": true})
+	scr = Router.current_screen()
+	scr._open_rescue(true)
+	await _wait(0.5)
+	await _shot("econ_04_rescue")
+	await _go("gameplay", {"mode": "level", "level": 14, "restart": true})
+	scr = Router.current_screen()
+	var L: LevelDefinition = scr.level
+	for k in L.solution.size():
+		scr.controller._on_tap(L.solution[k].x)
+		scr.controller._on_tap(L.solution[k].y)
+	await _wait(1.6)
+	await _shot("econ_05_win_coins")
+	await _go("shop")
+	await _wait(0.4)
+	await _shot("econ_06_shop")
+	await _go("bloom", {"world": "aurora_garden"})
+	await _wait(0.8)
+	await _shot("econ_07_bloom")
+	print("TOUR economy done")

@@ -16,8 +16,10 @@
 
 ## Platform / integrations
 
-5. **Ads:** no SDK integrated; flags OFF. **BLOCKED** on choosing and installing a plugin plus
-   AdMob account and ad unit IDs. See MONETIZATION.md.
+5. **Ads:** LevelPlay plugin integrated (banner, rewarded, interstitial), flags ON, consent from
+   the in-game dialog (Europe/UK only). Meta bidding is connected for the banner, both rewarded
+   units and the interstitial on Android and iOS. Device verification (test suite, one grant per
+   reward) is still open. See MONETIZATION.md.
 6. **IAP:** Google Play adapter written but not installed or device-tested; no iOS adapter.
    Product IDs are empty. **BLOCKED** on the plugin plus Play Console/App Store Connect setup.
 7. **iOS:** no build or signing possible here (needs macOS, Xcode 26+, Team ID).
