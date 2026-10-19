@@ -8,9 +8,41 @@ extends RefCounted
 ## The combined score is a heuristic for ordering/pacing review, not a promise of feel;
 ## tester feedback must still calibrate it.
 
+static func tray_fail_rate(level: LevelDefinition, playouts: int = 40, seed_value: int = 7, capacity: int = TrayRules.CAPACITY) -> float:
+	## Tray-play pressure: share of playouts in which a casual player fills the tray. The
+	## player always takes a tile that clears a tray slot when one is free, otherwise any free
+	## tile at random. Basis for "Hard" level badges; not part of the stored classic metrics.
+	var base := level.build_state()
+	var rng := SeededRng.new(seed_value ^ SeededRng.hash_string(level.key))
+	var fails := 0
+	for p in playouts:
+		var s := base.clone()
+		var tray := PackedInt32Array()
+		while s.remaining > 0:
+			var free := s.free_tiles()
+			var pick := -1
+			for i in free:
+				if TrayRules.partner_slot(tray, s.keys, i) >= 0:
+					pick = i
+					break
+			if pick < 0:
+				pick = free[rng.rand_int(0, free.size() - 1)]
+			s.take(pick)
+			var slot := TrayRules.partner_slot(tray, s.keys, pick)
+			if slot >= 0:
+				tray.remove_at(slot)
+			else:
+				tray.append(pick)
+				if tray.size() >= capacity:
+					fails += 1
+					break
+	return float(fails) / float(maxi(1, playouts))
+
+
 static func analyze(level: LevelDefinition, playouts: int = 24, seed_value: int = 7) -> Dictionary:
 	var geo := level.build_geometry()
 	var state := level.build_state(geo)
+	state.side_blocking = true  # stored metrics describe the classic layout difficulty
 	var opening_pairs := state.available_pairs().size()
 	var stacked := 0
 	for i in geo.count:

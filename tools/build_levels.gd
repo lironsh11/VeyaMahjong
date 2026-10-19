@@ -7,8 +7,9 @@ extends SceneTree
 ## levels at runtime, so a level never changes under a player.
 ##
 ## Pipeline:
-##   1. Candidate geometries: procedural layouts (varied size, stacking and support rules) plus
-##      the larger pack layouts with brand-new face orders.
+##   1. Candidate geometries: dense, screen-filling layouts (LayoutGenerator.generate_dense:
+##      5-6 columns, the rows that fill the play area, 3-5 layers, half-shifted layers), kept
+##      only if they cover >= MIN_FILL of the play area's width AND height with big tiles.
 ##   2. Faces by reverse play (BoardGenerator), then BoardValidator (witness replay + independent
 ##      solve). Anything not proven solvable is discarded.
 ##   3. DifficultyAnalyzer metrics.
@@ -20,7 +21,7 @@ extends SceneTree
 ##   5. Ordered by the combined progression value (stored as metrics.progression).
 ## Writes a report to docs/reports/levels_051_150.md.
 
-const BUILD_ID := "levels-51-150-v7"  ## v7: portrait boards that fill a phone screen
+const BUILD_ID := "levels-51-150-v8"  ## v8: dense boards filling the screen both ways (v7: portrait)
 const OUT_PATH := "res://data/levels/levels_051_150_generated.json"
 const EARLY_PATH := "res://data/levels/levels_004_050_regenerated.json"
 const REPORT_PATH := "res://docs/reports/levels_051_150.md"
@@ -28,7 +29,8 @@ const FIRST_ID := 51
 const COUNT := 100
 const MIN_TILES := 56
 const MAX_TILES := 144
-const MIN_FIT_TILE := 66.0  ## min tile width (px) on BoardFit.REFERENCE_AREA - big, readable tiles
+const MIN_FIT_TILE := 84.0  ## min tile width (px) on BoardFit.REFERENCE_AREA - big, readable tiles
+const MIN_FILL := 0.88      ## share of the play area's width AND height the board covers
 const PLAYOUTS := 32
 const SCORE_WEIGHT := 0.35   ## secondary axis weight relative to trickiness
 
@@ -40,7 +42,6 @@ func _initialize() -> void:
 		if a.begins_with("--candidates="):
 			n_candidates = int(a.trim_prefix("--candidates="))
 	var t0 := Time.get_ticks_msec()
-	var layouts: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/levels/layouts_50.json"))
 	# Starting point = the end of levels 4-50 (mean of their last 5, so one outlier can't skew it).
 	var early: Array = JSON.parse_string(FileAccess.get_file_as_string(EARLY_PATH))
 	var tail: Array = early.slice(early.size() - 5)
@@ -56,27 +57,12 @@ func _initialize() -> void:
 	for k in n_candidates:
 		stats.tried += 1
 		var rng := SeededRng.new(SeededRng.hash_string("%s|cand|%d" % [BUILD_ID, k]))
-		var positions: Array = []
-		var layout_id := ""
-		if rng.rand_float() < 0.3:
-			var big: Array = layouts.filter(func(l: Dictionary) -> bool: return int(l.position_count) >= MIN_TILES)
-			var l: Dictionary = big[rng.rand_int(0, big.size() - 1)]
-			layout_id = str(l.id)
-			for p in l.positions:
-				positions.append(Vector3i(int(p[0]) * 2, int(p[1]) * 2, int(p[2])))
-		else:
-			# Portrait-shaped: fewer columns than rows, to fill a phone screen (see BoardFit).
-			var params := {
-				"min_cols": 5, "max_cols": rng.rand_int(6, 8),
-				"min_rows": 8, "max_rows": rng.rand_int(9, 11),
-				"fill_base": 0.97, "fill_falloff": 0.35 + rng.rand_float() * 0.3,
-				"upper_prob": 0.6 + rng.rand_float() * 0.35,
-				"max_layers": rng.rand_int(3, 5),
-				"support": "row" if rng.rand_float() < 0.5 else "cross",
-				"cap_prob": 0.6,
-			}
-			positions = LayoutGenerator.generate_ex(rng, rng.rand_int(70, MAX_TILES), params)
-			layout_id = "proc:%s:%d" % [LayoutGenerator.VERSION, k]
+		# Mostly 6 columns (the most tiles at ~90 px); some 5-column boards stay in the mix.
+		var cols := 6 if rng.rand_float() < 0.8 else 5
+		var layers := rng.rand_int(3, 5)
+		var params := {"offset_prob": 0.25 + rng.rand_float() * 0.5, "base_share": 0.4 + rng.rand_float() * 0.25}
+		var positions := LayoutGenerator.generate_dense(rng, rng.rand_int(MIN_TILES, MAX_TILES), cols, layers, params)
+		var layout_id := "dense:%s:%d" % [LayoutGenerator.DENSE_VERSION, k]
 		positions = BoardFit.best_orientation(positions)
 		# Mix pairing styles (far-apart -> nearer partners) so forgiving boards exist too.
 		gen.spread_bias = [0.6, 0.3, 0.0][k % 3]
@@ -142,7 +128,7 @@ func _initialize() -> void:
 	var md := PackedStringArray()
 	md.append("# Levels 51-150 (generated, ordered by measured difficulty)")
 	md.append("")
-	md.append("Built by `tools/build_levels.gd` (`%s`, deterministic). Levels 1-3 are supplied pack levels; 4-50 are pack shapes with re-scattered faces (`docs/reports/levels_004_050.md`)." % BUILD_ID)
+	md.append("Built by `tools/build_levels.gd` (`%s`, deterministic). Levels 1-3 are supplied pack levels; 4-50 are dense boards too (`docs/reports/levels_004_050.md`). Every board fills >= 88%% of the play area both ways with tiles >= 84 px." % BUILD_ID)
 	md.append("")
 	md.append("- Candidates tried: %d; rejected for size/readability: %d; geometry not clearable: %d; failed validation: %d; validated pool: %d." % [stats.tried, stats.size_rejected, stats.gen_rejected, stats.invalid, pool.size()])
 	md.append("- Start = mean of levels 46-50: dead-end rate **%.2f**, score **%.1f**. Targets ramp to dead-end %.2f (pool p92) and score %.1f (pool p97)." % [dead_start, score_start, dead_top, score_top])
@@ -201,4 +187,7 @@ func _initialize() -> void:
 
 func _fits_screen(positions: Array) -> bool:
 	var geo := BoardGeometry.from_positions(positions)
-	return geo.errors.is_empty() and BoardFit.fit_tile_width(geo) >= MIN_FIT_TILE
+	if not geo.errors.is_empty():
+		return false
+	var fr := LayoutGenerator.fill_ratio(positions)
+	return BoardFit.fit_tile_width(geo, BoardFit.REFERENCE_AREA) >= MIN_FIT_TILE and fr.x >= MIN_FILL and fr.y >= MIN_FILL

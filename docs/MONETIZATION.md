@@ -27,10 +27,26 @@ coin packs and a starter bundle are sold.
 | First clear of a level | 20 coins (1-50), 30 (51-100), 40 (101-150); replays 0 |
 | World complete | 250 |
 | Daily puzzle / daily tasks | 50 / 75 |
-| Prices | Hint 120 (5 for 480) · Shuffle 150 (5 for 600) · Undo 60 (5 for 240) |
+| Prices | Hint 120 (5 for 480) · Shuffle 150 (5 for 600) · Undo 60 (5 for 240) · Extra Slot 200 (5 for 800) |
+| Continue after a full tray ("send 3 tiles back") | 1st per board free, then 100, then 200 coins (`continue_costs`; the last price repeats) |
+| Extra Slot intro gift (everyone, once) | 2 Extra Slots (`intro_grants`: `extra_slot_intro_v1`) |
+| Win streak gifts (once per streak) | streak 5: 1 Hint · streak 7: 1 Shuffle (ledger id `streak:<run>:<n>`); streak 3+: new levels start with a free extra slot |
+
+**Full tray:** the dialog always offers Undo (normal Undo rules), Try again and Home next to the
+continue, with no countdown and no ad gate. When coins are short, the continue button opens the
+Shop instead of failing silently. If the player owns an Extra Slot it is offered first (the
+tiles stay where they are).
+
+**Engagement guardrails:**
+- Every streak reward is fixed and shown in advance. There are no paid random rewards, so no
+  odds disclosure is needed.
+- Losing a streak costs nothing but the streak: there is no "pay to save your streak" offer.
+- The level-start dialog appears only when there is something to offer; "Play" without a
+  booster is the default.
 
 **Free ways forward (never a paywall soft-lock):** restart; rewinding to the last proven-solvable
-point; one free rescue Shuffle per board when no moves remain; the first 2 Undos of each board; a
+point; one free rescue Shuffle per board when the board is proven stuck; the first continue
+after a full tray; the first 2 Undos of each board; a
 Shuffle that fails costs nothing; a Hint is charged only when a useful pair is shown (not for "no
 pairs", a dead-end pair, or re-showing the same hint). The tutorial is free.
 
@@ -81,7 +97,9 @@ watchdog.
 
 ## Banner
 
-Shown on all screens, gameplay included, at the bottom. The slot stays collapsed until a real ad
+Shown at the bottom of every screen **except gameplay and the tutorial** (owner decision
+2026-10-19: the board gets the whole screen; `AdsService.set_banner_suppressed`, counted so a
+gameplay screen replacing another never flashes it). The slot stays collapsed until a real ad
 loads; then the safe area grows. Hidden for Remove Ads owners, and while a Europe/UK device has
 not answered the consent dialog yet. After a decline it runs non-personalized.
 

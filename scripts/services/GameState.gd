@@ -37,7 +37,7 @@ func _ready() -> void:
 
 static func defaults() -> Dictionary:
 	return {
-		"schema_version": 2,
+		"schema_version": 4,
 		"settings_rev": SETTINGS_REV,
 		"created_unix": int(Time.get_unix_time_from_system()),
 		"tutorial_done": false,
@@ -52,9 +52,13 @@ static func defaults() -> Dictionary:
 			"interstitial_day": "", "interstitial_count": 0, "levels_since_interstitial": 0},
 		# Coins and boosters. Balances start at zero; the start pack (and the one-time welcome
 		# pack for players from before the economy) is applied by EconomyService.grant().
-		"economy": {"coins": 0, "inv": {"hint": 0, "shuffle": 0, "undo": 0}, "ledger": {},
+		"economy": {"coins": 0, "inv": {"hint": 0, "shuffle": 0, "undo": 0, "extra_slot": 0}, "ledger": {},
 			"legacy_player": false, "welcome_notice_pending": false, "clock_hw_day": ""},
 		"daily": {"completed": {}, "tasks_date": "", "task_stats": {}, "tasks_claimed": false},
+		# Win streak: consecutive first-try wins of new levels (ProgressionService). `run`
+		# numbers each streak so milestone gifts are paid once per streak; `attempt` is the
+		# level whose fresh attempt is in progress (a second fresh start there is a retry).
+		"streak": {"count": 0, "best": 0, "run": 0, "attempt": 0},
 		"active_session": {},
 		"settings": DEFAULT_SETTINGS.duplicate(),
 		"privacy": {"analytics_consent": "unset", "ads_consent": "unset", "notice_seen": false},
@@ -88,6 +92,18 @@ static func migrate(payload: Dictionary) -> Dictionary:
 		# pack is granted by EconomyService and explained once on Home.
 		payload["economy"] = {"legacy_player": true, "welcome_notice_pending": true}
 		v = 2
+	if v < 3:
+		# v2 saves come from before tray play: no win streak yet (starts at 0), and the
+		# Extra Slot booster joins the inventory (the intro gift is an EconomyService grant).
+		payload["streak"] = {"count": 0, "best": 0, "run": 0, "attempt": 0}
+		v = 3
+	if v < 4:
+		# Levels 4-150 were rebuilt as screen-filling boards (2026-10-19): a level board saved
+		# mid-game belongs to the old geometry, so it starts fresh. Progress, stars and coins stay.
+		var act: Variant = payload.get("active_session")
+		if typeof(act) == TYPE_DICTIONARY and str(act.get("mode", "")) == "level":
+			payload["active_session"] = {}
+		v = 4
 	payload["schema_version"] = v
 	# One-time settings revisions (no schema change: settings are free-form).
 	var settings: Variant = payload.get("settings")

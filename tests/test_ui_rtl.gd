@@ -75,3 +75,21 @@ func _badge_x_offset(rtl: bool) -> float:
 func test_booster_badge_mirrors_in_rtl() -> void:
 	check(_badge_x_offset(false) > 0.0, "badge on the right corner in LTR")
 	check(_badge_x_offset(true) < 0.0, "badge on the left corner in RTL (Hebrew)")
+
+
+func test_row_overlap_tap_picks_the_front_tile() -> void:
+	# Rows overlap (BoardFit.STEP_Y < body height): a tap in the band where the lower row covers
+	# the row above must pick the lower (front, drawn later) tile.
+	var root: Window = (Engine.get_main_loop() as SceneTree).root
+	var board := BoardView.new()
+	root.add_child(board)
+	board.size = Vector2(540, 900)
+	var L := level_from_rows(["X", "X"], [], ["circle_1", "circle_1"])
+	board.setup(L.build_state(), "classic")
+	var upper := board.body_rect(0)
+	var lower := board.body_rect(1)
+	check(lower.position.y < upper.end.y, "rows overlap")
+	var p := Vector2(upper.get_center().x, (lower.position.y + upper.end.y) * 0.5)
+	check_eq(board.pick(p), 1, "the front (lower) tile is picked in the overlap band")
+	check_eq(board.pick(upper.get_center()), 0, "the upper tile is still pickable above the band")
+	board.queue_free()

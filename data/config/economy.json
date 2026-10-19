@@ -1,11 +1,13 @@
 {
   "_comment": "Booster economy (owner-approved 2026-10-19). Coins and boosters are added ONLY through EconomyService.grant() with a unique grant id (idempotent ledger). Tune numbers here; prices of real-money products live in the stores, not here.",
   "version": 1,
-  "items": ["hint", "shuffle", "undo"],
+  "items": ["hint", "shuffle", "undo", "extra_slot"],
   "start_grant": {"id": "start_v1", "coins": 300, "hint": 3, "shuffle": 3, "undo": 5},
+  "intro_grants": [{"id": "extra_slot_intro_v1", "extra_slot": 2}],
   "legacy_welcome_grant": {"id": "welcome_existing_v1", "coins": 500, "hint": 5, "shuffle": 5, "undo": 10},
   "free_undos_per_board": 2,
   "free_rescue_shuffles_per_board": 1,
+  "continue_costs": [0, 100, 200],
   "rewards": {
     "level_first_clear": [
       {"from": 1, "to": 50, "coins": 20},
@@ -19,7 +21,8 @@
   "prices": {
     "hint": {"1": 120, "5": 480},
     "shuffle": {"1": 150, "5": 600},
-    "undo": {"1": 60, "5": 240}
+    "undo": {"1": 60, "5": 240},
+    "extra_slot": {"1": 200, "5": 800}
   },
   "limits": {"max_coins": 999999, "max_item": 999},
   "rewarded": {

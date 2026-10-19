@@ -17,7 +17,7 @@
       "sfx/button_2.wav",
       "sfx/button_3.wav"
     ],
-    "match": "sfx/match.wav",
+    "match": "sfx/match_pack.wav",
     "invalid": "sfx/invalid.wav",
     "undo": "sfx/undo.wav",
     "hint": "sfx/hint.wav",
@@ -26,7 +26,10 @@
     "reward": "sfx/reward.wav",
     "world_unlock": "sfx/world_unlock.wav",
     "victory": "sfx/victory.wav",
-    "soft_pop": "sfx/soft_pop.wav"
+    "soft_pop": "sfx/soft_pop.wav",
+    "burst": "sfx/burst.wav",
+    "tray_alert": "sfx/tray_alert.wav",
+    "fail": "sfx/fail.wav"
   },
   "music": {
     "aurora_garden": [

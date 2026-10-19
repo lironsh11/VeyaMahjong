@@ -10,16 +10,27 @@ func _half_level(tiles: Array) -> LevelDefinition:
 
 
 func test_row_left_right_blocking() -> void:
+	# Classic rule, kept behind side_blocking for tools.
 	var L := level_from_rows(["XXX"])
 	var s := L.build_state()
+	s.side_blocking = true
 	check(s.is_free(0), "left end is free")
 	check(not s.is_free(1), "middle tile blocked on both sides")
 	check(s.is_free(2), "right end is free")
+	check(s.clone().side_blocking, "clone keeps the rule")
+
+
+func test_tray_rule_ignores_sides() -> void:
+	var L := level_from_rows(["XXX"])
+	var s := L.build_state()
+	check(not s.side_blocking, "play uses the uncovered rule")
+	check(s.is_free(0) and s.is_free(1) and s.is_free(2), "every uncovered tile is free, neighbours or not")
 
 
 func test_single_side_open_is_enough() -> void:
 	var L := level_from_rows(["XX"])
 	var s := L.build_state()
+	s.side_blocking = true
 	check(s.is_free(0) and s.is_free(1), "both tiles of a 2-row have one open side")
 
 
@@ -36,7 +47,7 @@ func test_cover_released_after_removal() -> void:
 	var faces := ["circle_1", "circle_2", "circle_1", "circle_2"]
 	var L := level_from_rows(["XXX"], [[".X."]], faces)
 	var s := L.build_state()
-	check(not s.is_free(1), "middle covered and side-blocked")
+	check(not s.is_free(1), "middle covered")
 	check(s.remove_pair(0, 2), "ends match")
 	check(not s.is_free(1), "middle still covered by tile 3")
 	check(s.is_free(3), "top tile free")
@@ -98,34 +109,54 @@ func test_rules_json_matches_engine_defaults() -> void:
 
 
 func test_tap_flow_and_invalid_picks() -> void:
-	var faces := ["circle_1", "circle_2", "circle_2", "circle_1"]
-	var L := level_from_rows(["XXXX"], [], faces)
+	# Row of four with a tile on top of tile 1 (index 7), and a second row of three.
+	var faces := ["circle_1", "circle_2", "circle_2", "circle_1", "bamboo_4", "bamboo_4", "dragon_red", "dragon_red"]
+	var L := level_from_rows(["XXXX", "....", "XXX."], [[".X.."]], faces)
 	var g := GameSession.start(L)
-	check_eq(g.tap(1).r, GameSession.Tap.BLOCKED, "middle tile blocked")
-	check_eq(g.selected, -1, "blocked tap does not select")
-	check_eq(g.tap(0).r, GameSession.Tap.SELECTED, "select free tile")
-	check_eq(g.tap(0).r, GameSession.Tap.DESELECTED, "duplicate tap deselects")
-	g.tap(0)
-	var r := g.tap(3)
-	check_eq(r.r, GameSession.Tap.MATCHED, "ends match")
-	check_eq(g.tap(0).r, GameSession.Tap.IGNORED, "removed tile ignored (duplicate tap after match)")
-	check_eq(g.state.remaining, 2)
-	g.tap(1)
-	var r2 := g.tap(2)
-	check(r2.won, "board cleared")
+	check_eq(g.tap(1).r, GameSession.Tap.BLOCKED, "covered tile blocked")
+	check(g.tray.is_empty(), "blocked tap moves nothing")
+	var r := g.tap(0)
+	check_eq(r.r, GameSession.Tap.TO_TRAY, "free tile goes to the tray")
+	check_eq(r.slot, 0)
+	check_eq(g.tap(0).r, GameSession.Tap.IGNORED, "a tile in the tray cannot be tapped again")
+	var r2 := g.tap(3)
+	check_eq(r2.r, GameSession.Tap.MATCHED, "its twin clears both")
+	check_eq(r2.partner, 0)
+	check(g.tray.is_empty(), "matched pair leaves the tray")
+	check_eq(g.stats.moves, 1, "one pair")
+	check_eq(g.tap(7).r, GameSession.Tap.TO_TRAY, "top tile")
+	check_eq(g.tap(1).r, GameSession.Tap.TO_TRAY, "uncovered once the top tile left")
+	check_eq(g.tap(2).r, GameSession.Tap.MATCHED)
+	check_eq(g.tap(6).r, GameSession.Tap.MATCHED)
+	g.tap(4)
+	var last := g.tap(5)
+	check(last.won, "board cleared")
 	check(g.completed, "completed flag")
 	check_eq(g.tap(1).r, GameSession.Tap.IGNORED, "no input after completion")
 
 
-func test_mismatch_moves_selection() -> void:
-	var faces := ["circle_1", "circle_2", "circle_2", "circle_1"]
-	var L := level_from_rows(["XX", "XX"], [], faces)
+func test_tray_slots_and_fail() -> void:
+	var faces := ["circle_1", "circle_2", "circle_3", "circle_4", "circle_4", "circle_3", "circle_2", "circle_1"]
+	var L := level_from_rows(["XXXXXXXX"], [], faces)
 	var g := GameSession.start(L)
-	g.tap(0)
-	var r := g.tap(1)
-	check_eq(r.r, GameSession.Tap.RESELECTED, "non-matching free tile moves selection")
-	check_eq(g.selected, 1)
-	check_eq(g.state.remaining, 4, "nothing removed on mismatch")
+	for i in 3:
+		check_eq(g.tap(i).r, GameSession.Tap.TO_TRAY, "unmatched tile %d fills slot" % i)
+	check(g.tray_danger(), "one slot left")
+	check_eq(g.tap(5).r, GameSession.Tap.MATCHED, "a 4th tile that matches never loses")
+	check_eq(g.tray.size(), 2)
+	g.tap(3)
+	var r := g.tap(7)
+	check_eq(r.r, GameSession.Tap.MATCHED)
+	check_eq(g.tray, PackedInt32Array([1, 3]), "slots close up in arrival order")
+	var g2 := GameSession.start(L)
+	for i in 3:
+		g2.tap(i)
+	var f := g2.tap(3)
+	check_eq(f.r, GameSession.Tap.FAILED, "4 unmatched tiles lose")
+	check(g2.failed)
+	check_eq(g2.stats.fails, 1)
+	check_eq(g2.tap(4).r, GameSession.Tap.IGNORED, "no picks after a loss")
+	check(not g2.has_moves())
 
 
 func test_undo_restores_exact_state() -> void:
@@ -135,14 +166,14 @@ func test_undo_restores_exact_state() -> void:
 	var before := g.state.clone()
 	check(g.match_pair(0, 3), "ends")
 	check(g.match_pair(1, 2), "middles")
-	g.undo()
-	g.undo()
+	for k in 4:  # two picks per pair
+		g.undo()
 	check_eq(g.state.remaining, before.remaining, "remaining restored")
 	check(g.state.removed == before.removed, "removed set restored")
 	check(g.state.cover_cnt == before.cover_cnt and g.state.left_cnt == before.left_cnt and g.state.right_cnt == before.right_cnt, "blocker counters restored")
 	check_eq(g.state.zhash, before.zhash, "hash restored")
 	check(not g.can_undo(), "history empty")
-	check_eq(g.stats.undos, 2)
+	check_eq(g.stats.undos, 4)
 
 
 func test_flower_season_pairs_in_play() -> void:
@@ -155,8 +186,8 @@ func test_flower_season_pairs_in_play() -> void:
 	var L2 := level_from_rows(["XX", "XX"], [], ["flower_plum", "flower_orchid", "flower_orchid", "flower_plum"])
 	var g2 := GameSession.start(L2)
 	g2.tap(0)
-	check_eq(g2.tap(1).r, GameSession.Tap.RESELECTED, "tapping a different flower does not match")
-	check_eq(g2.state.remaining, 4, "nothing removed")
+	check_eq(g2.tap(1).r, GameSession.Tap.TO_TRAY, "a different flower does not match")
+	check_eq(g2.tray.size(), 2, "both wait in the tray")
 	check_eq(g.stats.flowers_cleared, 2)
 	check_eq(g.stats.seasons_cleared, 2)
 	check(g.completed)
@@ -166,7 +197,8 @@ func test_no_moves_detection() -> void:
 	var faces := ["circle_1", "circle_2", "circle_1", "circle_2"]
 	var L := level_from_rows(["XXXX"], [], faces)
 	var s := L.build_state()
-	check(not s.has_moves(), "ABAB row has no opening move")
+	s.side_blocking = true
+	check(not s.has_moves(), "ABAB row has no opening pair under the classic rule")
 	check(s.available_pairs().is_empty())
 
 

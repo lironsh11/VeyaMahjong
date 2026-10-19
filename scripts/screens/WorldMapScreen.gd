@@ -103,13 +103,36 @@ func _level_node(id: int, next: int) -> Control:
 	l.add_theme_color_override("font_outline_color", Color(UITheme.NAVY, 0.55))
 	l.add_theme_constant_override("outline_size", 5)
 	b.add_child(l)
-	if completed:
+	var stars := ProgressionService.level_stars(id) if completed else 0
+	if completed and stars <= 0:
+		# Cleared before stars existed: keep the plain check mark.
 		var chk := UIKit.texrect(ContentService.icon("check", false), Vector2(26, 26))
 		b.add_child(chk)  # attach before positioning (RTL mirrors the corner automatically)
 		chk.position = Vector2(58, 0)
 		chk.size = Vector2(26, 26)
+	elif stars > 0:
+		# Stars on a small dark plate under the node disc (readable on any map art).
+		var plate := PanelContainer.new()
+		plate.add_theme_stylebox_override("panel", UITheme.flat(Color(UITheme.NAVY, 0.72), 9, Color.TRANSPARENT, 0, 3))
+		plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		plate.add_child(UIKit.stars_row(stars, 17.0))
+		b.add_child(plate)
+		# Centre-anchored, so RTL mirroring (which flips offsets around the parent) can't shift it.
+		var ms := plate.get_combined_minimum_size()
+		plate.anchor_left = 0.5
+		plate.anchor_right = 0.5
+		plate.anchor_top = 1.0
+		plate.anchor_bottom = 1.0
+		plate.offset_left = -ms.x * 0.5
+		plate.offset_right = ms.x * 0.5
+		plate.offset_top = -ms.y * 0.55
+		plate.offset_bottom = ms.y * 0.45
+		plate.z_index = 1
 	var state_key := "level_state_done" if completed else ("level_state_open" if unlocked else "level_state_locked")
-	AccessibilityService.set_access_name(b, t("level_n", {"level": id}) + ", " + t(state_key))
+	var a11y := t("level_n", {"level": id}) + ", " + t(state_key)
+	if stars > 0:
+		a11y += ", " + t("a11y_stars", {"count": stars})
+	AccessibilityService.set_access_name(b, a11y)
 	b.pressed.connect(func() -> void:
 		if unlocked:
 			AudioService.play("button")

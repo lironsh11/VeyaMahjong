@@ -43,6 +43,8 @@ func build() -> void:
 	top.add_child(bloom_btn)
 	top.add_child(UIKit.spacer(0, true))
 	top.add_child(UIKit.coin_pill(func() -> void: Router.go("shop", {"from": "home"})))
+	if ProgressionService.streak_count() > 0:
+		top.add_child(UIKit.streak_pill(ProgressionService.streak_count()))
 	top.add_child(UIKit.spacer(0, true))
 	top.add_child(UIKit.icon_button("settings", t("settings"), func() -> void: Router.go("settings"), 60))
 	root.add_child(top)
@@ -65,6 +67,13 @@ func build() -> void:
 	else:
 		line = t("level_n", {"level": next})
 	cv.add_child(UIKit.label(line, UITheme.FONT_BODY + 1, false, UITheme.TEAL.darkened(0.35), HORIZONTAL_ALIGNMENT_CENTER))
+	if ProgressionService.streak_count() > 0:
+		var sr := UIKit.hbox(6)
+		sr.alignment = BoxContainer.ALIGNMENT_CENTER
+		sr.add_child(StreakFlame.make(24.0))
+		var key := "streak_home_bonus" if ProgressionService.streak_bonus_active() else "streak_home"
+		sr.add_child(UIKit.label(t(key, {"count": ProgressionService.streak_count()}), UITheme.FONT_SMALL, true, Color("D9731C"), HORIZONTAL_ALIGNMENT_CENTER, false))
+		cv.add_child(sr)
 	root.add_child(card)
 	var play := UIKit.button(t("continue") if resuming else t("play"), "green", "large", func() -> void:
 		if resuming:

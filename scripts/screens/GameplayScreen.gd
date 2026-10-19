@@ -1,10 +1,11 @@
 extends Screen
-## Main gameplay: minimal HUD, the board as the hero, and an icon+text toolbar
-## (Shuffle / Hint / Undo) backed by the booster economy (EconomyService + AssistPolicy):
-## each button shows how many the player owns; the first undos of a board, one rescue shuffle
-## when no moves remain, rewinding to the last solvable point and restarting are free, so a
-## board can never be locked behind a price. No timers gate anything; the optional clock is
-## a personal statistic hidden by default.
+## Main gameplay: minimal HUD with the score, the 4-slot tray, the board as the hero, and an
+## icon+text toolbar (Shuffle / Hint / Undo) backed by the booster economy (EconomyService +
+## AssistPolicy): each button shows how many the player owns; the first undos of a board, one
+## rescue shuffle when the board is proven stuck, the first "send tiles back" after a full
+## tray, rewinding to the last solvable point and restarting are free, so a board can never
+## be locked behind a price. No timers gate anything; the optional clock is a personal
+## statistic hidden by default.
 ##
 ## Params: {"mode": "level", "level": int, "restart": bool}  |  {"mode": "daily", "date": "YYYY-MM-DD"}
 ## If the saved active session matches the requested board it is resumed exactly.
@@ -15,7 +16,10 @@ var level: LevelDefinition
 var session: GameSession
 var controller: BoardController
 var board: BoardView
+var tray: TrayView
 var _hud_tiles: Label
+var _hud_score: Label
+var _hud_streak: Control
 var _hud_timer: Label
 var _progress: ProgressBar
 var _btn_undo: Button
@@ -33,10 +37,16 @@ func _ready() -> void:
 		Router.toast(LocalizationService.t("error_level_unavailable"))
 		Router.replace.call_deferred("home")
 		return
+	# No bottom banner while playing: the board gets the whole screen (owner request).
+	AdsService.set_banner_suppressed(true)
+	set_meta("banner_suppressed", true)
 	super._ready()
 	EconomyService.inventory_changed.connect(_on_inventory_changed)
 	AdsService.on_level_started()
 	controller.start_clock()
+	if has_meta("pre_level"):
+		remove_meta("pre_level")
+		_open_level_start.call_deferred()
 	AudioService.play_world_music(level.world if level.world != "" else "aurora_garden")
 	ContentService.active_world = level.world
 	ContentService.active_theme = ProgressionService.equipped_theme()
@@ -67,9 +77,12 @@ func _init_session() -> bool:
 		if not saved.is_empty() and str(saved.get("key", "")) != level.key:
 			AnalyticsService.track("level_abandoned", {"level": int(saved.get("level_id", 0)), "progress_pct": 0})
 		session = GameSession.start(level)
+		if mode == "level":
+			_start_fresh_attempt()
 	controller = BoardController.new(session, mode)
 	controller.won.connect(_on_won)
-	controller.moves_exhausted.connect(_on_no_moves)
+	controller.tray_failed.connect(_on_tray_failed)
+	controller.matched.connect(_on_matched)
 	controller.solvability.connect(_on_solvability)
 	controller.hint_result.connect(_on_hint)
 	controller.changed.connect(_refresh_hud)
@@ -82,6 +95,23 @@ func _init_session() -> bool:
 	return true
 
 
+func _start_fresh_attempt() -> void:
+	## A new attempt at a level: a second fresh start of the same new level is a retry (it
+	## ends the win streak). A running streak of 3+ gives this board a free extra slot.
+	if ProgressionService.start_attempt(level.id):
+		session.assists.retry = 1
+	elif ProgressionService.streak_bonus_active() and not GameState.is_level_completed(level.id):
+		session.add_slot()
+		session.assists.streak_slot = 1
+	if session.assists.streak_slot == 1 or (_economy_on() and EconomyService.count("extra_slot") > 0):
+		set_meta("pre_level", true)
+
+
+func _streak_applies() -> bool:
+	## The streak only counts first clears of levels (never the daily or replays).
+	return mode == "level" and not GameState.is_level_completed(level.id)
+
+
 func build_background() -> void:
 	var low := AccessibilityService.low_profile
 	var bg := ContentService.world_bg(level.world if level.world != "" else "aurora_garden", "gameplay", low)
@@ -90,27 +120,29 @@ func build_background() -> void:
 
 
 func build() -> void:
-	var root := UIKit.vbox(8)
+	var root := UIKit.vbox(4)
 	safe.add_child(root)
 	# --- HUD ---
-	var hud := UIKit.hbox(10)
-	hud.add_child(UIKit.icon_button("pause", t("a11y_pause"), _open_pause, 60))
-	var titles := UIKit.vbox(0)
+	# Compact HUD (52 px): every pixel saved goes to the board.
+	var hud := UIKit.hbox(8)
+	hud.add_child(UIKit.icon_button("pause", t("a11y_pause"), _open_pause, 52))
+	var titles := UIKit.vbox(-4)
 	titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	titles.alignment = BoxContainer.ALIGNMENT_CENTER
 	var title_text := t("daily_puzzle") if mode == "daily" else t("level_n", {"level": level.id})
-	var tl := UIKit.label(title_text, UITheme.FONT_H2 + 2, true, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, false)
+	var tl := UIKit.label(title_text, UITheme.FONT_BODY + 1, true, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, false)
 	tl.add_theme_color_override("font_outline_color", Color(UITheme.NAVY, 0.75))
 	tl.add_theme_constant_override("outline_size", 6)
 	titles.add_child(tl)
-	var sub := LocalizationService.format_date(date) if mode == "daily" else t(ContentService.world_name_key(level.world))
-	var sl := UIKit.label(sub, UITheme.FONT_SMALL, true, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, false)
-	sl.add_theme_color_override("font_outline_color", Color(UITheme.NAVY, 0.7))
-	sl.add_theme_constant_override("outline_size", 5)
-	titles.add_child(sl)
+	_hud_score = UIKit.label("", UITheme.FONT_BODY + 2, true, UITheme.GOLD, HORIZONTAL_ALIGNMENT_CENTER, false)
+	_hud_score.add_theme_color_override("font_outline_color", Color(UITheme.NAVY, 0.8))
+	_hud_score.add_theme_constant_override("outline_size", 6)
+	_hud_score.pivot_offset = Vector2(60, 14)
+	titles.add_child(_hud_score)
 	hud.add_child(titles)
 	hud.add_child(UIKit.coin_pill(_open_shop))
 	var pill := UIKit.panel("HudPill")
-	pill.custom_minimum_size = Vector2(60, 56)
+	pill.custom_minimum_size = Vector2(56, 48)
 	var pv := UIKit.vbox(0)
 	pv.alignment = BoxContainer.ALIGNMENT_CENTER
 	_hud_tiles = UIKit.label("", UITheme.FONT_BODY, true, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, false)
@@ -120,8 +152,11 @@ func build() -> void:
 	pv.add_child(_hud_timer)
 	pill.add_child(pv)
 	hud.add_child(pill)
+	if mode == "level" and ProgressionService.streak_count() > 0:
+		_hud_streak = UIKit.streak_pill(ProgressionService.streak_count(), 48)
+		hud.add_child(_hud_streak)
 	root.add_child(hud)
-	_progress = UIKit.progress_bar(0, 100, 12)
+	_progress = UIKit.progress_bar(0, 100, 6)
 	root.add_child(_progress)
 	# --- stuck banner (only when the solver PROVES the board is no longer clearable) ---
 	_banner = UIKit.panel("CardFlat")
@@ -133,6 +168,10 @@ func build() -> void:
 	bh.add_child(UIKit.button(t("options"), "gold", "small", func() -> void: _open_rescue(false)))
 	_banner.add_child(bh)
 	root.add_child(_banner)
+	# --- tray (drawn above the board so picked tiles can fly over it) ---
+	tray = TrayView.new()
+	tray.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.add_child(tray)
 	# --- board ---
 	board = BoardView.new()
 	board.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -140,7 +179,7 @@ func build() -> void:
 	AccessibilityService.set_access_name(board, t("a11y_board"))
 	root.add_child(board)
 	board.setup(session.state, ProgressionService.equipped_theme())
-	controller.attach_view(board)
+	controller.attach_view(board, tray)
 	board.input_enabled = not _won
 	# --- toolbar ---
 	var bar := UIKit.panel("Toolbar")
@@ -152,14 +191,15 @@ func build() -> void:
 	(_btn_undo.get_node("Box/Icon") as TextureRect).flip_h = LocalizationService.is_rtl()
 	for b in [_btn_shuffle, _btn_hint, _btn_undo]:
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		b.custom_minimum_size = Vector2(90, 80)
+		b.custom_minimum_size = Vector2(90, 72)
 		bh2.add_child(b)
 	bar.add_child(bh2)
 	root.add_child(bar)
 	_refresh_hud()
 	_banner.visible = controller.dead_known
-	if _resumed and session.history.size() > 0 and not session.has_moves() and not session.completed:
-		_on_no_moves.call_deferred()
+	tray.set_danger(session.tray_danger() and not session.failed)
+	if session.failed and not session.completed and not has_meta("fail_open"):
+		_open_fail.call_deferred()
 
 
 func _process(delta: float) -> void:
@@ -179,8 +219,10 @@ static func _fmt_time(ms: int) -> String:
 func _refresh_hud() -> void:
 	if _hud_tiles == null or not is_instance_valid(_hud_tiles):
 		return
-	_hud_tiles.text = LocalizationService.format_number(session.state.remaining)
-	AccessibilityService.set_access_name(_hud_tiles, t("tiles_left", {"count": session.state.remaining}))
+	_hud_tiles.text = LocalizationService.format_number(session.tiles_left())
+	AccessibilityService.set_access_name(_hud_tiles, t("tiles_left", {"count": session.tiles_left()}))
+	_hud_score.text = LocalizationService.format_number(session.score)
+	AccessibilityService.set_access_name(_hud_score, t("score_n", {"score": session.score}))
 	_progress.value = session.progress() * 100.0
 	_btn_undo.disabled = not session.can_undo()
 	_btn_undo.tooltip_text = t("undo") if session.can_undo() else t("undo_nothing")
@@ -224,6 +266,22 @@ func _on_inventory_changed(_item: String) -> void:
 func _exit_tree() -> void:
 	if EconomyService.inventory_changed.is_connected(_on_inventory_changed):
 		EconomyService.inventory_changed.disconnect(_on_inventory_changed)
+	if has_meta("banner_suppressed"):
+		remove_meta("banner_suppressed")
+		AdsService.set_banner_suppressed(false)
+
+
+# The board is the hero: thin margins so wide boards can use the whole width.
+func side_pad() -> int:
+	return 6
+
+
+func top_pad() -> int:
+	return 8
+
+
+func bottom_pad() -> int:
+	return 6
 
 
 func _open_shop() -> void:
@@ -263,8 +321,8 @@ func _on_undo_pressed() -> void:
 func _on_hint_pressed() -> void:
 	if session.completed:
 		return
-	if not session.has_moves():
-		_on_no_moves()
+	if session.failed:
+		_open_fail()
 		return
 	if _economy_on() and EconomyService.count("hint") <= 0 and not controller.can_repeat_hint():
 		_open_get_more("hint")
@@ -279,8 +337,9 @@ func _on_hint(res: Dictionary) -> void:
 		controller.save()
 		_track_booster("hint", false)
 	AnalyticsService.track("hint_used", {"level": level.id, "safe": bool(res.get("safe", false)), "charged": charged})
-	if res.get("pair") == null:
-		_on_no_moves()
+	if PackedInt32Array(res.get("tiles", [])).is_empty():
+		if session.failed:
+			_open_fail()
 	elif res.get("dead", false):
 		Router.toast(t("hint_dead"), 3.5)
 	elif not res.get("safe", false) and not res.get("repeat", false):
@@ -292,7 +351,7 @@ func _on_shuffle_pressed() -> void:
 
 
 func _shuffle_cost() -> Dictionary:
-	return AssistPolicy.shuffle_cost(session.assists, EconomyService.free_rescue_shuffles_per_board(), not session.has_moves(), EconomyService.count("shuffle"), _economy_on())
+	return AssistPolicy.shuffle_cost(session.assists, EconomyService.free_rescue_shuffles_per_board(), controller.dead_known, EconomyService.count("shuffle"), _economy_on())
 
 
 func _try_shuffle(from_rescue: bool) -> void:
@@ -390,6 +449,9 @@ func _on_pause_closed(r: String) -> void:
 
 func _confirm_restart() -> void:
 	var m := ModalDialog.open(self, t("restart_confirm_title"), t("restart_confirm_body"))
+	if _streak_applies() and ProgressionService.streak_count() > 0:
+		# Honest warning: a fresh restart of a new level ends the win streak.
+		m.add_content(_streak_warning(t("restart_ends_streak", {"count": ProgressionService.streak_count()})))
 	m.add_action(t("restart"), "yes", "rose")
 	m.add_action(t("cancel"), "no", "cream", "small")
 	m.closed.connect(func(r: String) -> void:
@@ -401,16 +463,154 @@ func _confirm_restart() -> void:
 			controller.start_clock())
 
 
-func _on_no_moves() -> void:
-	if session.completed:
+func _on_matched(_tile: int, _partner: int, combo: int, _points: int) -> void:
+	tray.show_combo(combo, BoardController.COMBO_WINDOW_MS / 1000.0)
+	if combo >= 4:
+		board.shake(3.0 + mini(combo, 8))
+	if not AccessibilityService.reduced_motion() and _hud_score:
+		var tw := _hud_score.create_tween()
+		tw.tween_property(_hud_score, "scale", Vector2(1.18, 1.18), 0.08)
+		tw.tween_property(_hud_score, "scale", Vector2.ONE, 0.12)
+
+
+func _streak_warning(text: String) -> Control:
+	var h := UIKit.hbox(6)
+	h.alignment = BoxContainer.ALIGNMENT_CENTER
+	h.add_child(StreakFlame.make(24.0, false))
+	var l := UIKit.label(text, UITheme.FONT_SMALL, true, UITheme.DANGER, HORIZONTAL_ALIGNMENT_CENTER)
+	l.custom_minimum_size.x = 320
+	h.add_child(l)
+	return h
+
+
+func _on_tray_failed() -> void:
+	if _streak_applies():
+		var lost := ProgressionService.break_streak("fail")
+		if lost > 0:
+			set_meta("streak_lost", lost)
+			if is_instance_valid(_hud_streak):
+				_hud_streak.visible = false
+	var delay := 0.05 if AccessibilityService.reduced_motion() else 0.7
+	get_tree().create_timer(delay).timeout.connect(func() -> void:
+		if is_inside_tree() and session.failed:
+			_open_fail())
+
+
+func _open_fail() -> void:
+	## The tray is full. Ways forward, the free one first: send the newest tiles back to the
+	## board (first time per board free, then coins), undo, try again, or leave. Never a
+	## dead end and always a plain way out.
+	if has_meta("fail_open") or not session.failed:
 		return
-	AnalyticsService.track("no_moves_encountered", {"level": level.id, "remaining": session.state.remaining})
-	_open_rescue(true)
+	set_meta("fail_open", true)
+	controller.stop_clock()
+	AnalyticsService.track("tray_full_dialog", {"level": level.id, "continues_used": int(session.assists.continues_used)})
+	var m := ModalDialog.open(self, t("tray_full_title"), t("tray_full_body"), false)
+	if has_meta("streak_lost"):
+		m.add_content(_streak_warning(t("streak_lost", {"count": int(get_meta("streak_lost"))})))
+	var cc := AssistPolicy.continue_cost(session.assists, EconomyService.continue_costs(), EconomyService.coins(), _economy_on())
+	# An owned Extra Slot keeps every tile where it is: offered first when there is one.
+	if session.capacity < GameSession.MAX_CAPACITY and (not _economy_on() or EconomyService.count("extra_slot") > 0):
+		var label := t("use_extra_slot") if not _economy_on() else t("use_extra_slot_n", {"count": EconomyService.count("extra_slot")})
+		m.add_action(label, "slot", "green")
+	if cc.free:
+		m.add_action(t("send_back_free", {"count": SEND_BACK}), "send_back", "green")
+	elif cc.allowed:
+		m.add_action(t("send_back_coins", {"count": SEND_BACK, "coins": int(cc.coins)}), "send_back", "green")
+	else:
+		m.add_action(t("send_back_coins", {"count": SEND_BACK, "coins": int(cc.coins)}), "shop", "gold")
+	if session.can_undo():
+		m.add_action(t("undo"), "undo", "cream", "small")
+	m.add_action(t("try_again"), "restart", "cream", "small")
+	m.add_action(t("home"), "home", "cream", "small")
+	m.closed.connect(_on_fail_closed.bind(cc))
+
+
+const SEND_BACK := 3
+
+
+func _on_fail_closed(r: String, cc: Dictionary) -> void:
+	remove_meta("fail_open")
+	match r:
+		"slot":
+			if not _use_extra_slot():
+				_open_fail()
+				return
+			controller.start_clock()
+		"send_back":
+			if not cc.free and not EconomyService.spend_coins(int(cc.coins), "continue"):
+				_open_fail()
+				return
+			controller.send_back(SEND_BACK)
+			session.assists.continues_used = int(session.assists.continues_used) + 1
+			controller.save()
+			AnalyticsService.track("level_continued", {"level": level.id, "free": bool(cc.free), "coins": int(cc.coins)})
+			controller.start_clock()
+			_refresh_hud()
+		"shop":
+			_open_shop()
+		"undo":
+			_on_undo_pressed()
+			controller.start_clock()
+			if session.failed:
+				_open_fail()
+		"restart":
+			AnalyticsService.track("level_failed_restart", {"level": level.id})
+			GameState.clear_active_session()
+			Router.replace("gameplay", {"mode": mode, "level": level.id, "date": date, "restart": true})
+		_:
+			controller.save()
+			Router.reset_to("home")
+
+
+func _use_extra_slot() -> bool:
+	## Spends one Extra Slot booster (free when the economy is off) for one more tray slot.
+	if session.capacity >= GameSession.MAX_CAPACITY:
+		return false
+	if _economy_on() and not EconomyService.consume("extra_slot"):
+		return false
+	if not controller.add_slot():
+		return false
+	session.assists.extra_slots_used = int(session.assists.extra_slots_used) + 1
+	controller.save()
+	_track_booster("extra_slot", not _economy_on())
+	_refresh_hud()
+	return true
+
+
+func _open_level_start() -> void:
+	## Before a new board: the streak bonus (if any) and the option to add an Extra Slot.
+	## "Play" without a booster is the default, and closing the dialog just plays.
+	if not is_inside_tree() or session.history.size() > 0 or _won:
+		return
+	controller.stop_clock()
+	var m := ModalDialog.open(self, t("level_n", {"level": level.id}))
+	var box := UIKit.vbox(10)
+	if int(session.assists.streak_slot) == 1:
+		var row := UIKit.hbox(8)
+		row.alignment = BoxContainer.ALIGNMENT_CENTER
+		row.add_child(StreakFlame.make(34.0))
+		var l := UIKit.label(t("streak_bonus_slot", {"count": ProgressionService.streak_count()}), UITheme.FONT_BODY, true, UITheme.GREEN, HORIZONTAL_ALIGNMENT_CENTER)
+		l.custom_minimum_size.x = 300
+		row.add_child(l)
+		box.add_child(row)
+	var owned := EconomyService.count("extra_slot")
+	var can_add := session.capacity < GameSession.MAX_CAPACITY and owned > 0
+	if can_add:
+		box.add_child(UIKit.label(t("extra_slot_desc"), UITheme.FONT_SMALL, false, UITheme.text_soft(), HORIZONTAL_ALIGNMENT_CENTER))
+	m.add_content(box)
+	if can_add:
+		m.add_action(t("play_with_extra_slot", {"count": owned}), "slot", "gold")
+	m.add_action(t("play"), "play", "green")
+	m.closed.connect(func(r: String) -> void:
+		if r == "slot":
+			_use_extra_slot()
+		controller.start_clock())
 
 
 func _open_rescue(no_moves: bool) -> void:
-	## Free ways forward first: the free rescue shuffle (no moves left), then rewinding to the
-	## last solvable point; paid helpers after; restart always.
+	## Free ways forward first: the free rescue shuffle (board proven stuck), then rewinding to
+	## the last solvable point; paid helpers after; restart always.
 	var title := t("no_moves") if no_moves else t("stuck_title")
 	var m := ModalDialog.open(self, title, t("rescue_body"))
 	var sc := _shuffle_cost()
@@ -467,6 +667,11 @@ func _on_won() -> void:
 	board.input_enabled = false
 	var stats: Dictionary = session.stats.duplicate()
 	stats.elapsed_ms = controller.elapsed_ms()
+	var fin := Scoring.final(session.score, level.tiles.size(), session.stats)
+	stats.score = int(fin.score)
+	stats.clean_bonus = int(fin.bonus)
+	stats.stars = int(fin.stars)
+	stats.retry = int(session.assists.retry)
 	var result: Dictionary
 	# Progress is committed BEFORE any celebration so nothing can be lost.
 	if mode == "daily":
@@ -482,6 +687,7 @@ func _on_won() -> void:
 	AudioService.play("victory")
 	AccessibilityService.haptic("win")
 	board.play_win_fx()
+	tray.celebrate()
 	var delay := 0.05 if AccessibilityService.reduced_motion() else 0.75
 	get_tree().create_timer(delay).timeout.connect(func() -> void:
 		if is_inside_tree():
@@ -492,6 +698,13 @@ func _open_win(result: Dictionary, stats: Dictionary) -> void:
 	var title := t("daily_solved") if mode == "daily" else t("level_complete")
 	var m := ModalDialog.open(self, title, t("beautiful"), false)
 	var box := UIKit.vbox(10)
+	_add_stars(box, int(stats.get("stars", 1)))
+	_add_score_row(box, int(stats.get("score", session.score)), int(stats.get("best_combo", 0)))
+	if int(stats.get("clean_bonus", 0)) > 0:
+		box.add_child(UIKit.label(t("clean_bonus", {"count": int(stats.clean_bonus)}), UITheme.FONT_SMALL, true, UITheme.GREEN, HORIZONTAL_ALIGNMENT_CENTER, false))
+	if bool(result.get("new_best", false)):
+		box.add_child(UIKit.label(t("new_best_score"), UITheme.FONT_SMALL, true, UITheme.VIOLET, HORIZONTAL_ALIGNMENT_CENTER, false))
+	_add_streak_rows(box, result)
 	if result.light_awarded:
 		var row := UIKit.hbox(10)
 		row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -539,6 +752,53 @@ func _on_win_closed(r: String, result: Dictionary, stats: Dictionary) -> void:
 			Router.replace("bloom", {"world": str(result.discoveries[0].world)})
 		_:
 			Router.reset_to("home")
+
+
+func _add_stars(box: VBoxContainer, n: int) -> void:
+	## Earned stars pop in one after another (static under Reduced Motion).
+	var row := UIKit.stars_row(n, 54.0)
+	box.add_child(row)
+	if AccessibilityService.reduced_motion():
+		return
+	for k in n:
+		var s: TextureRect = row.get_node("Star%d" % k)
+		s.scale = Vector2.ZERO
+		var tw := s.create_tween()
+		tw.tween_interval(0.15 + k * 0.22)
+		tw.tween_callback(func() -> void: AudioService.play("soft_pop", 1.0 + k * 0.12))
+		tw.tween_property(s, "scale", Vector2(1.25, 1.25), 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_property(s, "scale", Vector2.ONE, 0.08)
+
+
+func _add_streak_rows(box: VBoxContainer, result: Dictionary) -> void:
+	var n := int(result.get("streak", 0))
+	if n <= 0:
+		return
+	var row := UIKit.hbox(8)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(StreakFlame.make(30.0))
+	row.add_child(UIKit.label(t("streak_n", {"count": n}), UITheme.FONT_BODY, true, Color("D9731C"), HORIZONTAL_ALIGNMENT_CENTER, false))
+	box.add_child(row)
+	var gift: Dictionary = result.get("streak_gift", {})
+	for item in gift:
+		box.add_child(UIKit.label(t("streak_gift", {"item": t(str(item)), "count": int(gift[item])}), UITheme.FONT_SMALL, true, UITheme.GREEN, HORIZONTAL_ALIGNMENT_CENTER, false))
+	if n == ProgressionService.STREAK_SLOT_AT:
+		box.add_child(UIKit.label(t("streak_slot_unlocked"), UITheme.FONT_SMALL, true, UITheme.GREEN, HORIZONTAL_ALIGNMENT_CENTER))
+
+
+func _add_score_row(box: VBoxContainer, score: int, best_combo: int) -> void:
+	## The score counts up when the dialog opens (static under Reduced Motion).
+	var l := UIKit.label(t("score_n", {"score": LocalizationService.format_number(score)}), UITheme.FONT_TITLE, true, UITheme.GOLD, HORIZONTAL_ALIGNMENT_CENTER, false)
+	l.add_theme_color_override("font_outline_color", Color(UITheme.NAVY, 0.6))
+	l.add_theme_constant_override("outline_size", 4)
+	box.add_child(l)
+	if best_combo >= 2:
+		box.add_child(UIKit.label(t("best_combo", {"count": best_combo}), UITheme.FONT_SMALL, true, UITheme.VIOLET, HORIZONTAL_ALIGNMENT_CENTER, false))
+	if AccessibilityService.reduced_motion() or score <= 0:
+		return
+	var tw := l.create_tween()
+	tw.tween_method(func(v: float) -> void:
+		l.text = t("score_n", {"score": LocalizationService.format_number(int(v))}), 0.0, float(score), 0.9).set_ease(Tween.EASE_OUT)
 
 
 func _add_coin_rows(box: VBoxContainer, result: Dictionary) -> void:

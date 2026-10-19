@@ -11,7 +11,8 @@ game, on worker threads and in the headless tests/tools.
 | `BoardGeometry` | Immutable relationships computed once per layout: who covers whom, left/right neighbours, Zobrist keys. Shared read-only between state clones and threads. |
 | `BoardState` | Mutable: current faces, removed set, incremental blocker counters, remaining count per match key. |
 | `LevelDefinition` | Validated, typed level (pack or generated), including its witness solution and generator metadata (`generator_version`, `seed`). |
-| `GameSession` | A board being played: selection, history (matches and shuffles), stats, solvable checkpoint, save/restore. |
+| `GameSession` | A board being played: the tray, history (picks, shuffles, send-backs), score, stats, solvable checkpoint, save/restore. |
+| `TrayRules` / `TraySolver` | The 4-slot tray helpers and the solver for tray play (one pick per move). |
 
 ### Coordinates
 
@@ -20,7 +21,45 @@ integers, which map to `gx = 2x`, `gy = 2y` (`unit: "tile"`). Generated content 
 `unit: "half"`, which allows rows offset by half a tile and caps placed over four tiles. The
 engine does not assume tiles are stacked at exactly the same coordinates.
 
-## Rules (traditional Mahjong Solitaire)
+## Rules of play: the tray (since 2026-10-19)
+
+The game plays like popular tile-match mahjong games. Classic pair play (below) is kept only
+for content tools.
+
+1. **Pickable** = not removed and not covered. Neighbours on the left and right do not matter
+   (`BoardState.side_blocking` is false in play).
+2. Tapping a pickable tile moves it off the board into the **tray** (`GameSession.tap`), which
+   uncovers the tiles beneath it at once.
+3. If the tray already holds an identical tile, both clear immediately (`Tap.MATCHED`). So the
+   tray never holds two tiles of one key, and it is fully determined by the set of tiles off
+   the board (the keys with an odd count taken).
+4. Otherwise the tile takes the next slot (`Tap.TO_TRAY`). If that fills all **4** slots
+   (`TrayRules.CAPACITY`), the board is lost (`Tap.FAILED`, `session.failed`). A 4th tile that
+   completes a pair never loses.
+5. The board is won when the board and the tray are both empty.
+6. **Undo** reverses one pick. Undoing a match puts the twin back in its old slot.
+7. **Send back** (the second chance, `GameSession.send_back(3)`) returns the newest tray tiles
+   to their board places. They were uncovered when picked and nothing can be stacked on them
+   since, so no match or score is lost.
+8. **Score:** 10 points × the combo multiplier (capped at ×10). Matches less than 3 s apart
+   build the combo (`BoardController.COMBO_WINDOW_MS`). Points are stored on the history entry,
+   so Undo takes them back.
+9. **Stars (`Scoring`):** on a win, a clean board (no Undo, no full tray) adds 5 points per
+   pair. The total is compared with the base score (10 per pair): any win is 1 star,
+   1.6× base is 2 stars, 3× base is 3 stars.
+10. **Extra slots:** `GameSession.add_slot()` raises the capacity for the rest of the board,
+    up to `MAX_CAPACITY` (6): one from a win streak of 3+, one from the Extra Slot booster.
+    It sits outside the history, so Undo keeps it. A full tray becomes playable again. More
+    room never makes a board unsolvable.
+
+**Why every existing board stays solvable.** A classic witness is a list of pairs whose two
+tiles are free together. Picking a pair's tiles one after the other is legal in tray play
+("uncovered" is looser than "free"), and the tray never holds more than one tile. So
+`TraySolver.flatten(witness)` is a tray witness. The validator checks this
+(`BoardValidator`, "witness solution is not legal in tray play"), and a test checks it for all
+150 levels.
+
+## Classic rules (content tools)
 
 1. **Covered:** a tile is covered when any tile on a *higher* layer overlaps its footprint
    (`|dx| < 2 and |dy| < 2` in half units).
@@ -51,7 +90,23 @@ transparent padding and drop shadow), from the topmost drawn tile down, so the t
 finger is the visually topmost one. If a tap lands in a gap, the nearest tile whose body,
 enlarged by 10%, contains the point is chosen. The board always lays out LTR, including in Hebrew.
 
-## Solver (`BoardSolver`)
+## Tray solver (`TraySolver`)
+
+Depth-first search over single picks, used in play for the hint and the background check:
+- **Pruning:** a pick that would fill the tray is never tried.
+- **Memoised dead states** by the board's Zobrist hash alone, because the tray follows from the
+  removed set (rule 3 above).
+- **No pruning rule is assumed safe.** Move order does the work:
+  1. a tile that clears a tray slot;
+  2. the first tile of a pickable twin pair;
+  3. tiles that uncover the most.
+- **Same budgets and results** as `BoardSolver`.
+- **Tested against an exhaustive search** on random small boards with tray sizes 2-4.
+
+The hint shows the next 1-2 picks of a proven solution. If none is found in time, it falls back
+to `BoardController.best_guess`, labelled as unverified.
+
+## Solver (`BoardSolver`, classic rules, content tools)
 
 Depth-first search with:
 - **Safe-move rule:** if every remaining tile of a match key is free, removing them all can never
@@ -96,7 +151,7 @@ order is biased toward far-apart partners to avoid trivial adjacent twins.
   pinned in code, so seeds reproduce across engine versions. Unit tests check the first outputs
   and the FNV constants.
 - **Versioning:** `BoardGenerator.VERSION = "gen-1"`, `LayoutGenerator.VERSION = "layout-1"` and
-  `DailyGenerator.VERSION = "daily-1"` are folded into every seed. Changing an algorithm requires
+  `DailyGenerator.VERSION = "daily-4"` (dense boards, `LayoutGenerator.DENSE_VERSION = "dense-1"`) are folded into every seed. Changing an algorithm requires
   bumping its version, so already-played boards never change silently.
 - Physical layout difficulty (geometry) is separate from tile order (seeded face assignment).
 - If a geometry cannot be cleared at all (for example two tiles stacked with nothing else), the
@@ -104,12 +159,16 @@ order is biased toward far-apart partners to avoid trivial adjacent twins.
 
 ## Shuffle and rescue (`ShuffleRescue`)
 
-The faces of the **remaining** tiles are regrouped into matching pairs, a fresh legal removal
-order is computed for the **current** geometry, and pairs are assigned along it. The result is
-replay-validated. Shuffle never changes which tiles are removed, the face multiset, progress or
-purchases, and it can be undone. If the remaining geometry has no clearing order, the player gets
-free alternatives: rewind to the last checkpoint proven solvable (kept by the background check)
-or restart. A rewarded ad is never required. With the booster economy, Shuffle is a booster,
+Only the faces of the tiles still **on the board** move; tray tiles keep theirs. The shuffle:
+1. Builds a random legal pick order for the board tiles. With the uncovered rule one always
+   exists: the highest tile is never covered.
+2. Gives the first picks the twins of the tray tiles.
+3. Assigns the remaining faces in pairs to consecutive picks.
+4. Replays the result through `TraySolver.replay_is_legal`.
+
+Shuffle never changes which tiles are on the board, the tray, the face multiset, progress or
+purchases, and it can be undone. Free alternatives remain: rewind to the last checkpoint proven
+solvable (kept by the background check) or restart. A rewarded ad is never required. With the booster economy, Shuffle is a booster,
 but one rescue Shuffle per board is free when no moves remain and rewinding/restarting stay free
 (docs/MONETIZATION.md), so no board can be locked behind a price.
 
@@ -194,25 +253,35 @@ honesty, generator determinism and batch validity, procedural layout support, sh
 invariants and impossible geometry, session save/restore and tamper rejection, rewinding to
 the checkpoint, and all 150 pack levels.
 
-## Screen fit (portrait boards)
+## Screen fit (boards that fill the screen)
 
-Tiles are taller than wide and phones are portrait, so wide layouts (e.g. 10 columns x 4 rows)
-left half the screen empty with 55 px tiles. `BoardFit` (pure, shared by the game, tools and
-tests) computes the tile width a board gets in `REFERENCE_AREA` (508x880 logical px: a 20:9 phone
-minus HUD, toolbar and banner). The level tools and `DailyGenerator` pick the original or the
-transposed layout, whichever gives bigger tiles. A transposed layout is a different puzzle
-(left/right blocking runs along the old rows), so faces are generated and validated for the
-final orientation. Procedural layouts use 5-8 columns x 8-11 rows, and candidates under 66 px are
-rejected. Levels 1-3 keep the supplied orientation because their witness would otherwise become
-invalid; their tiles are already 91-112 px.
+Owner request (2026-10-19): boards must use the phone screen as fully as possible, in width
+AND height, with big tiles.
 
-| Levels | Min tile (px) | Median tile (px) |
-|---|---|---|
-| 1-3 (pack) | 91 | 112 |
-| 4-50 | 67 | 77 |
-| 51-150 | 67 | 76 |
+`BoardFit` is pure and shared by the game, the tools and the tests:
+- **`REFERENCE_AREA` (528x921):** the frozen content target. It is the board area in tray play
+  on a 540x1200 canvas (20:9) with no banner during play.
+- **`PLAY_AREA`:** the measured area in the current UI.
+- **`STEP_Y = 0.82`:** below the 0.905 body height, so rows overlap (3D slab look).
 
-Portrait boards have shorter rows, hence more free tiles at once, so the measured random-play
-dead-end rate of 51-150 is lower than before (0.20 / 0.47 averages for 51-100 / 101-150). It
-still rises steadily, but the top end may need playtesting.
+**Dense layouts.** `LayoutGenerator.generate_dense(rng, tiles, cols, layers)`:
+- `rows_to_fill` picks the rows that make a 5- or 6-column board exactly as tall as the area
+  allows at the tile size its width gives.
+- The mirror-symmetric base layer always reaches the outer columns and the first and last rows,
+  so even a small board spans the whole grid.
+- Upper layers sit only where they are fully supported (`_fully_supported`, quarter-footprint
+  test). A layer may be shifted by half a tile in x and/or y (the brick look).
 
+**Gates.** Levels 4-150 (`tools/build_early_levels.gd`, `tools/build_levels.gd`) and the daily
+(`daily-4`) accept a board only if it covers ≥ 88% of the area's width and height with tiles
+≥ 84 px.
+- `test_boards_fill_the_screen` and `test_daily_boards_fill_the_screen` enforce this at
+  `PLAY_AREA`.
+- Levels 1-3 keep the supplied pack orientation (their witness depends on it); their tiles are
+  already 91-112 px.
+
+| Levels | Columns | Tile px (REFERENCE_AREA) | Fill (width / height) |
+|---|---|---|---|
+| 1-3 (pack) | 4-6 | 91-112 | not gated |
+| 4-50 | 5-6 | 92-112 | 0.99-1.00 / 0.92-1.00 |
+| 51-150 | 5-6 | ≥ 84 (see `docs/reports/levels_051_150.md`) | ≥ 0.88 / ≥ 0.88 |

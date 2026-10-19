@@ -219,6 +219,35 @@ SFX.soft_pop = () => {
   return finish(t, -10);
 };
 
+// burst: a matched pair pops in the tray. Airy noise puff + quick glass sparkle (D6 F#6 A6),
+// layered over the pitched match note that AudioService raises with each combo step.
+SFX.burst = () => {
+  const t = sfxTrack(0.9);
+  const puff = lowpass(highpass(noise(0.12, 900), 700), 4200);
+  envelope(puff, (x) => Math.min(1, x / 0.004) * Math.exp(-x / 0.03));
+  t.add(puff, 0, 0.45);
+  ['D6', 'F#6', 'A6'].forEach((n, i) => t.add(glass(NOTE(n), 0.7 - i * 0.12, 0.7), 0.012 + i * 0.03, 0.32, -0.4 + i * 0.4));
+  return finish(lowpassTrack(t, 6500), -11, { verb: { wet: 0.2, size: 0.5, damp: 0.5 } });
+};
+
+// tray_alert: one slot left. Two soft low marimba notes (E4 then D4): a nudge, not an alarm.
+SFX.tray_alert = () => {
+  const t = sfxTrack(0.6, false);
+  t.add(marimba(NOTE('E4'), 0.7, 0.4), 0, 0.7);
+  t.add(marimba(NOTE('D4'), 0.6, 0.45), 0.12, 0.6);
+  return finish(t, -16);
+};
+
+// fail: the tray is full. Descending kalimba (B4 A4 F#4 D4) over a muted low thud; gentle so a
+// loss never feels punishing.
+SFX.fail = () => {
+  const t = sfxTrack(1.4);
+  ['B4', 'A4', 'F#4', 'D4'].forEach((n, i) => t.add(kalimba(NOTE(n), 0.75 - i * 0.08, 0.8), i * 0.11, 0.5, 0.3 - i * 0.2));
+  const thud = lowpass(partials(NOTE('D2'), 0.4, [{ ratio: 1, amp: 1, decay: 0.12 }], { attack: 0.004 }), 300);
+  t.add(thud, 0, 0.6);
+  return finish(t, -12, { verb: { wet: 0.18, size: 0.6, damp: 0.5 } });
+};
+
 function lowpassTrack(t, cutoff) { t.ch = t.ch.map((c) => lowpass(c, cutoff)); return t; }
 
 // ---------------------------------------------------------------------------------
@@ -442,10 +471,14 @@ function harshness(file) {
 
 const report = { sfx: {}, music: {} };
 
+// Optional: `--only=burst,fail` regenerates just those effects (no music, no report rewrite).
+const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7).split(',').filter(Boolean);
+
 function writeWav(track, file) { fs.writeFileSync(file, wavBuffer(track)); }
 
 // --- SFX ---
 for (const [name, make] of Object.entries(SFX)) {
+  if (ONLY.length && !ONLY.includes(name)) continue;
   const t = make();
   const file = path.join(AUDIO, 'sfx', `${name}.wav`);
   writeWav(t, file);
@@ -453,6 +486,11 @@ for (const [name, make] of Object.entries(SFX)) {
   const harsh = harshness(file);
   report.sfx[name] = { seconds: +(t.n / SR).toFixed(3), channels: t.ch.length, eventLoudness: st.momentaryMax, truePeak: st.truePeak, harsh2_5to4_5kHz_dB: harsh };
   console.log(`sfx ${name.padEnd(14)} ${(t.n / SR).toFixed(2)}s  event ${st.momentaryMax?.toFixed(1)} LUFS  peak ${st.truePeak?.toFixed(1)} dBTP  2.5-4.5k ${harsh} dB`);
+}
+
+if (ONLY.length) {
+  console.log('AUDIO DONE (only: ' + ONLY.join(', ') + ')');
+  process.exit(0);
 }
 
 // --- music ---

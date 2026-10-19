@@ -7,17 +7,23 @@ extends RefCounted
 ## have more rows than columns. best_orientation() picks original vs. transposed geometry.
 
 ## Fractions of the sprite size (pack tiles are 128x164 / 256x328 with padding + shadow).
+## STEP_Y is below the body height (0.905), so each lower row overlaps the bottom edge of the row
+## above it, the 3D "slab" look of popular tile-match games. It also lets tiles grow ~8%.
 const STEP_X := 0.915
-const STEP_Y := 0.885
+const STEP_Y := 0.82
 ## Each layer up is shifted up-left by this much, so stacked layers read at a glance.
 const LAYER_DX := -0.095
 const LAYER_DY := -0.085
 const ASPECT := 164.0 / 128.0
 const MAX_TILE_W := 112.0
 
-## Board area on a typical modern portrait phone (logical px; 540-wide canvas, 20:9 screen,
-## minus HUD, toolbar and a bottom banner). Measured in-game: 508x987 without the banner.
-const REFERENCE_AREA := Vector2(508, 880)
+## Content target: levels 4-150 ("levels-*-v4/v8") and daily boards ("daily-4") were built and
+## oriented for this board area. Frozen, so rebuilding content reproduces the same files.
+const REFERENCE_AREA := Vector2(528, 921)
+## Board area in tray play on a typical modern portrait phone (logical px; 540x1200 canvas,
+## 20:9): compact HUD, the ornate tray, the toolbar, 6 px side margins and no banner while
+## playing. Measured in-game (ScreenshotTour --levels prints it); a 16:9 phone is ~240 px shorter.
+const PLAY_AREA := Vector2(528, 893)  ## measured 2026-10-19 with the 128 px premium tray
 
 
 static func board_units(geo: BoardGeometry) -> Vector2:

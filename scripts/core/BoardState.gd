@@ -2,6 +2,10 @@ class_name BoardState
 extends RefCounted
 ## Mutable board: which tiles remain and which face each slot shows.
 ##
+## Tray rules (the game's only mode): a tile can be picked when nothing lies on top of it.
+## Classic side blocking (left AND right neighbours) stays behind `side_blocking` for tools
+## and tests; play never turns it on.
+##
 ## Freedom is maintained incrementally: each tile keeps counts of remaining covering tiles
 ## and remaining left/right neighbours, updated in O(neighbours) on every removal/restore.
 ## This keeps per-tap work tiny and lets the solver explore many states cheaply.
@@ -17,6 +21,7 @@ var right_cnt := PackedInt32Array()
 var key_remaining := PackedInt32Array() ## remaining tiles per match key
 var remaining: int = 0
 var zhash: int = 0                      ## Zobrist hash of the removed set
+var side_blocking: bool = false         ## classic rule: a tile also needs a free left or right side
 
 
 static func create(p_geo: BoardGeometry, p_faces: PackedStringArray) -> BoardState:
@@ -60,6 +65,7 @@ func clone() -> BoardState:
 	s.key_remaining = key_remaining.duplicate()
 	s.remaining = remaining
 	s.zhash = zhash
+	s.side_blocking = side_blocking
 	return s
 
 
@@ -76,7 +82,9 @@ func is_covered(i: int) -> bool:
 
 
 func is_free(i: int) -> bool:
-	return removed[i] == 0 and cover_cnt[i] == 0 and (left_cnt[i] == 0 or right_cnt[i] == 0)
+	if removed[i] != 0 or cover_cnt[i] != 0:
+		return false
+	return not side_blocking or left_cnt[i] == 0 or right_cnt[i] == 0
 
 
 func can_pair(i: int, j: int) -> bool:
@@ -100,6 +108,21 @@ func restore_pair(i: int, j: int) -> void:
 	_restore(j)
 	_restore(i)
 	key_remaining[keys[i]] += 2
+
+
+func take(i: int) -> bool:
+	## Picks one free tile off the board (into the tray). Returns false if it is not free.
+	if i < 0 or i >= geo.count or not is_free(i) or keys[i] < 0:
+		return false
+	_remove(i)
+	key_remaining[keys[i]] -= 1
+	return true
+
+
+func put_back(i: int) -> void:
+	## Exact inverse of take (undo, and tiles sent back from the tray).
+	_restore(i)
+	key_remaining[keys[i]] += 1
 
 
 func _remove(k: int) -> void:
@@ -202,9 +225,15 @@ func apply_removed(indices: PackedInt32Array) -> bool:
 	return true
 
 
-func face_counts_valid() -> bool:
-	## Every match key must have an even number of remaining tiles or the board can't clear.
-	for k in key_remaining.size():
-		if key_remaining[k] % 2 != 0:
+func face_counts_valid(tray: PackedInt32Array = PackedInt32Array()) -> bool:
+	## Every match key must have an even number of tiles still in play (board + tray) or the
+	## board can't clear.
+	var counts := key_remaining.duplicate()
+	for i in tray:
+		if i < 0 or i >= geo.count or keys[i] < 0:
+			return false
+		counts[keys[i]] += 1
+	for k in counts.size():
+		if counts[k] % 2 != 0:
 			return false
 	return true

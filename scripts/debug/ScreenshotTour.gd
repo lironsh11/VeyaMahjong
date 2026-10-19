@@ -40,6 +40,23 @@ func _shot(name: String) -> void:
 	print("TOUR shot ", name, " ", img.get_size())
 
 
+func _close_modals(scr: Node, result: String) -> void:
+	## Closes the level-start (or any) dialog the screen opened, as if `result` was tapped.
+	for m in scr.find_children("*", "ModalDialog", true, false):
+		m.close(result)
+	await _wait(0.4)
+
+
+func _unmatched_free(scr: Node) -> int:
+	## A free tile whose twin is not in the tray (fills a slot), else any free tile.
+	var st: BoardState = scr.session.state
+	var free := st.free_tiles()
+	for i in free:
+		if TrayRules.partner_slot(scr.session.tray, st.keys, i) < 0:
+			return i
+	return free[0]
+
+
 func _go(screen: String, params: Dictionary = {}) -> void:
 	Router.go(screen, params, false)
 	await _wait(0.9)
@@ -100,32 +117,63 @@ func _run() -> void:
 	# Seed some progress so the screens show realistic states.
 	for id in range(1, 13):
 		print("TOUR complete ", id)
-		ProgressionService.complete_level(id, {"moves": 10, "hints": 0})
+		ProgressionService.start_attempt(id)
+		ProgressionService.complete_level(id, {"moves": 10, "hints": 0, "score": 300, "stars": 1 + (id % 3)})
+	GameState.data.streak.count = 4
 	await _go("home")
 	await _shot("03_home")
 	await _go("worlds")
 	await _shot("04_worlds")
 	await _go("gameplay", {"mode": "level", "level": 13, "restart": true})
-	await _shot("05_gameplay_l13")
+	await _shot("05a_level_start")
 	var scr: Node = Router.current_screen()
-	var free: PackedInt32Array = scr.session.state.free_tiles()
-	scr.controller._on_tap(free[0])
+	await _close_modals(scr, "slot")
+	await _shot("05_gameplay_l13")
+	# Two quick pairs (combo praise mid-burst), then one tile caught mid-flight.
+	for n in 2:
+		var pick := BoardController.best_guess(scr.session.state, scr.session.tray)
+		for i in pick:
+			scr.controller._on_tap(i)
+		if pick.size() == 1:
+			scr.controller._on_tap(BoardController.best_guess(scr.session.state, scr.session.tray)[0])
+		await _wait(0.12)
 	await _wait(0.3)
-	await _shot("05b_gameplay_selected")
+	await _shot("05b_gameplay_combo")
+	await _wait(0.8)
+	var single := _unmatched_free(scr)
+	scr.controller._on_tap(single)
+	await _wait(0.14)
+	await _shot("05c_gameplay_flight")
+	await _wait(0.5)
+	await _shot("05d_gameplay_tray")
 	scr.controller.request_hint()
 	await _wait(1.0)
-	await _shot("06_gameplay_selected_hint")
+	await _shot("06_gameplay_tray_hint")
 	scr._open_pause()
 	await _wait(0.4)
 	await _shot("07_pause")
 	await _go("gameplay", {"mode": "level", "level": 150, "restart": true})
-	await _shot("08_gameplay_l150")
 	scr = Router.current_screen()
-	scr._open_rescue(true)
+	await _close_modals(scr, "play")
+	await _shot("08_gameplay_l150")
+	scr._open_rescue(false)
 	await _wait(0.4)
-	await _shot("09_no_moves")
+	await _shot("09_stuck")
+	await _go("gameplay", {"mode": "level", "level": 20, "restart": true})
+	scr = Router.current_screen()
+	await _close_modals(scr, "play")
+	while not scr.session.failed and not scr.session.completed:
+		scr.controller._on_tap(_unmatched_free(scr))
+		await _wait(0.08)
+		if scr.session.tray.size() == scr.session.capacity - 1 and not has_meta("danger_shot"):
+			set_meta("danger_shot", true)
+			await _wait(0.4)
+			await _shot("09b_tray_danger")
+	await _wait(1.2)
+	await _shot("09c_tray_full")
 	await _go("gameplay", {"mode": "level", "level": 14, "restart": true})
 	scr = Router.current_screen()
+	await _close_modals(scr, "play")
 	var L: LevelDefinition = scr.level
 	for k in L.solution.size():
 		scr.controller._on_tap(L.solution[k].x)
@@ -182,6 +230,7 @@ func _economy_tour() -> void:
 	await _shot("econ_04_rescue")
 	await _go("gameplay", {"mode": "level", "level": 14, "restart": true})
 	scr = Router.current_screen()
+	await _close_modals(scr, "play")
 	var L: LevelDefinition = scr.level
 	for k in L.solution.size():
 		scr.controller._on_tap(L.solution[k].x)

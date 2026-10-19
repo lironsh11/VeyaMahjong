@@ -22,7 +22,7 @@ const WORLD_BACKGROUNDS := {
 }
 const SCREEN_BACKGROUNDS := {"daily": "aurora_garden_journey", "settings": "aurora_garden_home"}
 ## Icon names the game uses that the pack names differently.
-const ICON_ALIASES := {"calendar_check": "check", "sparkle": "star", "volume_off": "muted"}
+const ICON_ALIASES := {"calendar_check": "check", "sparkle": "star", "volume_off": "muted", "extra_slot": "plus"}
 
 var level_dicts: Array = []
 var worlds: Array = []

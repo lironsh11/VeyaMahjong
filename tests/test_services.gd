@@ -59,7 +59,7 @@ func test_tmp_recovery_after_interrupted_rename() -> void:
 func test_migration_from_v0() -> void:
 	var old := {"schema_version": 0, "progress": {"completed": [1, 2, 3]}, "settings": {"music_on": false}}
 	var m := GameState.migrate(old)
-	check_eq(int(m.schema_version), 2)
+	check_eq(int(m.schema_version), GameState.defaults().schema_version)
 	check(typeof(m.progress.completed) == TYPE_DICTIONARY and m.progress.completed.has("2"), "list migrated to dict")
 	check_eq(m.settings.music_on, false, "existing settings kept")
 	check(m.settings.has("reduced_motion"), "missing defaults filled")
@@ -175,14 +175,14 @@ func test_daily_board_deterministic() -> void:
 
 
 func test_daily_board_fingerprints_pinned() -> void:
-	# Daily boards must never change silently. Fingerprints recorded 2026-10-18 for "daily-3"
-	# (identical tiles only, portrait boards). A mismatch means an algorithm change that requires bumping
-	# DailyGenerator.VERSION and re-pinning; completions are keyed by date and survive.
-	check_eq(DailyGenerator.VERSION.get_slice(" ", 0), "daily-3")
+	# Daily boards must never change silently. Fingerprints recorded 2026-10-19 for "daily-4"
+	# (dense boards that fill the screen). A mismatch means an algorithm change that requires
+	# bumping DailyGenerator.VERSION and re-pinning; completions are keyed by date and survive.
+	check_eq(DailyGenerator.VERSION.get_slice(" ", 0), "daily-4")
 	var pinned := {
-		"2026-10-18": "ee516a200e72a273", "2026-10-19": "7ed012809d5e08c6",
-		"2026-11-03": "be398070eaf8dd16", "2027-02-28": "2758332aa0c4566b",
-		"2028-02-29": "2f437eff5c02b700",
+		"2026-10-18": "98ca59e82ec22c5e", "2026-10-19": "2b3adf3b04da1e72",
+		"2026-11-03": "074b0a52519d17fb", "2027-02-28": "b8e1cce93ceb53d5",
+		"2028-02-29": "8af49ab0f7632b8d",
 	}
 	for d in pinned:
 		var L := DailyGenerator.build(d)

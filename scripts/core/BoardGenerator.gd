@@ -25,6 +25,7 @@ func removal_order(geo: BoardGeometry, rng: SeededRng, present: PackedInt32Array
 	dummy.resize(geo.count)
 	dummy.fill("dragon_white")
 	var s := BoardState.create(geo, dummy)
+	s.side_blocking = true  # classic order: also a valid tray order (TraySolver.flatten)
 	if not present.is_empty():
 		var keep := {}
 		for i in present:

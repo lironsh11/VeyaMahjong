@@ -103,14 +103,28 @@ func test_assist_policy() -> void:
 	check(not AssistPolicy.undo_cost(a, 2, 0, true).allowed, "then needs an Undo booster")
 	check(AssistPolicy.undo_cost(a, 2, 1, true).allowed and not AssistPolicy.undo_cost(a, 2, 1, true).free)
 	check(AssistPolicy.undo_cost(a, 2, 0, false).free, "economy off: always free")
-	check(AssistPolicy.shuffle_cost(a, 1, true, 0, true).free, "free rescue shuffle when no moves")
-	check(not AssistPolicy.shuffle_cost(a, 1, false, 0, true).allowed, "not while moves remain")
+	check(AssistPolicy.shuffle_cost(a, 1, true, 0, true).free, "free rescue shuffle when stuck")
+	check(not AssistPolicy.shuffle_cost(a, 1, false, 0, true).allowed, "not while the board is clearable")
 	a.rescue_shuffles_used = 1
 	check(not AssistPolicy.shuffle_cost(a, 1, true, 0, true).allowed, "only once per board")
-	check(AssistPolicy.hint_should_charge({"pair": Vector2i(1, 2), "dead": false}, true))
-	check(not AssistPolicy.hint_should_charge({"pair": null}, true), "no pair, no charge")
-	check(not AssistPolicy.hint_should_charge({"pair": Vector2i(1, 2), "dead": true}, true), "dead-end hint free")
-	check(not AssistPolicy.hint_should_charge({"pair": Vector2i(1, 2), "repeat": true}, true), "repeat free")
+	var one := PackedInt32Array([1])
+	check(AssistPolicy.hint_should_charge({"tiles": one, "dead": false}, true))
+	check(not AssistPolicy.hint_should_charge({"tiles": PackedInt32Array()}, true), "nothing shown, no charge")
+	check(not AssistPolicy.hint_should_charge({"tiles": one, "dead": true}, true), "dead-end hint free")
+	check(not AssistPolicy.hint_should_charge({"tiles": one, "repeat": true}, true), "repeat free")
+
+
+func test_continue_cost() -> void:
+	var a := {"continues_used": 0}
+	var costs := [0, 100, 200]
+	check(AssistPolicy.continue_cost(a, costs, 0, true).free, "first continue of a board is free")
+	a.continues_used = 1
+	var c := AssistPolicy.continue_cost(a, costs, 50, true)
+	check(not c.allowed and int(c.coins) == 100, "second costs 100, not affordable with 50")
+	check(AssistPolicy.continue_cost(a, costs, 100, true).allowed)
+	a.continues_used = 7
+	check_eq(int(AssistPolicy.continue_cost(a, costs, 999, true).coins), 200, "last price repeats")
+	check(AssistPolicy.continue_cost(a, costs, 0, false).free, "economy off: always free")
 
 
 func test_session_assists_roundtrip() -> void:
@@ -131,5 +145,5 @@ func test_hint_counted_only_when_shown() -> void:
 	var L := ContentService.get_level(2)
 	var s := GameSession.start(L)
 	var c := BoardController.new(s, "level", false)
-	c._on_hint_done({"pair": null, "safe": false, "dead": false}, c._gen)
-	check_eq(int(s.stats.hints), 0, "no pair shown -> not counted")
+	c._on_hint_done({"tiles": PackedInt32Array(), "safe": false, "dead": false}, c._gen)
+	check_eq(int(s.stats.hints), 0, "nothing shown -> not counted")

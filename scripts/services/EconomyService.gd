@@ -41,6 +41,9 @@ func _apply_start_grants() -> void:
 	var start: Dictionary = cfg.get("start_grant", {})
 	if not start.is_empty():
 		grant(str(start.id), start, "start")
+	# Everyone (new and existing players) gets a few of each booster added after launch.
+	for g in cfg.get("intro_grants", []):
+		grant(str(g.id), g, "intro")
 	var e := _econ()
 	if bool(e.get("legacy_player", false)):
 		var welcome: Dictionary = cfg.get("legacy_welcome_grant", {})
@@ -145,6 +148,19 @@ func consume(item: String) -> bool:
 	return true
 
 
+func spend_coins(amount: int, reason: String) -> bool:
+	## Coins paid for an action rather than an item (continuing after a full tray).
+	if amount <= 0 or helpers_free():
+		return true
+	if coins() < amount:
+		return false
+	_econ().coins = coins() - amount
+	GameState.save_now()
+	AnalyticsService.track("currency_spent", {"item": reason, "qty": 1, "amount": amount})
+	wallet_changed.emit()
+	return true
+
+
 # --- rewards and config ---------------------------------------------------------------
 
 func level_reward(level_id: int) -> int:
@@ -165,6 +181,11 @@ func free_undos_per_board() -> int:
 
 func free_rescue_shuffles_per_board() -> int:
 	return int(cfg.get("free_rescue_shuffles_per_board", 0))
+
+
+func continue_costs() -> Array:
+	## Coin price of the n-th "send tiles back" on one board (0 = free).
+	return cfg.get("continue_costs", [0, 100, 200])
 
 
 func rewarded_cfg(placement: String) -> Dictionary:

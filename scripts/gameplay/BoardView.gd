@@ -109,10 +109,13 @@ func _relayout() -> void:
 	_content_size = Vector2(w_units * tile_w, h_units * tile_w)
 	_clamp_pan()
 	var origin := (size - _content_size) * 0.5 + _pan
-	# Texture resolution: 192px atlas only when tiles are drawn large on the physical screen
-	# (the 96px one would be upscaled more than ~1.15x).
+	# Texture resolution: since tiles fill the screen (~90-112 logical px, 2-3x on a phone) the
+	# 96 px atlas is always upscaled and looks pixelated, so the 192 px atlas is used whenever a
+	# tile is drawn bigger than 48 physical px (i.e. always in play). Mipmaps keep the downscale
+	# on small screens smooth. Low graphics no longer forces the small atlas (it was the main
+	# cause of blurry/pixelated tiles on 4-core phones).
 	var phys_w := tile_w * _physical_scale()
-	var want_hi := phys_w > 112.0 and not AccessibilityService.low_profile
+	var want_hi := phys_w > 48.0
 	var retexture := want_hi != _hi_res or tiles[0] == null or tiles[0].face_rect == null
 	_hi_res = want_hi
 	var sprite := Vector2(tile_w, tile_h)
@@ -226,15 +229,35 @@ func refresh_free() -> void:
 		tv.set_dimmed(highlight_free and not state.is_removed(i) and not state.is_free(i), high_contrast)
 
 
-func set_selected(i: int, on: bool) -> void:
-	if i >= 0 and i < tiles.size():
-		tiles[i].set_selected(on, _anim())
+func tile_global_rect(i: int) -> Rect2:
+	## Where tile i is drawn on screen (its full sprite), for the flight into the tray.
+	if i < 0 or i >= tiles.size() or tiles[i] == null:
+		return Rect2()
+	var tv := tiles[i]
+	return Rect2(get_global_transform() * tv.base_pos, tv.size * get_global_transform().get_scale())
 
 
-func show_hint(a: int, b: int) -> void:
+func show_hint(picks: PackedInt32Array) -> void:
 	clear_hint()
-	tiles[a].set_hint(true, _anim())
-	tiles[b].set_hint(true, _anim())
+	for i in picks:
+		if i >= 0 and i < tiles.size():
+			tiles[i].set_hint(true, _anim())
+
+
+func lift(i: int) -> void:
+	## The tile left the board for the tray: the TrayView draws its flight, so the board copy
+	## disappears at once and the tiles beneath it become tappable.
+	if i < 0 or i >= tiles.size():
+		return
+	tiles[i].lift_off()
+	refresh_free()
+
+
+func restore_one(i: int) -> void:
+	if i < 0 or i >= tiles.size() or state.is_removed(i):
+		return
+	tiles[i].play_restore(_anim())
+	refresh_free()
 
 
 func clear_hint() -> void:
@@ -243,20 +266,13 @@ func clear_hint() -> void:
 			tv.set_hint(false, false)
 
 
-func play_match(a: int, b: int) -> void:
-	clear_hint()
-	tiles[a].play_remove(_anim())
-	tiles[b].play_remove(_anim())
-	if AccessibilityService.effects_on():
-		_spawn_fx("match_sparkle", body_rect(a).get_center(), tile_w * 1.3)
-		_spawn_fx("match_sparkle", body_rect(b).get_center(), tile_w * 1.3)
-	refresh_free()
-
-
-func play_restore(a: int, b: int) -> void:
-	tiles[a].play_restore(_anim())
-	tiles[b].play_restore(_anim())
-	refresh_free()
+func shake(strength: float) -> void:
+	## A short jolt for big combos (none under Reduced Motion or Low graphics).
+	if not AccessibilityService.effects_on() or _layer == null:
+		return
+	var tw := _layer.create_tween()
+	for d in [Vector2(-1, 0.6), Vector2(1, -0.6), Vector2(-0.6, -0.3), Vector2(0.4, 0.3), Vector2.ZERO]:
+		tw.tween_property(_layer, "position", d * strength, 0.03)
 
 
 func play_blocked(i: int) -> void:

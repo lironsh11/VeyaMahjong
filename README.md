@@ -16,12 +16,16 @@ built with **Godot 4.7** (GDScript, GL Compatibility renderer) from the supplied
 
 ## What's in the game
 
-- Mahjong Solitaire rules (covered / left-right blocking, half-tile geometry; every tile, Flowers
-  and Seasons included, matches only an identical tile), 150 verified levels in 3 worlds, solver-backed Hint, Undo and a
-  solvable Shuffle as boosters (coins + inventory, docs/MONETIZATION.md) with free fallbacks
-  (rewind to the last solvable point, a free rescue shuffle, restart). Levels 1-3 are the supplied pack;
-  4-50 keep the pack shapes with re-scattered tiles, and 51-150 are generated. All are validated and
-  ordered by measured difficulty. No timers, lives or energy.
+- Tile-match Mahjong with a 4-slot tray: tap any tile with nothing on top and it flies into the
+  tray; two identical tiles burst (every tile, Flowers and Seasons included, matches only an
+  identical tile). Four unmatched tiles in the tray lose the board, with a second chance
+  ("send 3 tiles back", first one free), Undo or Try again. Combos, score, juicy bursts.
+- 150 verified levels in 3 worlds, solver-backed Hint, Undo and a solvable Shuffle as boosters
+  (coins + inventory, docs/MONETIZATION.md) with free fallbacks (rewind to the last solvable
+  point, a free rescue shuffle, the first continue, restart). Levels 1-3 are the supplied pack;
+  4-50 keep the pack shapes with re-scattered tiles, and 51-150 are generated. All are
+  validated (and proven clearable with the tray) and ordered by measured difficulty. No timers,
+  lives or energy.
 - LiShi Bloom: Lights from new levels unlock 30 discoveries in illustrated worlds.
 - Four tile themes, a deterministic offline Daily Puzzle with a 30-day archive, and optional daily tasks.
 - 10 languages, including Hebrew RTL, with instant switching. Accessibility options: Large Tiles,

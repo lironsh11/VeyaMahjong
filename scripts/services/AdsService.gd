@@ -368,7 +368,21 @@ func dispose() -> void:
 
 # --- bottom banner (LevelPlay + Meta) ------------------------------------------------
 
+var _banner_suppress_count: int = 0  ## screens that hide the banner (gameplay, tutorial)
+
+
+func set_banner_suppressed(on: bool) -> void:
+	## Gameplay hides the bottom banner so the board gets the whole screen. Counted, so a
+	## gameplay screen replacing another (next level, restart) never flashes the banner.
+	var before := _banner_suppress_count > 0
+	_banner_suppress_count = maxi(0, _banner_suppress_count + (1 if on else -1))
+	if (_banner_suppress_count > 0) != before:
+		_sync_banner()
+
+
 func banner_allowed() -> bool:
+	if _banner_suppress_count > 0:
+		return false
 	if not FeatureFlags.enabled("banner_ads_enabled"):
 		return false
 	if IAPService.has_entitlement("remove_ads"):

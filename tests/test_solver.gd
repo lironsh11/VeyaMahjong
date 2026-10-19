@@ -124,19 +124,30 @@ func test_shuffle_preserves_faces_and_is_solvable() -> void:
 	var x := before.duplicate(); x.sort()
 	var y := after.duplicate(); y.sort()
 	check(x == y, "face multiset preserved")
-	check(BoardSolver.replay_is_legal(g.state, res.solution), "shuffle witness legal")
+	check(TraySolver.replay_is_legal(g.state, g.tray, res.solution), "shuffle witness legal")
 	check_eq(g.checkpoint, g.history.size(), "checkpoint advanced")
 	g.undo()
 	check(Array(g.state.faces) == before, "undo reverts the shuffle")
 
 
-func test_shuffle_reports_impossible_geometry() -> void:
+func test_stacked_pair_clears_through_the_tray() -> void:
+	# Impossible in classic play (each tile blocks the other), easy with a tray.
 	var L := level_from_rows(["X"], [["X"]], ["wind_east", "wind_east"])
 	var g := GameSession.start(L)
 	var res := g.shuffle()
-	check(not res.ok, "stacked pair can never be cleared")
-	check_eq(res.reason, "geometry")
-	check(g.history.is_empty(), "failed shuffle records nothing")
+	check(res.ok, "a stacked pair can always be rearranged")
+	check_eq(g.tap(1).r, GameSession.Tap.TO_TRAY)
+	check(g.tap(0).won, "top then bottom")
+
+
+func test_failed_shuffle_records_nothing() -> void:
+	var L := level_from_rows(["XX"], [], ["wind_east", "wind_east"])
+	var g := GameSession.start(L)
+	g.tap(0)
+	g.tap(1)
+	var res := g.shuffle()
+	check(not res.ok, "nothing left to shuffle")
+	check_eq(g.history.size(), 2, "failed shuffle records nothing")
 
 
 func test_session_roundtrip() -> void:
@@ -181,8 +192,8 @@ func test_undo_to_checkpoint() -> void:
 	g.mark_solvable_now()
 	g.match_pair(L.solution[1].x, L.solution[1].y)
 	g.match_pair(L.solution[2].x, L.solution[2].y)
-	check_eq(g.undo_to_checkpoint(), 2, "rewinds to checkpoint")
-	check_eq(g.history.size(), 1)
+	check_eq(g.undo_to_checkpoint(), 4, "rewinds to checkpoint (two picks per pair)")
+	check_eq(g.history.size(), 2)
 
 
 # --- helpers -------------------------------------------------------------------------

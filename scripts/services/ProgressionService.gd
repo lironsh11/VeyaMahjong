@@ -44,13 +44,24 @@ func complete_level(id: int, stats: Dictionary) -> Dictionary:
 	var before_disc := discoveries_unlocked_count()
 	var before_themes := unlocked_theme_ids()
 	var no_hint := int(stats.get("hints", 0)) == 0
+	var score := int(stats.get("score", 0))
+	var stars_now := clampi(int(stats.get("stars", 0)), 0, 3)
+	var prev_best := 0
 	if first:
-		completed[key] = {"t": int(Time.get_unix_time_from_system()), "best_moves": int(stats.get("moves", 0)), "no_hint": no_hint}
+		completed[key] = {"t": int(Time.get_unix_time_from_system()), "best_moves": int(stats.get("moves", 0)), "no_hint": no_hint,
+			"best_score": score, "stars": stars_now}
 	else:
 		var rec: Dictionary = completed[key]
 		rec["no_hint"] = bool(rec.get("no_hint", false)) or no_hint
+		prev_best = int(rec.get("best_score", 0))
+		rec["best_score"] = maxi(prev_best, score)
+		rec["stars"] = maxi(int(rec.get("stars", 0)), stars_now)
 	var light := award_light("level:%d" % id) if first else false
 	var result := _result(first, light, before_disc, before_themes)
+	result["stars"] = stars_now
+	result["best_score"] = maxi(prev_best, score)
+	result["new_best"] = not first and score > prev_best
+	result.merge(_record_streak_win(id, first, stats), true)
 	var w := ContentService.world_for_level(id)
 	if first and not w.is_empty() and id == int(w.levels[1]):
 		var nw := ContentService.world_for_level(id + 1)
@@ -67,6 +78,83 @@ func complete_level(id: int, stats: Dictionary) -> Dictionary:
 	_count_board(stats)
 	GameState.save_now()
 	return result
+
+
+func level_stars(id: int) -> int:
+	var rec: Variant = GameState.completed_levels().get(str(id))
+	return int(rec.get("stars", 0)) if typeof(rec) == TYPE_DICTIONARY else 0
+
+
+# --- Win streak -----------------------------------------------------------------------
+# Consecutive first-try wins of NEW levels. A full tray, or a fresh restart of the level being
+# attempted, ends the streak. Replays of completed levels and the daily puzzle never change
+# it. At 3+ every new level starts with a free extra tray slot; reaching 5 and 7 pays a fixed,
+# disclosed gift (a Hint, a Shuffle) once per streak (EconomyService ledger id per run).
+
+const STREAK_SLOT_AT := 3
+const STREAK_GIFTS := {5: {"hint": 1}, 7: {"shuffle": 1}}
+
+
+func _streak() -> Dictionary:
+	return GameState.data.streak
+
+
+func streak_count() -> int:
+	return int(_streak().get("count", 0))
+
+
+func streak_best() -> int:
+	return int(_streak().get("best", 0))
+
+
+func streak_bonus_active() -> bool:
+	return streak_count() >= STREAK_SLOT_AT
+
+
+func start_attempt(level_id: int) -> bool:
+	## Called when a level starts FRESH (not resumed). Returns true when this is a retry of the
+	## level already being attempted, which ends the streak. Completed levels are ignored.
+	if GameState.is_level_completed(level_id):
+		return false
+	var s := _streak()
+	if int(s.get("attempt", 0)) == level_id:
+		break_streak("retry")
+		return true
+	s["attempt"] = level_id
+	GameState.request_save()
+	return false
+
+
+func break_streak(reason: String) -> int:
+	## Ends the current streak. Returns how long it was (0 if there was none).
+	var s := _streak()
+	var n := int(s.get("count", 0))
+	if n > 0:
+		AnalyticsService.track("win_streak_lost", {"count": n, "reason": reason})
+		s["count"] = 0
+		s["run"] = int(s.get("run", 0)) + 1
+		GameState.save_now()
+	return n
+
+
+func _record_streak_win(id: int, first: bool, stats: Dictionary) -> Dictionary:
+	## {"streak": count after this win (0 = not counted), "streak_gift": contents or {}}
+	var s := _streak()
+	if int(s.get("attempt", 0)) == id:
+		s["attempt"] = 0
+	if not first:
+		return {"streak": 0, "streak_gift": {}}
+	if int(stats.get("fails", 0)) > 0 or int(stats.get("retry", 0)) > 0:
+		return {"streak": 0, "streak_gift": {}}
+	var n := int(s.get("count", 0)) + 1
+	s["count"] = n
+	s["best"] = maxi(int(s.get("best", 0)), n)
+	var gift: Dictionary = STREAK_GIFTS.get(n, {}).duplicate()
+	if not gift.is_empty():
+		if not EconomyService.grant("streak:%d:%d" % [int(s.get("run", 0)), n], gift, "streak"):
+			gift = {}
+	AnalyticsService.track("win_streak", {"count": n})
+	return {"streak": n, "streak_gift": gift}
 
 
 func complete_daily(date: String, stats: Dictionary) -> Dictionary:

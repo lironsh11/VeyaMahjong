@@ -76,14 +76,27 @@ static func safe_insets(vp: Viewport) -> Vector4:
 		maxf(0.0, screen.y - safe_rect.end.y) * s)
 
 
+func side_pad() -> int:
+	## Override for screens that need the full width (gameplay).
+	return BASE_PAD
+
+
+func top_pad() -> int:
+	return BASE_PAD
+
+
+func bottom_pad() -> int:
+	return 10
+
+
 func _update_safe_area() -> void:
 	if safe == null or not is_inside_tree():
 		return
 	var ins := safe_insets(get_viewport())
-	safe.add_theme_constant_override("margin_left", BASE_PAD + int(ins.x))
-	safe.add_theme_constant_override("margin_top", BASE_PAD + int(ins.y))
-	safe.add_theme_constant_override("margin_right", BASE_PAD + int(ins.z))
-	safe.add_theme_constant_override("margin_bottom", 10 + int(ins.w) + AdsService.banner_canvas_inset(get_viewport()))
+	safe.add_theme_constant_override("margin_left", side_pad() + int(ins.x))
+	safe.add_theme_constant_override("margin_top", top_pad() + int(ins.y))
+	safe.add_theme_constant_override("margin_right", side_pad() + int(ins.z))
+	safe.add_theme_constant_override("margin_bottom", bottom_pad() + int(ins.w) + AdsService.banner_canvas_inset(get_viewport()))
 
 
 func t(key: String, vars: Dictionary = {}) -> String:

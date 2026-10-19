@@ -27,7 +27,7 @@ func test_all_mapped_audio_loads() -> void:
 
 func test_every_event_used_by_the_game_exists() -> void:
 	var map := _map()
-	for ev in ["tap", "select", "button", "match", "invalid", "undo", "hint", "shuffle", "reward", "world_unlock", "victory", "soft_pop"]:
+	for ev in ["tap", "select", "button", "match", "invalid", "undo", "hint", "shuffle", "reward", "world_unlock", "victory", "soft_pop", "burst", "tray_alert", "fail"]:
 		check(map.events.has(ev), "event %s mapped" % ev)
 
 

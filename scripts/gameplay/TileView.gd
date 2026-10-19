@@ -172,6 +172,21 @@ func _hide_removed() -> void:
 	hide()
 
 
+func lift_off() -> void:
+	## Picked into the tray: the tray draws the flight, so this copy vanishes at once.
+	gone = true
+	_kill()
+	ring.visible = false
+	hint_ring.visible = false
+	blocked_ov.visible = false
+	match_ov.visible = false
+	_apply_tint()
+	z_index = 0
+	position = base_pos
+	scale = Vector2.ONE
+	hide()
+
+
 func play_restore(animate: bool) -> void:
 	gone = false
 	_kill()

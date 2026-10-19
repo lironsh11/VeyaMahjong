@@ -316,3 +316,34 @@ static func coin_pill(on_press: Callable = Callable(), light: bool = true) -> Bu
 	if on_press.is_valid():
 		b.pressed.connect(on_press)
 	return b
+
+
+static func stars_row(filled: int, px: float = 22.0, total: int = 3) -> HBoxContainer:
+	## 1-3 earned stars (gold) out of `total` (dim). Direction-neutral, so never mirrored.
+	var h := hbox(2)
+	h.alignment = BoxContainer.ALIGNMENT_CENTER
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.layout_direction = Control.LAYOUT_DIRECTION_LTR
+	for k in total:
+		var s := texrect(ContentService.icon("star", true), Vector2(px, px))
+		s.name = "Star%d" % k
+		s.pivot_offset = Vector2(px, px) * 0.5
+		s.self_modulate = UITheme.GOLD if k < filled else Color(0.6, 0.62, 0.66, 0.55)
+		h.add_child(s)
+	AccessibilityService.set_access_name(h, LocalizationService.t("a11y_stars", {"count": filled}))
+	return h
+
+
+static func streak_pill(count: int, height: int = 52) -> PanelContainer:
+	## Win-streak flame with the current count (HUD and Home).
+	var p := panel("HudPill")
+	p.custom_minimum_size = Vector2(0, height)
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var h := hbox(4)
+	h.alignment = BoxContainer.ALIGNMENT_CENTER
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_child(h)
+	h.add_child(StreakFlame.make(26.0, count > 0))
+	h.add_child(label(LocalizationService.format_number(count), UITheme.FONT_BODY, true, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, false))
+	AccessibilityService.set_access_name(p, LocalizationService.t("streak_n", {"count": count}))
+	return p

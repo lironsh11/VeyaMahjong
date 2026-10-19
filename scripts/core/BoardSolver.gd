@@ -1,6 +1,9 @@
 class_name BoardSolver
 extends RefCounted
-## Bounded depth-first Mahjong Solitaire solver.
+## Bounded depth-first Mahjong Solitaire solver for the CLASSIC pair rules (side blocking on).
+## Content tools use it: a board that clears under the classic rules also clears in tray play
+## (see TraySolver.flatten), so content made and validated this way stays valid. Live play
+## uses TraySolver.
 ##
 ## Correctness notes:
 ## - Only legal moves (both tiles free, same match key) are ever applied.
@@ -40,6 +43,7 @@ func solve(state: BoardState) -> Dictionary:
 	if not state.face_counts_valid():
 		return {"result": Result.UNSOLVABLE, "solution": [], "nodes": 0}
 	var s := state.clone()
+	s.side_blocking = true
 	var r := _dfs(s)
 	var sol: Array[Vector2i] = []
 	if r == Result.SOLVED:
@@ -126,8 +130,9 @@ func _score(s: BoardState, i: int) -> int:
 
 
 static func replay_is_legal(state: BoardState, solution: Array) -> bool:
-	## Verifies a witness move-by-move on a clone; true only if it clears the whole board.
+	## Verifies a classic witness move-by-move on a clone; true only if it clears the board.
 	var s := state.clone()
+	s.side_blocking = true
 	for p in solution:
 		var v: Vector2i = p
 		if not s.remove_pair(v.x, v.y):

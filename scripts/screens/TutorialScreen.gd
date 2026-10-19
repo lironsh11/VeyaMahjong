@@ -1,14 +1,15 @@
 extends Screen
 ## Interactive first-run tutorial: four tiny real boards played with the real rules engine.
-## Each step teaches one rule; the matching pair is gently highlighted. Skippable any time.
+## Each step teaches one rule of tray play; the tiles to pick are gently highlighted. A full
+## tray here never ends anything: the tiles simply go back. Skippable any time.
 
 const STEPS := [
-	{"key": "tut_step_match", "rows": ["XX", "XX"], "layers": [],
+	{"key": "tut_step_tray", "rows": ["XX", "XX"], "layers": [],
 		"faces": ["bamboo_3", "character_5", "character_5", "bamboo_3"], "hint": [1, 2]},
-	{"key": "tut_step_sides", "rows": ["XXXX"], "layers": [],
-		"faces": ["wind_east", "circle_2", "circle_2", "wind_east"], "hint": [0, 3]},
 	{"key": "tut_step_stack", "rows": ["XXXX"], "layers": [[".XX."]],
 		"faces": ["bamboo_9", "dragon_green", "dragon_green", "bamboo_9", "circle_7", "circle_7"], "hint": [4, 5]},
+	{"key": "tut_step_full", "rows": ["XXX", "XXX"], "layers": [],
+		"faces": ["wind_east", "circle_2", "dragon_red", "dragon_red", "circle_2", "wind_east"], "hint": [0, 5]},
 	{"key": "tut_step_bonus", "rows": ["XX", "XX"], "layers": [],
 		"faces": ["flower_plum", "flower_chrysanthemum", "flower_chrysanthemum", "flower_plum"], "hint": [0, 3]},
 ]
@@ -17,6 +18,7 @@ var _step: int = 0
 var _session: GameSession
 var _controller: BoardController
 var _board: BoardView
+var _tray: TrayView
 var _instr: Label
 var _done: bool = false
 
@@ -24,6 +26,8 @@ var _done: bool = false
 func _ready() -> void:
 	AnalyticsService.track("tutorial_started")
 	_load_step()
+	AdsService.set_banner_suppressed(true)  # no banner while playing, as in gameplay
+	tree_exiting.connect(AdsService.set_banner_suppressed.bind(false), CONNECT_ONE_SHOT)
 	super._ready()
 	AudioService.play_world_music("aurora_garden")
 
@@ -44,6 +48,11 @@ func _load_step() -> void:
 	_controller = BoardController.new(_session, "tutorial", false)
 	_controller.won.connect(_on_step_done)
 	_controller.blocked_tapped.connect(func(_i: int) -> void: Router.toast(t("tile_blocked_help"), 3.0))
+	_controller.tray_failed.connect(func() -> void:
+		Router.toast(t("tut_tray_full"), 3.0)
+		get_tree().create_timer(0.6).timeout.connect(func() -> void:
+			if is_inside_tree() and _session.failed:
+				_controller.send_back(TrayRules.CAPACITY)))
 
 
 func build_background() -> void:
@@ -76,16 +85,19 @@ func build() -> void:
 		UIKit.focus_initial.call_deferred(go)
 		root.add_child(UIKit.spacer(40))
 		return
+	_tray = TrayView.new()
+	_tray.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.add_child(_tray)
 	_board = BoardView.new()
 	_board.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_board.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.add_child(_board)
 	_board.setup(_session.state, ProgressionService.equipped_theme())
-	_controller.attach_view(_board)
-	var h: Array = STEPS[_step].hint
+	_controller.attach_view(_board, _tray)
+	var h := PackedInt32Array(STEPS[_step].hint)
 	(func() -> void:
 		if is_instance_valid(_board) and not _session.state.is_removed(h[0]):
-			_board.show_hint(h[0], h[1])).call_deferred()
+			_board.show_hint(h)).call_deferred()
 	root.add_child(UIKit.spacer(60))
 
 

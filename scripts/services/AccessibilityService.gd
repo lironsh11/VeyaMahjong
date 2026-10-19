@@ -58,11 +58,18 @@ func haptic(kind: String = "tap") -> void:
 	if not OS.has_feature("mobile"):
 		return
 	var ms := 12
+	var amp := 0.35
 	match kind:
 		"match": ms = 20
+		"combo":
+			ms = 28
+			amp = 0.6
 		"invalid": ms = 30
+		"fail":
+			ms = 45
+			amp = 0.6
 		"win": ms = 40
-	Input.vibrate_handheld(ms, 0.35)
+	Input.vibrate_handheld(ms, amp)
 
 
 static func set_access_name(node: Control, name: String, description: String = "") -> void:

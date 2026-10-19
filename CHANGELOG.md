@@ -2,6 +2,103 @@
 
 ## Unreleased
 
+- **Sharper tiles:** with tiles now 90-112 logical px (2-3x on phones), the 96 px atlas was
+  upscaled and looked pixelated, especially in the tray and on phones the game treats as Low
+  graphics. Board and tray now always draw the 192 px atlas (the pack's largest), and the tile
+  atlases and state overlays are imported with mipmaps so small screens stay smooth.
+
+- **Match sound:** a pair now plays the owner's own asset-pack sound
+  (`VeyaMahjong_AssetPack_v1/audio/sfx/match.wav`, copied unchanged as `sfx/match_pack.wav`),
+  replacing the synthesized one. The generated `burst` layer no longer plays on top; the pitch
+  still rises with the combo.
+
+- **Boards fill the screen (owner request 2026-10-19).**
+  - No bottom banner during gameplay or the tutorial (`AdsService.set_banner_suppressed`). It
+    stays on the other screens; interstitials and rewarded ads are unchanged.
+  - Compact gameplay chrome: 6 px side margins, a 52 px HUD, a 6 px progress bar and a lower
+    toolbar.
+  - Rows overlap for a 3D slab look (`BoardFit.STEP_Y` 0.885 → 0.82).
+  - **Levels 4-150 rebuilt** as dense, screen-filling boards
+    (`LayoutGenerator.generate_dense`):
+    - 5-6 columns, the rows that fill the play area, 1-5 layers, some layers half-shifted.
+    - Every board covers ≥ 88% of the play area's width AND height with tiles ≥ 84 px.
+      Today's levels have 89-112 px tiles, against a 66 px median before.
+    - Builds: `levels-4-50-v4` and `levels-51-150-v8`.
+  - Daily puzzle `daily-4` uses the same boards.
+  - Levels 1-3 (the supplied pack) are unchanged.
+  - Saves: snapshots carry a layout fingerprint, and save schema v4 drops a level board saved
+    mid-game, so it starts fresh on the new board. Progress, stars and coins are untouched.
+- **Premium tray frame.** The owner's 5-slot design (jade, gold, sakura) is the only source.
+  - `tools/make_tray_art.gd` builds the 4- and 6-slot frames from it: it cuts at the divider
+    gems, repeats one slot segment, rebuilds the plain bands and re-centres the ornaments with
+    feathered blends, so every size looks alike.
+  - `tools/measure_tray_art.gd` records the slots in `data/config/tray_slots.json`.
+  - The tray is now 128 px on screen, with tiles fitted inside the painted slots. The danger and
+    full-tray red tint the painted slots, and the combo bar sits under the frame.
+  - New test `test_tray_art_slots_fit_tiles`.
+
+- **Stars and best score.**
+  - On a win the score gets a clean-board bonus (+5 per pair with no Undo and no full tray).
+  - It earns 1-3 stars against the board's base score: 1.6× for 2 stars, 3× for 3 (`Scoring`).
+  - `ProgressionService.complete_level` keeps the best score and stars per level.
+  - The win dialog pops the stars in and marks a new best; the level map shows stars under
+    cleared levels. Levels cleared before stars keep their check mark.
+- **Win streak.**
+  - Counts consecutive first-try wins of new levels. Replays and the daily never change it.
+  - A full tray ends it, and so does a fresh restart of the level being attempted (the restart
+    dialog warns first). The full-tray dialog says when it ended.
+  - At 3+ every new level starts with a free extra tray slot. Reaching 5 gives a Hint and
+    reaching 7 a Shuffle: fixed, disclosed gifts paid once per streak (ledger id per run).
+  - A drawn flame (`StreakFlame`) shows it in the HUD and on Home.
+  - Save schema v3 (adds `streak`, with a migration).
+- **Extra Slot booster.**
+  - Adds a tray slot for the rest of the board (max 6 with the streak slot). It is not part of
+    the history, so Undo keeps it.
+  - Offered in a level-start dialog (shown only when you own one or the streak slot is on;
+    "Play" stays the default) and first in the full-tray dialog.
+  - Sold in the shop (200 / 5 for 800). Everyone gets 2 once (`intro_grants`).
+- **Strings and tests.** New strings in 10 languages; new `tests/test_engagement.gd`; the
+  screenshot tour shows the level-start dialog, map stars and the streak.
+
+- **Tray play replaces classic pair play.**
+  - Any tile with nothing on top can be tapped; side neighbours no longer block.
+  - A tapped tile flies into a 4-slot tray above the board. Two identical tiles burst. A tray
+    that fills with 4 unmatched tiles loses the board.
+  - Second chance: "Send 3 tiles back" returns the newest tray tiles to their board places.
+    The first use per board is free, then 100 and 200 coins (`economy.json: continue_costs`).
+    Undo, Try again and Home are always offered.
+- **Rules and solvers.**
+  - New `TrayRules` and `TraySolver`.
+  - `GameSession` is rebuilt around single picks (`Tap.TO_TRAY` / `MATCHED` / `FAILED`).
+  - Hints name the next 1-2 picks.
+  - Shuffle keeps the tray and stays solvable by construction.
+  - The background check uses the tray solver.
+- **Saves.** Saves are now `v:2` (tray, score, picks). In-progress `v:1` saves convert: each
+  pair becomes two picks.
+- **Content is unchanged.**
+  - Generator, validator, analyzer and the classic `BoardSolver` keep the classic rules, so
+    levels and daily puzzles are the same.
+  - Every shipped witness is proven to be a tray witness (test + validator).
+  - `DifficultyAnalyzer.tray_fail_rate` measures tray pressure for future "Hard" badges.
+- **Juice.**
+  - Arc flights with squash and stretch; twins pull together, flash, hit-stop, and burst
+    (CPU particles, `match_sparkle` / `petal_pop` flipbooks, ring shockwave).
+  - Floating `+points`; combo praise ("Good! / Great! / Amazing! / Incredible!") with a
+    draining combo bar; board shake from combo 4.
+  - Red pulsing last slot; tray shake on a loss; confetti on win; score count-up in the win
+    dialog.
+  - All of it respects Reduced Motion and Low graphics.
+- **Score.** 10 × combo per pair; the score shows in the HUD and the best combo in the win
+  dialog.
+- **Audio.** New SFX `burst`, `tray_alert` and `fail` (D pentatonic, `tools/audio/make_audio.mjs
+  --only=...` regenerates single effects). The match sound now plays at the burst. New haptics
+  `combo` and `fail`.
+- **Tutorial.** Rewritten for the tray: tray and burst, uncovered tiles, the 4-slot limit, and
+  Flowers/Seasons. Strings are in 10 languages.
+- **Board size.** The tray costs the board about 124 px on a 20:9 phone. Most levels keep
+  64-66 px tiles; the tallest layouts drop to about 58 px (`BoardFit.PLAY_AREA`, new test
+  `test_boards_stay_readable_with_the_tray`).
+
 - Appetize run: Codemagic **iOS — Simulator (Appetize)** and GitHub Actions **iOS — Godot Appetize** build an unsigned x86_64 Simulator `.app` (Godot's simulator slice) with `LiShiMahjong.app` at the zip root. No App Store Connect secrets.
 - iOS TestFlight CI on GitHub Actions and Codemagic (same three App Store Connect
   secrets as Riftstrike). See `.github/GITHUB_ACTIONS_SETUP.md`. The unsigned

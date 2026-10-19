@@ -42,7 +42,7 @@ tools/               Headless validators, script checker, asset usage report
 | IAPService | Product catalogue, store adapters, entitlement ledger (transaction dedupe, pending, revocation) |
 | EconomyService | Coins + booster inventory (data/config/economy.json): idempotent grant ledger, buy/consume, rewards, start/welcome packs |
 | AdsService | Ad policy facade: per-placement rewarded caps, reward dedupe, interstitial pacing, consent gate, banner; providers in scripts/services/ads/ (LevelPlay native, QA mock) |
-| ProgressionService | Idempotent Lights by source key; derived Bloom discoveries and theme unlocks |
+| ProgressionService | Idempotent Lights by source key; derived Bloom discoveries and theme unlocks; best score and stars per level; the win streak (first-try wins of new levels, its extra slot and its once-per-streak gifts) |
 | DailyService | Local-date daily boards (async generation), 30-day archive, optional tasks |
 | Router | Navigation, back-button handling, modal stack, toasts, lifecycle saves, memory warnings |
 
@@ -50,15 +50,24 @@ tools/               Headless validators, script checker, asset usage report
 
 ```
 touch -> BoardView._gui_input -> pick(point) [topmost body rect]
-      -> BoardController._on_tap(i) -> GameSession.tap(i)       (rules; state updated now)
+      -> BoardController._on_tap(i) -> GameSession.tap(i)       (rules; board + tray updated now)
          BLOCKED   -> view shake/tint, invalid sfx, gentle one-time explanation toast
-         SELECTED  -> ring + lift
-         MATCHED   -> view.play_match (220 ms, skippable effects)
+         TO_TRAY   -> BoardView.lift(i); TrayView.fly_in (arc into its slot, land squash)
+                      one slot left? -> red pulsing slot + tray_alert sfx
+                      controller.save(); Jobs: TraySolver check -> checkpoint or "stuck" banner
+         MATCHED   -> combo/points (3 s window); TrayView.fly_match: flies to the twin's slot,
+                      pull together, flash, 50 ms hit-stop, burst (particles, flipbooks, ring,
+                      "+points", praise text); popped -> match sfx (combo pitch) + burst sfx + haptic
                       DailyService.record_match, controller.save()  -> GameState.active_session
                       won?        -> GameplayScreen._on_won: progress committed BEFORE celebration
-                      no moves?   -> rescue dialog (free Shuffle / Undo / Restart)
-                      otherwise   -> Jobs: bounded solvability check -> checkpoint or "stuck" banner
+         FAILED    -> tray shake, fail sfx/haptic; GameplayScreen._open_fail:
+                      send 3 tiles back (first free, then coins) / Undo / Try again / Home
 ```
+
+The views never change rules state and only catch up: a tile still in flight retargets when its
+slot moves, so fast taps never desync. `TrayView` draws above the board (z_index 10) so flights
+can cross it, and below dialogs (z_index 100). Under Reduced Motion, tiles fade into their slots;
+there are no arcs, particles or shake.
 
 ## Screens
 
