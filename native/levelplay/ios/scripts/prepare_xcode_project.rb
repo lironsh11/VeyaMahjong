@@ -54,25 +54,43 @@ if variant.nil?
   variant = project.main_group.new_variant_group('InfoPlist.strings')
   target.resources_build_phase.add_file_reference(variant, true)
 end
-variant_dir = variant.real_path.dirname
+# The variant group sits in a path-less "Supporting Files" group under the
+# LiShiMahjong resource folder. real_path is that folder; dirname would strip
+# it and Xcode would look for <lang>.lproj one directory too high.
+resource_dir = variant.real_path.to_s
+app_resource_dir = File.join(export_dir, target.name)
+
+def write_info_plist_strings(dest, source_text)
+  FileUtils.mkdir_p(File.dirname(dest))
+  if File.exist?(dest)
+    existing = File.read(dest, encoding: 'UTF-8')
+    return if existing.include?('NSUserTrackingUsageDescription')
+    File.write(dest, "#{existing.rstrip}\n#{source_text}", encoding: 'UTF-8')
+  else
+    File.write(dest, source_text, encoding: 'UTF-8')
+  end
+  puts "[prepare] wrote #{dest}"
+end
 
 languages.each do |lang|
   source = File.join(strings_root, "#{lang}.lproj", 'InfoPlist.strings')
   relative = "#{lang}.lproj/InfoPlist.strings"
-  dest = File.join(variant_dir, relative)
-  FileUtils.mkdir_p(File.dirname(dest))
   ours = File.read(source, encoding: 'UTF-8')
-  if File.exist?(dest)
-    existing = File.read(dest, encoding: 'UTF-8')
-    File.write(dest, "#{existing.rstrip}\n#{ours}") unless existing.include?('NSUserTrackingUsageDescription')
-  else
-    File.write(dest, ours)
+  # Godot's archive copies from <target>/<lang>.lproj. Write both that path and
+  # the variant group's resolved path (they match when the group is set up).
+  [File.join(app_resource_dir, relative), File.join(resource_dir, relative)].uniq.each do |dest|
+    write_info_plist_strings(dest, ours)
   end
-  unless variant.children.any? { |f| f.path == relative }
+  unless variant.children.any? { |f| f.path == relative || f.name == lang }
     ref = variant.new_reference(relative)
     ref.name = lang
+    ref.path = relative
+    ref.source_tree = '<group>'
+    ref.last_known_file_type = 'text.plist.strings'
   end
 end
+missing = languages.reject { |lang| File.exist?(File.join(app_resource_dir, "#{lang}.lproj", 'InfoPlist.strings')) }
+abort("[prepare] InfoPlist.strings missing: #{missing.join(', ')} under #{app_resource_dir}") unless missing.empty?
 project.root_object.known_regions = (project.root_object.known_regions + languages + ['Base']).uniq
 puts "[prepare] InfoPlist.strings for #{languages.join(', ')}"
 
