@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Clearer layers: each layer up is shifted further up-left (BoardFit `LAYER_DX/DY` -0.095/-0.085,
+  was -0.07/-0.055) and raised tiles (layer > 0) cast a soft shadow on the tiles below
+  (`TileView.set_depth_shadow`). Smallest level tile stays >= 66 px on the reference screen.
 - Consent without Google UMP: UMP and every AdMob app id dependency removed from GDScript and
   both native plugins (Android plugin + gdap, iOS pod/podspec + Godot glue,
   `GADApplicationIdentifier` in the iOS plist, the UMP checks in the iOS CI). New in-game dialog

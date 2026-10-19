@@ -9,8 +9,9 @@ extends RefCounted
 ## Fractions of the sprite size (pack tiles are 128x164 / 256x328 with padding + shadow).
 const STEP_X := 0.915
 const STEP_Y := 0.885
-const LAYER_DX := -0.07
-const LAYER_DY := -0.055
+## Each layer up is shifted up-left by this much, so stacked layers read at a glance.
+const LAYER_DX := -0.095
+const LAYER_DY := -0.085
 const ASPECT := 164.0 / 128.0
 const MAX_TILE_W := 112.0
 

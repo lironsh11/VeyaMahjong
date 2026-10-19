@@ -3,7 +3,13 @@ extends Control
 ## Visual for one tile slot. Purely presentational: it never receives input itself
 ## (BoardView hit-tests logically) and never changes rules state.
 
+## Cast shadow of a raised tile (layer > 0) on the tiles below it, in tile widths. It makes the
+## layers read at a glance; same-layer neighbours are drawn later and simply cover it.
+const DEPTH_SHADOW_OFFSET := Vector2(0.075, 0.065)
+const DEPTH_SHADOW_COLOR := Color(0.04, 0.12, 0.08, 0.4)
+
 var index: int = -1
+var shadow: TextureRect      ## first child, so it sits under this tile's face
 var face_rect: TextureRect
 var ring: TextureRect        ## "selected" overlay
 var hint_ring: TextureRect   ## "hint" overlay
@@ -25,6 +31,10 @@ func setup(p_index: int, tex: Texture2D, sprite_size: Vector2, hi_res: bool) -> 
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	size = sprite_size
 	pivot_offset = sprite_size * 0.5
+	shadow = _layer()
+	shadow.texture = tex
+	shadow.self_modulate = DEPTH_SHADOW_COLOR
+	shadow.visible = false
 	face_rect = _layer()
 	face_rect.texture = tex
 	# Overlays share the face's slot geometry, so they simply cover the whole tile.
@@ -58,6 +68,16 @@ func set_overlay_res(hi_res: bool) -> void:
 
 func set_texture(tex: Texture2D) -> void:
 	face_rect.texture = tex
+	shadow.texture = tex
+
+
+func set_depth_shadow(on: bool) -> void:
+	shadow.visible = on
+	var d := DEPTH_SHADOW_OFFSET * size.x
+	shadow.offset_left = d.x
+	shadow.offset_top = d.y
+	shadow.offset_right = d.x
+	shadow.offset_bottom = d.y
 
 
 func set_dimmed(on: bool, high_contrast: bool) -> void:

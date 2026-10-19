@@ -129,6 +129,7 @@ func _relayout() -> void:
 				tv.set_overlay_res(_hi_res)
 		tv.base_pos = pos
 		tv.position = pos
+		tv.set_depth_shadow(state.geo.gz[i] > 0)
 		tv.visible = not state.is_removed(i)
 		tv.gone = state.is_removed(i)
 		tv.modulate.a = 1.0
