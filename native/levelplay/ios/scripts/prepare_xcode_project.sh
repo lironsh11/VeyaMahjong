@@ -16,4 +16,8 @@ command -v pod >/dev/null || { echo "CocoaPods not found: brew install cocoapods
 
 ruby "$HERE/prepare_xcode_project.rb" "$EXPORT_DIR" "$ROOT"
 (cd "$EXPORT_DIR" && pod install --repo-update)
+if ! grep -R -q 'LiShiStoreKitBridge' "$EXPORT_DIR/Pods/Target Support Files" ; then
+  echo "[prepare] LiShiStoreKitBridge is not in the Pods xcconfigs" >&2
+  exit 1
+fi
 echo "[prepare] Done. Open $(ls -d "$EXPORT_DIR"/*.xcworkspace | head -n 1)"

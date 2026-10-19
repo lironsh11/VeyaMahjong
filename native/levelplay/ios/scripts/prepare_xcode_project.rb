@@ -117,8 +117,9 @@ podfile = <<~RUBY
     pod 'LiShiLevelPlay', :path => '#{File.join(repo_root, 'native/levelplay/ios/pod')}'
     # Meta Audience Network as a LevelPlay bidder (pulls FBAudienceNetwork; iOS 15+).
     pod 'IronSourceFacebookAdapter', '~> 5.5'
-    # StoreKit 2 bridge for the LiShiStoreKit plugin.
-    pod 'LiShiStoreKit', :path => '#{File.join(repo_root, 'native/storekit/ios/pod')}'
+    # StoreKit 2 bridge. Pod name must stay LiShiStoreKitBridge: the Godot
+    # plugin already ships LiShiStoreKit.xcframework.
+    pod 'LiShiStoreKitBridge', :path => '#{File.join(repo_root, 'native/storekit/ios/pod')}'
   end
 
   post_install do |installer|

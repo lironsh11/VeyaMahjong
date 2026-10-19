@@ -21,7 +21,7 @@ CocoaPods, so each plugin is split in two:
 | Part | Where | Built by | Contains |
 |---|---|---|---|
 | Godot glue (`.gdip` + `.debug/.release.xcframework`) | `ios/plugins/LevelPlayBanner/`, `ios/plugins/LiShiStoreKit/` (sources in `native/*/ios/godot/`) | `native/levelplay/ios/build.sh`, `native/storekit/ios/build.sh` | The `LevelPlayBanner` / `LiShiStoreKit` singletons. Only Godot + Foundation, no SDK headers |
-| SDK bridge (local CocoaPod) | `native/levelplay/ios/pod` (`LiShiLevelPlay`, Objective-C), `native/storekit/ios/pod` (`LiShiStoreKit`, Swift) | Xcode, after `pod install` | All LevelPlay / ATT / StoreKit 2 calls |
+| SDK bridge (local CocoaPod) | `native/levelplay/ios/pod` (`LiShiLevelPlay`, Objective-C), `native/storekit/ios/pod` (`LiShiStoreKitBridge`, Swift) | Xcode, after `pod install` | All LevelPlay / ATT / StoreKit 2 calls. The pod is not named `LiShiStoreKit` because that is the Godot xcframework |
 
 The Podfile in the exported project pulls:
 - `IronSourceSDK ~> 9.6` (LevelPlay, `LPM*` API) through `LiShiLevelPlay`
