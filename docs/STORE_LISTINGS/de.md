@@ -6,9 +6,9 @@ Suggested store locales: Google Play `de-DE` · Apple `German`.
 
 ## Google Play
 
-### App name (22/30)
+### App name (14/30)
 ```text
-LiShi Mahjong: Solitär
+LiShi Mahjong
 ```
 
 ### Short description (76/80)
@@ -51,9 +51,9 @@ Nimm dir einen ruhigen Moment, finde ein paar Paare und lass deine Welt erblühe
 
 ## Apple App Store
 
-### Name (22/30)
+### Name (14/30)
 ```text
-LiShi Mahjong: Solitär
+LiShi Mahjong
 ```
 
 ### Subtitle (27/30)

@@ -130,6 +130,7 @@ func _relayout() -> void:
 		tv.base_pos = pos
 		tv.position = pos
 		tv.set_depth_shadow(state.geo.gz[i] > 0)
+		tv.set_layer_depth(state.geo.max_z - state.geo.gz[i])
 		tv.visible = not state.is_removed(i)
 		tv.gone = state.is_removed(i)
 		tv.modulate.a = 1.0

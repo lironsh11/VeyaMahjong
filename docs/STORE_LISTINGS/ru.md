@@ -6,9 +6,9 @@ Suggested store locales: Google Play `ru-RU` · Apple `Russian`. Check current s
 
 ## Google Play
 
-### App name (22/30)
+### App name (14/30)
 ```text
-LiShi Mahjong: пасьянс
+LiShi Mahjong
 ```
 
 ### Short description (78/80)
@@ -51,9 +51,9 @@ LiShi Mahjong — спокойный классический маджонг-п�
 
 ## Apple App Store
 
-### Name (22/30)
+### Name (14/30)
 ```text
-LiShi Mahjong: пасьянс
+LiShi Mahjong
 ```
 
 ### Subtitle (25/30)

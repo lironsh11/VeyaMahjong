@@ -6,9 +6,9 @@ Suggested store locales: Google Play `fr-FR` (review separately before copying t
 
 ## Google Play
 
-### App name (25/30)
+### App name (14/30)
 ```text
-LiShi Mahjong : Solitaire
+LiShi Mahjong
 ```
 
 ### Short description (80/80)
@@ -51,9 +51,9 @@ Prenez un moment de calme, associez quelques tuiles et laissez votre monde fleur
 
 ## Apple App Store
 
-### Name (25/30)
+### Name (14/30)
 ```text
-LiShi Mahjong : Solitaire
+LiShi Mahjong
 ```
 
 ### Subtitle (27/30)
@@ -110,7 +110,7 @@ majong,classique,relaxant,détente,hors-ligne,quotidien,puzzle,réflexion,jardin
 - Spaces before ":" "?" "!" are ordinary spaces; replace with narrow no-break spaces (U+202F) if the store renders line breaks badly.
 - Tagline, Puzzle du jour, Défis du jour, Indice/Annuler/Mélanger, accessibility option names, Lumière LiShi and world names come from the in-game text.
 - "ni un jeu où l'on relie des tuiles, ni un match-3" – check that this is clear and not awkward.
-- "Mahjong Solitaire" is kept as the genre name (common in French stores); "Solitaire" in the app name may be swapped for "Patience" if preferred.
+- "Mahjong Solitaire" is kept as the genre name in the body (common in French stores). The app name is "LiShi Mahjong" with no genre suffix.
 - "vibrations désactivables" – the in-game note says vibration only works on phones and tablets.
 - Rename: the game is now "LiShi Mahjong" (features "LiShi Bloom" and the LiShi Light term). The in-game translations use the same names.
 - Rule change: every tile, including Flowers and Seasons, now matches only an identical tile. The old sentence saying any Flower matches any Flower (and any Season any Season) was removed, so the listing only says to match pairs of identical free tiles. Do not add it back. The in-game tutorial (`tut_step_bonus`) already teaches the identical-tiles rule.

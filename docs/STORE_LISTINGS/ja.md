@@ -6,9 +6,9 @@ Suggested store locales: Google Play `ja-JP` · Apple `Japanese`.
 
 ## Google Play
 
-### App name (22/30)
+### App name (14/30)
 ```text
-LiShi Mahjong: 麻雀ソリティア
+LiShi Mahjong
 ```
 
 ### Short description (47/80)
@@ -51,9 +51,9 @@ LiShi Mahjong は、ゆったり楽しめるクラシックな麻雀ソリティ
 
 ## Apple App Store
 
-### Name (22/30)
+### Name (14/30)
 ```text
-LiShi Mahjong: 麻雀ソリティア
+LiShi Mahjong
 ```
 
 ### Subtitle (11/30)
@@ -106,7 +106,7 @@ LiShi Mahjong は、ゆったり楽しめるクラシックな麻雀ソリティ
 
 ## Notes for native reviewer
 
-- App name "LiShi Mahjong: 麻雀ソリティア": "上海" is the more common Japanese search term for this genre but may be a trademark; it was deliberately left out. "四川省" was also avoided because it refers to a tile-connect game.
+- App name "LiShi Mahjong": "上海" is the more common Japanese search term for this genre but may be a trademark; it was deliberately left out. "四川省" was also avoided because it refers to a tile-connect game.
 - "取れる状態の同じ牌" is used for "free tiles"; check it reads naturally and matches the tutorial wording.
 - Tagline and all feature names (デイリーパズル, デイリーチャレンジ, 戻す, 大きな牌, 取れない牌を暗く, LiShiの光, world names) were copied from the in-game `ja.json`; keep them in sync if the game text changes.
 - "ライフやスタミナもなし" renders "no lives/energy"; confirm スタミナ is the natural term.

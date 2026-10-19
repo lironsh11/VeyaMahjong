@@ -6,9 +6,9 @@ Suggested store locales: Google Play `pt-BR` · Apple `Portuguese (Brazil)`. Not
 
 ## Google Play
 
-### App name (24/30)
+### App name (14/30)
 ```text
-LiShi Mahjong: Paciência
+LiShi Mahjong
 ```
 
 ### Short description (77/80)
@@ -51,9 +51,9 @@ Reserve um momento de calma, combine algumas peças e deixe seu mundo florescer.
 
 ## Apple App Store
 
-### Name (24/30)
+### Name (14/30)
 ```text
-LiShi Mahjong: Paciência
+LiShi Mahjong
 ```
 
 ### Subtitle (24/30)
@@ -106,7 +106,7 @@ solitaire,majong,clássico,relaxante,offline,diário,quebra-cabeça,lógica,jard
 
 ## Notes for native reviewer
 
-- App name uses "Paciência" (Brazilian term for solitaire); "Solitaire" is kept in the body and keywords because Brazilian players also search for it. Swap if "LiShi Mahjong: Solitaire" performs better.
+- App name is "LiShi Mahjong" in every locale. "Solitaire" stays in the body and keywords because Brazilian players also search for it; "Paciência" is the local genre word.
 - Short description says "quebra-cabeça diário" (and drops "grátis") to fit 80 characters; the in-game feature name is "Quebra-cabeça do Dia". It deliberately avoids "desafio diário", which would be confused with the separate optional "Desafios Diários".
 - Tagline, Quebra-cabeça do Dia, Desafios Diários, Dica/Desfazer/Embaralhar, accessibility option names, Luz de LiShi and world names come from the in-game `pt-BR.json`.
 - "não é um jogo de ligar peças nem de combinar 3" – check that it reads naturally.

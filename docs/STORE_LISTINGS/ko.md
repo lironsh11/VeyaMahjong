@@ -6,9 +6,9 @@ Suggested store locales: Google Play `ko-KR` · Apple `Korean`.
 
 ## Google Play
 
-### App name (22/30)
+### App name (14/30)
 ```text
-LiShi Mahjong: 마작 솔리테어
+LiShi Mahjong
 ```
 
 ### Short description (51/80)
@@ -51,9 +51,9 @@ LiShi Mahjong은 편안하게 즐기는 클래식 마작 솔리테어예요. 맞
 
 ## Apple App Store
 
-### Name (22/30)
+### Name (14/30)
 ```text
-LiShi Mahjong: 마작 솔리테어
+LiShi Mahjong
 ```
 
 ### Subtitle (17/30)

@@ -6,9 +6,9 @@ Suggested store locales: Google Play `en-US` (copy to `en-GB` / `en-AU` / `en-CA
 
 ## Google Play
 
-### App name (24/30)
+### App name (14/30)
 ```text
-LiShi Mahjong: Solitaire
+LiShi Mahjong
 ```
 
 ### Short description (78/80)
@@ -51,9 +51,9 @@ Take a quiet moment, match a few tiles, and let your world bloom.
 
 ## Apple App Store
 
-### Name (24/30)
+### Name (14/30)
 ```text
-LiShi Mahjong: Solitaire
+LiShi Mahjong
 ```
 
 ### Subtitle (26/30)

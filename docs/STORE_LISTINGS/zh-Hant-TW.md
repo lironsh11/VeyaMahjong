@@ -6,9 +6,9 @@ Suggested store locales: Google Play `zh-TW` · Apple `Chinese (Traditional)` (z
 
 ## Google Play
 
-### App name (18/30)
+### App name (14/30)
 ```text
-LiShi Mahjong：麻將配對
+LiShi Mahjong
 ```
 
 ### Short description (38/80)
@@ -51,9 +51,9 @@ LiShi Mahjong 是一款能放慢腳步、安心享受的經典麻將配對遊戲
 
 ## Apple App Store
 
-### Name (18/30)
+### Name (14/30)
 ```text
-LiShi Mahjong：麻將配對
+LiShi Mahjong
 ```
 
 ### Subtitle (11/30)
@@ -106,11 +106,11 @@ LiShi Mahjong 是一款能放慢腳步、安心享受的經典麻將配對遊戲
 
 ## Notes for native reviewer
 
-- Genre naming: the app name uses "麻將配對"; the body also uses "麻將接龍" because both are used in Taiwan for Mahjong Solitaire. "上海麻將" was avoided (possible trademark). "連連看" is named only to say this is NOT a tile-connect game – confirm that reads as a genre description, not a competitor reference.
+- Genre naming: the app name is "LiShi Mahjong". The body uses "麻將配對" and "麻將接龍" because both are used in Taiwan for Mahjong Solitaire. "上海麻將" was avoided (possible trademark). "連連看" is named only to say this is NOT a tile-connect game – confirm that reads as a genre description, not a competitor reference.
 - Apple subtitle "悠閒自在的經典牌局解謎" – check that it sounds natural; alternative "安靜悠閒的麻將牌配對".
 - "可以拿取的牌" is used for "free tiles"; check it matches the tutorial wording.
 - Tagline, 每日謎題, 每日挑戰, 提示/復原/洗牌, accessibility option names (放大牌面, 高對比, 減少動態效果, 調暗被擋住的牌), LiShi之光, theme and world names were copied from the in-game `zh-Hant-TW.json`. The game uses 您, so the listing does too.
 - Please confirm no Simplified characters slipped in and that "益智" (puzzle genre) is read as a genre word, not a learning claim.
-- Uses full-width punctuation and the full-width colon in the app name; half-width spaces around Latin text and digits follow common Taiwan store style.
+- Uses full-width punctuation in the body; half-width spaces around Latin text and digits follow common Taiwan store style. The app name is Latin "LiShi Mahjong" with no colon.
 - Rename: the game is now "LiShi Mahjong" (features "LiShi Bloom" and the LiShi Light term). The in-game translations use the same names.
 - Rule change: every tile, including Flowers and Seasons, now matches only an identical tile. The old sentence saying any Flower matches any Flower (and any Season any Season) was removed, so the listing only says to match pairs of identical free tiles. Do not add it back. The in-game tutorial (`tut_step_bonus`) already teaches the identical-tiles rule. The keyword 花牌 was also removed.

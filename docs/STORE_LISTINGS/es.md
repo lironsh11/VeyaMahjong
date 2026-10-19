@@ -6,9 +6,9 @@ Suggested store locales: written in neutral Spanish using "tú". Google Play has
 
 ## Google Play
 
-### App name (24/30)
+### App name (14/30)
 ```text
-LiShi Mahjong: Solitario
+LiShi Mahjong
 ```
 
 ### Short description (80/80)
@@ -51,9 +51,9 @@ Tómate un momento de calma, empareja algunas fichas y deja que tu mundo florezc
 
 ## Apple App Store
 
-### Name (24/30)
+### Name (14/30)
 ```text
-LiShi Mahjong: Solitario
+LiShi Mahjong
 ```
 
 ### Subtitle (27/30)

@@ -6,7 +6,10 @@ extends Control
 ## Cast shadow of a raised tile (layer > 0) on the tiles below it, in tile widths. It makes the
 ## layers read at a glance; same-layer neighbours are drawn later and simply cover it.
 const DEPTH_SHADOW_OFFSET := Vector2(0.075, 0.065)
-const DEPTH_SHADOW_COLOR := Color(0.04, 0.12, 0.08, 0.4)
+const DEPTH_SHADOW_COLOR := Color(0.04, 0.12, 0.08, 0.5)
+## Brightness of a tile per layer below the board's top layer.
+const LAYER_SHADE_STEP := 0.07
+const LAYER_SHADE_MIN := 0.82
 
 var index: int = -1
 var shadow: TextureRect      ## first child, so it sits under this tile's face
@@ -19,6 +22,7 @@ var pressed_ov: TextureRect  ## tap feedback on a blocked tile
 var base_pos: Vector2 = Vector2.ZERO
 var gone: bool = false
 var _high_contrast: bool = false
+var _layer_shade := Color.WHITE
 var _tw: Tween
 var _hint_tw: Tween
 
@@ -94,9 +98,17 @@ func _apply_tint() -> void:
 	elif hint_ring.visible:
 		face_rect.self_modulate = Color(0.82, 1.0, 0.94)
 	elif blocked_ov.visible and _high_contrast:
-		face_rect.self_modulate = Color(0.72, 0.74, 0.78)
+		face_rect.self_modulate = Color(0.72, 0.74, 0.78) * _layer_shade
 	else:
-		face_rect.self_modulate = Color.WHITE
+		face_rect.self_modulate = _layer_shade
+
+
+func set_layer_depth(below_top: int) -> void:
+	## Tiles on lower layers are drawn slightly darker, so the top of every stack stands out
+	## (it says how high a tile sits, not whether it is free).
+	var v := maxf(LAYER_SHADE_MIN, 1.0 - LAYER_SHADE_STEP * below_top)
+	_layer_shade = Color(v, v, v * 0.97)
+	_apply_tint()
 
 
 func _kill() -> void:

@@ -8,9 +8,9 @@ Style: gender-neutral plural forms ("מוצאים", "הקישו", "קחו"), mat
 
 ## Google Play
 
-### App name (21/30)
+### App name (14/30)
 ```text
-LiShi Mahjong: סוליטר
+LiShi Mahjong
 ```
 
 ### Short description (79/80)
@@ -53,9 +53,9 @@ LiShi Mahjong הוא משחק מהג'ונג סוליטר קלאסי ורגוע. 
 
 ## Apple App Store
 
-### Name (21/30)
+### Name (14/30)
 ```text
-LiShi Mahjong: סוליטר
+LiShi Mahjong
 ```
 
 ### Subtitle (17/30)
@@ -109,7 +109,7 @@ LiShi Mahjong הוא משחק מהג'ונג סוליטר קלאסי ורגוע. 
 ## Notes for native reviewer
 
 - Plural forms "פספסתם", "שלכם", "קחו", "התאימו", "תנו" follow the in-game convention (e.g. "קיבלתם", "אתם מוכנים"); confirm this is the preferred inclusive style.
-- Bidi: Latin "LiShi Mahjong" and "LiShi Bloom" inside Hebrew sentences, and "LiShi Mahjong: סוליטר" in the name field, should be checked on a real device page preview for correct ordering of the colon, hyphens ("ב-3", "ב-LiShi Bloom") and parentheses.
+- Bidi: Latin "LiShi Mahjong" and "LiShi Bloom" inside Hebrew sentences should be checked on a real device page preview for correct ordering of hyphens ("ב-3", "ב-LiShi Bloom") and parentheses.
 - "סוליטר" vs. "סוליטייר" spelling – choose the more common one.
 - Keywords include the Hebrew transliteration "מהג'ונג" because Hebrew users search in Hebrew letters; it is not a literal repeat of the Latin app name. The variant "מהגונג" (no geresh) did not fit in 100 bytes (each Hebrew letter costs 2 bytes).
 - "שלושה ברצף" for match-3 and "חיבור אריחים בקווים" for tile-connect – check clarity.
