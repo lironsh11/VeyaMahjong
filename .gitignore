@@ -1,5 +1,7 @@
 # Godot
 .godot/
+.ci-godot/
+.ci-venv/
 *.import.tmp
 /build/
 /export/

@@ -1,0 +1,159 @@
+# iOS — Godot 4.7.2 TestFlight (manual). Same pipeline as codemagic.yaml.
+# The unsigned compile check stays in ios.yml and does not need these secrets.
+name: iOS — Godot TestFlight
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload_ipa_artifact:
+        description: 'Upload IPA to GitHub Artifacts (uses storage; TestFlight does not need this)'
+        type: boolean
+        default: false
+      submit_testflight_beta_review:
+        description: 'Submit to external TestFlight beta review (needs Beta App Information in App Store Connect)'
+        type: boolean
+        default: false
+      build_appetize:
+        description: 'Also build an iOS Simulator zip for Appetize'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: ios-testflight-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
+  BUNDLE_ID: com.lishimahjong.app
+  APPLE_DEVELOPMENT_TEAM: 7BLH4NFZDD
+  GODOT_VERSION: "4.7.2"
+  GODOT_TAG: "4.7.2-stable"
+  IOS_EXPORT_PRESET: iOS
+  IOS_EXPORT_PATH: build/ios/LiShiMahjong.ipa
+  XCODE_PROJECT: build/ios/LiShiMahjong.xcodeproj
+  BUILD_DIR: ${{ github.workspace }}/build
+  SIMULATOR_DERIVED_DATA: ${{ github.workspace }}/build/DerivedDataSimulator
+  APPETIZE_STAGING_DIR: ${{ github.workspace }}/build/appetize-staging
+  APPETIZE_ZIP: ${{ github.workspace }}/build/LiShiMahjong-simulator-appetize.zip
+  IOS_BUILD_NUMBER_FLOOR: "1"
+
+jobs:
+  build-and-publish:
+    name: Build and upload TestFlight IPA
+    runs-on: macos-26
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Require App Store Connect secrets
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_KEY_IDENTIFIER }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          missing=0
+          for name in APP_STORE_CONNECT_ISSUER_ID APP_STORE_CONNECT_KEY_IDENTIFIER APP_STORE_CONNECT_PRIVATE_KEY; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing GitHub secret: $name (see .github/GITHUB_ACTIONS_SETUP.md)"
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ]
+
+      - name: Cache Godot editor and export templates
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/.ci-godot
+            ~/Library/Application Support/Godot/export_templates/4.7.2.stable
+          key: godot-${{ env.GODOT_TAG }}-templates-v1
+          restore-keys: |
+            godot-${{ env.GODOT_TAG }}-
+
+      - name: Cache Godot engine headers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/lishi-godot
+          key: godot-src-${{ env.GODOT_TAG }}-v1
+
+      - name: Cache Codemagic CLI venv
+        uses: actions/cache@v4
+        with:
+          path: .ci-venv
+          key: ci-venv-${{ runner.os }}-codemagic-cli-v1
+          restore-keys: |
+            ci-venv-${{ runner.os }}-
+
+      - name: Cache Xcode DerivedData
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.BUILD_DIR }}/DerivedData
+          key: derived-lishi-${{ runner.os }}-${{ hashFiles('export_presets.cfg', 'project.godot', 'native/**/ios/**', 'ios/plugins/**/*.gdip') }}
+          restore-keys: |
+            derived-lishi-${{ runner.os }}-
+
+      - name: Run iOS TestFlight pipeline
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_KEY_IDENTIFIER }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+          IOS_BUILD_NUMBER_FLOOR: ${{ env.IOS_BUILD_NUMBER_FLOOR }}
+        run: bash .github/scripts/godot-ios-testflight-run.sh
+
+      - name: Upload archive log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-archive-log
+          path: |
+            build/xcodebuild-archive.log
+            build/godot-export.log
+            build/godot-import.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Publish to TestFlight
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_KEY_IDENTIFIER }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+          SUBMIT_TESTFLIGHT_BETA_REVIEW: ${{ inputs.submit_testflight_beta_review }}
+        run: bash .github/scripts/ios-publish-testflight.sh
+
+      - name: Upload IPA artifact (optional)
+        if: ${{ inputs.upload_ipa_artifact }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-testflight-${{ github.run_number }}
+          path: build/ios/ipa/*.ipa
+          if-no-files-found: warn
+          retention-days: 3
+
+      - name: Build iOS Simulator zip for Appetize
+        if: ${{ inputs.build_appetize }}
+        continue-on-error: true
+        id: appetize_build
+        run: bash .github/scripts/ios-simulator-appetize.sh
+
+      - name: Upload Appetize simulator .app
+        if: ${{ inputs.build_appetize && steps.appetize_build.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-appetize-${{ github.run_number }}
+          path: ${{ env.APPETIZE_APP_PATH }}
+          retention-days: 7
+          compression-level: 9
+          if-no-files-found: error
+
+      - name: Upload Appetize flat zip
+        if: ${{ inputs.build_appetize && steps.appetize_build.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: appetize-zip-${{ github.run_number }}
+          path: ${{ env.APPETIZE_ZIP }}
+          retention-days: 7
+          if-no-files-found: error

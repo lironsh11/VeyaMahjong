@@ -1,0 +1,5 @@
+# CI scripts run on macOS. Keep them LF even when edited on Windows.
+*.sh text eol=lf
+codemagic.yaml text eol=lf
+.github/workflows/*.yml text eol=lf
+ios/exportOptions.plist text eol=lf

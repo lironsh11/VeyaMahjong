@@ -7,10 +7,10 @@
 | iOS preset (`iOS`, Xcode project only) | Configured: bundle id `com.lishimahjong.app`, **min iOS 15.0** (raised from 14.0: StoreKit 2 and the Meta Audience Network adapter need 15), arm64, 1024 px icon, ivory launch background, plugins `LevelPlayBanner` + `LiShiStoreKit` enabled, Info.plist additions (ATT text, SKAdNetwork ids) |
 | Ads plugin `LevelPlayBanner` (banner, rewarded, interstitial, test suite, metadata, time zone, ATT) | Source written: `native/levelplay/ios/`. **Not compiled on this Windows machine**; compiled and linked only by the CI workflow `.github/workflows/ios.yml`. The Google UMP removal (2026-10-19) has **not been compiled yet** either: run the CI workflow |
 | IAP plugin `LiShiStoreKit` (StoreKit 2) + `scripts/services/iap/AppStoreProvider.gd` | Source written: `native/storekit/ios/`. Same status: compiled by CI only, never run on a device |
-| Export with the real (empty) Team ID | **BLOCKED.** Godot refuses: "App Store Team ID not specified". CI sets an obviously fake Team ID in its own checkout only |
-| Signing, device run, TestFlight | **NOT POSSIBLE HERE.** Requires macOS, Xcode 26+ (iOS 26 SDK; iOS 27 SDK from April 2027), an Apple Developer account and provisioning |
+| Export with the real Team ID | Git keeps `application/app_store_team_id=""`. TestFlight CI patches team `7BLH4NFZDD` in the checkout only. The unsigned compile check still uses a dummy id |
+| Signing and TestFlight | GitHub Actions **iOS — Godot TestFlight** and Codemagic workflow of the same name. Needs the three App Store Connect API secrets and an App Store Connect app for `com.lishimahjong.app`. See `.github/GITHUB_ACTIONS_SETUP.md` |
 
-No iOS binary has been signed. No IPA exists.
+No signed iOS binary has been produced yet. The pipeline that produces one is in the repo.
 
 ## How the native side is put together
 
@@ -73,6 +73,15 @@ On a GitHub macOS runner, the workflow:
 
 It catches compile and link errors only. It does not show ads, run consent, ATT or purchases,
 and it does not check the Godot ↔ plugin ABI at runtime. That needs a device.
+
+## TestFlight CI (GitHub Actions and Codemagic)
+
+Manual workflow **iOS — Godot TestFlight** (`.github/workflows/ios-testflight.yml` and
+`codemagic.yaml`). It builds both plugins, exports the Xcode project, installs CocoaPods,
+signs with an App Store profile created from the API key, archives, and uploads the IPA.
+Setup, the three secret names, and how to run it: `.github/GITHUB_ACTIONS_SETUP.md`.
+
+**iOS — Godot Appetize** builds an unsigned Simulator `.app` and does not need those secrets.
 
 ## Info.plist additions
 

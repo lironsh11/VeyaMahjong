@@ -25,7 +25,7 @@ production ad serving and any spending need explicit owner approval.
 - [ ] Upgrade to the latest Godot 4.7.x patch (4.7.2+), re-export, re-run all tests.
 - [ ] Create the upload keystore (kept out of git); configure it via Editor Settings or environment variables.
 - [ ] `--export-release "Android AAB (Gradle)"` → Play internal testing.
-- [ ] macOS: set the Team ID, export, build in Xcode 26+, upload to TestFlight.
+- [ ] Create the App Store Connect app `com.lishimahjong.app`, add the three API secrets, run **iOS — Godot TestFlight** (`.github/GITHUB_ACTIONS_SETUP.md`).
 - [ ] Verify 16 KB alignment of the release AAB/APK (`zipalign -c -P 16 -v 4`, bundletool).
 - [ ] Increment `version/code` on every upload; update CHANGELOG.md.
 

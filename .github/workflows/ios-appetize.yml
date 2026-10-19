@@ -1,0 +1,69 @@
+# iOS Simulator zip for Appetize. No App Store Connect secrets.
+name: iOS — Godot Appetize
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ios-appetize-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
+  BUNDLE_ID: com.lishimahjong.app
+  APPLE_DEVELOPMENT_TEAM: 7BLH4NFZDD
+  GODOT_VERSION: "4.7.2"
+  GODOT_TAG: "4.7.2-stable"
+  IOS_EXPORT_PRESET: iOS
+  IOS_EXPORT_PATH: build/ios/LiShiMahjong.ipa
+  XCODE_PROJECT: build/ios/LiShiMahjong.xcodeproj
+  BUILD_DIR: ${{ github.workspace }}/build
+  SIMULATOR_DERIVED_DATA: ${{ github.workspace }}/build/DerivedDataSimulator
+  APPETIZE_STAGING_DIR: ${{ github.workspace }}/build/appetize-staging
+  APPETIZE_ZIP: ${{ github.workspace }}/build/LiShiMahjong-simulator-appetize.zip
+
+jobs:
+  build-appetize:
+    name: Build Simulator zip for Appetize
+    runs-on: macos-26
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Godot editor and export templates
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/.ci-godot
+            ~/Library/Application Support/Godot/export_templates/4.7.2.stable
+          key: godot-${{ env.GODOT_TAG }}-templates-v1
+          restore-keys: |
+            godot-${{ env.GODOT_TAG }}-
+
+      - name: Cache Godot engine headers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/lishi-godot
+          key: godot-src-${{ env.GODOT_TAG }}-v1
+
+      - name: Export Godot iOS and package Appetize
+        run: bash .github/scripts/godot-ios-appetize-run.sh
+
+      - name: Upload Appetize simulator .app
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-appetize-${{ github.run_number }}
+          path: ${{ env.APPETIZE_APP_PATH }}
+          retention-days: 7
+          compression-level: 9
+          if-no-files-found: error
+
+      - name: Upload Appetize flat zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: appetize-zip-${{ github.run_number }}
+          path: ${{ env.APPETIZE_ZIP }}
+          retention-days: 7
+          if-no-files-found: error

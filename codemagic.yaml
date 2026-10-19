@@ -1,0 +1,49 @@
+workflows:
+  ios-testflight:
+    name: iOS — Godot TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 180
+    environment:
+      xcode: latest
+      cocoapods: default
+      groups:
+        # App Store Connect API key (APP_STORE_CONNECT_* vars):
+        - basic
+      vars:
+        BUNDLE_ID: com.lishimahjong.app
+        APPLE_DEVELOPMENT_TEAM: 7BLH4NFZDD
+        GODOT_VERSION: "4.7.2"
+        GODOT_TAG: "4.7.2-stable"
+        IOS_EXPORT_PRESET: iOS
+        IOS_EXPORT_PATH: build/ios/LiShiMahjong.ipa
+        XCODE_PROJECT: build/ios/LiShiMahjong.xcodeproj
+        BUILD_DIR: $CM_BUILD_DIR/build
+        IOS_BUILD_NUMBER_FLOOR: "1"
+        # Do NOT use ios_signing — profiles are created at build time via the
+        # App Store Connect API (see .github/scripts/godot-ios-testflight-run.sh).
+    cache:
+      cache_paths:
+        - $HOME/.cache/lishi-godot
+        - "$HOME/Library/Application Support/Godot/export_templates"
+        - $CM_BUILD_DIR/.ci-godot
+        - $CM_BUILD_DIR/.ci-venv
+    scripts:
+      - name: Run iOS TestFlight pipeline
+        script: |
+          set -euxo pipefail
+          chmod +x .github/scripts/*.sh native/levelplay/ios/build.sh native/storekit/ios/build.sh native/levelplay/ios/scripts/*.sh
+          bash .github/scripts/setup-codemagic-cli.sh
+          bash .github/scripts/godot-ios-testflight-run.sh
+    artifacts:
+      - $CM_BUILD_DIR/build/ios/ipa/*.ipa
+      - $CM_BUILD_DIR/build/build.xcarchive
+      - $CM_BUILD_DIR/build/xcodebuild-archive.log
+      - $CM_BUILD_DIR/build/godot-export.log
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        # Upload only. External beta review needs Beta App Information in
+        # App Store Connect. Set this to true after that form is filled.
+        submit_to_testflight: false
