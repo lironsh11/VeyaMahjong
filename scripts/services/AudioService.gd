@@ -6,7 +6,7 @@ extends Node
 ## - Frequent, non-tonal events (tap/select/button) have round-robin variants, never the same
 ##   variant twice in a row, plus a small random pitch (+-40 cents) and volume (+-1.5 dB) spread,
 ##   so thousands of repeats don't fatigue. Tonal events are never randomly detuned.
-## - Match streaks climb the D-major pentatonic in tune with the music: play_match(combo).
+## - Every match plays the same sound at the same pitch and volume (owner request 2026-10-20).
 ## - Big moments (victory, world unlock, reward) briefly duck the music.
 ## Music
 ## - Each world has a small playlist of 2-3 minute pieces. A piece plays once, then a short
@@ -20,9 +20,6 @@ const POOL_SIZE := 8
 const FADE_S := 1.4
 const GAP_MIN_S := 12.0
 const GAP_MAX_S := 28.0
-## Semitone offsets of D major pentatonic (D E F# A B D): a match streak climbs one step per
-## consecutive match and stays at the octave.
-const COMBO_STEPS: Array[int] = [0, 2, 4, 7, 9, 12]
 const VARIED := {"tap": true, "select": true, "button": true}
 const PITCH_SPREAD := 0.0234   # ~ +-40 cents
 const VOLUME_SPREAD_DB := 1.5
@@ -149,16 +146,6 @@ func play(event: String, pitch: float = 1.0) -> void:
 	p.play()
 	if DUCK.has(event):
 		_duck(DUCK[event][0], DUCK[event][1])
-
-
-static func combo_pitch(combo: int) -> float:
-	## Pitch scale for the n-th consecutive match (1-based), in tune with the music.
-	var step: int = COMBO_STEPS[clampi(combo - 1, 0, COMBO_STEPS.size() - 1)]
-	return pow(2.0, step / 12.0)
-
-
-func play_match(combo: int) -> void:
-	play("match", combo_pitch(combo))
 
 
 # --- music ----------------------------------------------------------------------------

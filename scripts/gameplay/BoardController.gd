@@ -168,9 +168,9 @@ func _after_match(i: int, partner: int, partner_slot: int, from: Rect2) -> void:
 
 
 func _on_popped(_center: Vector2, p_combo: int) -> void:
-	# The owner's match sound from the asset pack (owner request 2026-10-19: no generated layer
-	# on top), rising gently in pitch for consecutive matches.
-	AudioService.play_match(p_combo)
+	# The owner's chosen asset-pack sound (select.wav, owner request 2026-10-20; no generated
+	# layer on top), the same for every match: no pitch or volume climb on streaks.
+	AudioService.play("match")
 	AccessibilityService.haptic("combo" if p_combo >= 4 else "match")
 
 

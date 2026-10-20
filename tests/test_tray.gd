@@ -273,8 +273,10 @@ func test_tray_art_slots_fit_tiles() -> void:
 		var ts := tv.tile_size()
 		var r := tv.slot_rect(0)
 		var body := Rect2(tv.slot_pos(0) + BoardView.BODY.position * ts, BoardView.BODY.size * ts)
-		check(r.grow(0.5).encloses(body), "tile body inside slot (cap %d)" % cap)
-		check(ts.x >= 48.0, "tray tiles stay readable (%.0f px)" % ts.x)
+		check(body.position.x >= r.position.x - 0.5 and body.end.x <= r.end.x + 0.5, "tile body within the slot's width (cap %d)" % cap)
+		check(tv._frame_rect().grow(0.5).encloses(body), "tile body inside the frame (cap %d)" % cap)
+		check(body.size.y <= r.size.y * TrayView.SLOT_RISE + 0.5, "tile stands at most a little proud of its slot (cap %d)" % cap)
+		check(ts.x >= 60.0, "tray tiles stay big (%.0f px)" % ts.x)
 		check(tv._frame_rect().size.x <= BoardFit.PLAY_AREA.x + 0.5, "frame fits the screen (cap %d)" % cap)
 		tv.free()
 

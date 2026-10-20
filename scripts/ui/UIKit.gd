@@ -259,8 +259,8 @@ static func chip(text: String, style: String = "ChipEmerald") -> PanelContainer:
 
 
 static func scroll(content: Control) -> ScrollContainer:
-	var s := ScrollContainer.new()
-	s.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	## A vertical list that touch-drags from anywhere, its cards and buttons included.
+	var s := TouchScroll.new()
 	s.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	s.add_child(content)

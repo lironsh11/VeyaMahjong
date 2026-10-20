@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **Debug APK installs next to the store app:** the `Android` preset now exports as
+  `com.lishimahjong.app.debug` ("LiShi Debug"), so a QA build no longer replaces the Play Store
+  install. Play Billing products don't exist for that ID (see docs/ANDROID_BUILD.md).
+- **Match sound:** a pair now plays the asset pack's `select.wav` (copied unchanged as
+  `sfx/match_select.wav`) instead of its `match.wav`. Every match now sounds the same: the
+  pitch no longer climbs on streaks.
+- **Bigger tray tiles:** tiles fill their slot's width and stand a little proud of its top and
+  bottom, about 25% bigger than before.
+- **Scrolling lists:** the shop and the other scrolling screens now drag from anywhere, cards
+  and buttons included; a drag that scrolls never presses the button it started on.
 - **Sharper tiles:** with tiles now 90-112 logical px (2-3x on phones), the 96 px atlas was
   upscaled and looked pixelated, especially in the tray and on phones the game treats as Low
   graphics. Board and tray now always draw the 192 px atlas (the pack's largest), and the tile

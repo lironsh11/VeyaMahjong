@@ -39,7 +39,7 @@ summary below) shaped these choices:
 
 | Event (file) | Sound | Length (s) | Event loudness* (LUFS) | True peak (dBTP) | 2.5–4.5 kHz share (dB) |
 |---|---|---|---|---|---|
-| match (`match_pack.wav`) | **The owner's asset-pack match sound** (VeyaMahjong_AssetPack_v1/audio/sfx/match.wav, copied unchanged; owner request 2026-10-19). Pitch rises per combo step. The synthesized `match.wav` is kept but unused | 0.35 | — | −13.0 | — |
+| match (`match_select.wav`) | **The owner's asset-pack select sound** (VeyaMahjong_AssetPack_v1/audio/sfx/select.wav, copied unchanged; owner request 2026-10-20, replacing the pack's match.wav, which stays as `match_pack.wav`). Every match sounds the same (no pitch climb on streaks, owner request 2026-10-20). The synthesized `match.wav` is kept but unused | — | — | — | — |
 | select_1..4 | Fuller dry clack, no tone | 0.14 | −28.7 to −29.8 | −8.0 | −26 |
 | tap_1..4 | Light clack | 0.12 | −32.4 to −33.8 | −11 | −24 to −26 |
 | button_1..3 | Soft UI tock | 0.10 | −34.2 to −35.0 | −12 | −32 to −35 |

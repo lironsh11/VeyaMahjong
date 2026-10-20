@@ -10,7 +10,7 @@ extends AdProviderBase
 const SINGLETON := "LevelPlayBanner"
 const CONFIG := "res://data/config/levelplay.json"
 ## Debug builds only: when this file exists the LevelPlay Integration Test Suite opens after init
-## (adb shell run-as com.lishimahjong.app touch files/levelplay_test_suite.flag).
+## (adb shell run-as com.lishimahjong.app.debug touch files/levelplay_test_suite.flag).
 const TEST_SUITE_FLAG := "user://levelplay_test_suite.flag"
 
 var _plugin: Object

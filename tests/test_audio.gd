@@ -1,5 +1,5 @@
 extends TestCase
-## Audio wiring: every mapped file loads, streak pitches stay on the pentatonic scale, variants
+## Audio wiring: every mapped file loads, every match sounds the same, variants
 ## never repeat back-to-back, and each world has a playlist of real pieces.
 
 func _map() -> Dictionary:
@@ -31,16 +31,11 @@ func test_every_event_used_by_the_game_exists() -> void:
 		check(map.events.has(ev), "event %s mapped" % ev)
 
 
-func test_combo_pitch_stays_on_pentatonic() -> void:
-	var allowed := [0, 2, 4, 7, 9, 12]
-	var prev := 0.0
-	for c in range(1, 12):
-		var semis := roundi(12.0 * log(AudioService.combo_pitch(c)) / log(2.0))
-		check(allowed.has(semis), "combo %d -> %d semitones" % [c, semis])
-		check(AudioService.combo_pitch(c) >= prev, "never goes down within a streak")
-		prev = AudioService.combo_pitch(c)
-	check_eq(AudioService.combo_pitch(1), 1.0, "first match is the base note")
-	check(is_equal_approx(AudioService.combo_pitch(50), 2.0), "capped at one octave")
+func test_every_match_sounds_the_same() -> void:
+	# Owner request 2026-10-20: no pitch climb on streaks and no random spread on the match.
+	check(not AudioService.VARIED.has("match"), "match is never randomly detuned")
+	var src := FileAccess.get_file_as_string("res://scripts/gameplay/BoardController.gd")
+	check(src.contains("AudioService.play(\"match\")"), "match plays at its own pitch")
 
 
 func test_variants_never_repeat_back_to_back() -> void:

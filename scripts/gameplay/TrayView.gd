@@ -12,13 +12,14 @@ extends Control
 ##
 ## Frame art: art/lishi_v2/ui/tray/tray_{4,5,6}.png (owner art, 216 px high, drawn at half
 ## size), with each painted slot measured into data/config/tray_slots.json by tools/measure_tray_art.gd.
-## Tiles are fitted inside those slots. A capacity without art falls back to a drawn frame.
+## Tiles fill those slots' width (see tile_size). A capacity without art falls back to a drawn frame.
 
 signal popped(center: Vector2, combo: int)
 
 const ART_DIR := "res://art/lishi_v2/ui/tray/"
 const SLOTS_JSON := "res://data/config/tray_slots.json"
-const SLOT_INSET := 3.0    ## px between a slot's painted edge and the tile body
+const SLOT_INSET := 3.0    ## px between a slot's painted side and the tile body
+const SLOT_RISE := 1.2     ## the tile body may be this much taller than its slot
 const TRAY_H := 128.0   ## frame art height on screen (the ornate frame needs room around its slots)
 const PAD := 10.0
 const GAP := 8.0
@@ -149,9 +150,12 @@ func tile_size() -> Vector2:
 	var smallest := slot_rect(0).size
 	for s in range(1, capacity):
 		smallest = smallest.min(slot_rect(s).size)
+	# Tiles are taller than the near-square slots, so fitting the height too left them small:
+	# they fill the slot's width and stand a little proud of its top and bottom edges (the
+	# ornate frame has room around every slot), up to SLOT_RISE of the slot's height.
 	var body := BoardView.BODY.size
 	var w := (smallest.x - SLOT_INSET * 2.0) / body.x
-	var h_fit := (smallest.y - SLOT_INSET * 2.0) / (body.y * BoardFit.ASPECT)
+	var h_fit := smallest.y * SLOT_RISE / (body.y * BoardFit.ASPECT)
 	w = minf(w, h_fit)
 	return Vector2(w, w * BoardFit.ASPECT)
 

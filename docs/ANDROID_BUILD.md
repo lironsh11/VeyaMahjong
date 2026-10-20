@@ -43,9 +43,17 @@ The last command produces the Play-upload artifact once a release keystore is co
 
 | Preset | Purpose |
 |---|---|
-| `Android` | Debug APK for QA (Gradle, so the LevelPlay banner is included): arm64-v8a, armeabi-v7a, x86_64 |
+| `Android` | Debug APK for QA, package `com.lishimahjong.app.debug` (Gradle, so the LevelPlay banner is included): arm64-v8a, armeabi-v7a, x86_64 |
 | `Android AAB (Gradle)` | Store build: AAB, arm64-v8a + armeabi-v7a, Gradle (required for v2 plugins such as Play Billing/AdMob) |
 | `Android Release Size Check (unsigned, arm64)` | Measures the release download size; not for distribution |
+
+**The debug APK is a separate app** (owner request 2026-10-20): the `Android` preset exports as
+`com.lishimahjong.app.debug`, named "LiShi Debug" on the phone, so it installs next to the Play
+Store version instead of replacing it (the two are signed with different keys, so Android would
+refuse to update one with the other anyway). Keep it that way: never give the `Android` preset
+the store ID. Two things follow from the separate ID: Play Billing has no products for it (the
+shop shows its "not available" state; test purchases need an internal-testing build of the AAB),
+and its save data is its own, starting fresh.
 
 Application ID: `com.lishimahjong.app` is a **placeholder** that the owner must approve. Once a
 release is uploaded to Play, it can never change. Version: name `0.1.0`, code `1`; increment
