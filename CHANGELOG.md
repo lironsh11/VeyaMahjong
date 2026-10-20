@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.4 (build 5), 2026-10-20
 
 - **Stacked tiles no longer look like they cover the row above:** higher layers shift only
   left now, not up, and the lower row is drawn in front whenever two tiles don't actually sit
