@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **Match sound:** a pair now plays the owner's `01_Match_Pop_Success_RECOMMENDED.wav` (copied
+  unchanged as `sfx/match_pop.wav`), the same for every match.
+
 ## 0.1.4 (build 5), 2026-10-20
 
 - **Stacked tiles no longer look like they cover the row above:** higher layers shift only

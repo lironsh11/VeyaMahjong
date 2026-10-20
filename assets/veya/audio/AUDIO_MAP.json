@@ -17,7 +17,7 @@
       "sfx/button_2.wav",
       "sfx/button_3.wav"
     ],
-    "match": "sfx/match_select.wav",
+    "match": "sfx/match_pop.wav",
     "invalid": "sfx/invalid.wav",
     "undo": "sfx/undo.wav",
     "hint": "sfx/hint.wav",
