@@ -93,3 +93,51 @@ func test_row_overlap_tap_picks_the_front_tile() -> void:
 	check_eq(board.pick(p), 1, "the front (lower) tile is picked in the overlap band")
 	check_eq(board.pick(upper.get_center()), 0, "the upper tile is still pickable above the band")
 	board.queue_free()
+
+
+func _board_for(positions: Array) -> BoardView:
+	var geo := BoardGeometry.from_positions(positions)
+	var faces := PackedStringArray()
+	for k in geo.count:
+		faces.append("circle_1")
+	var board := BoardView.new()
+	(Engine.get_main_loop() as SceneTree).root.add_child(board)
+	board.size = Vector2(540, 900)
+	board.setup(BoardState.create(geo, faces), "classic")
+	return board
+
+
+func test_higher_tile_does_not_look_like_it_covers_the_row_above() -> void:
+	# Owner's case (2026-10-20): a free tile, and one row below it a second-layer tile resting on
+	# two tiles. The second-layer tile may overlap it only as much as any lower row does.
+	var board := _board_for([Vector3i(0, 0, 0), Vector3i(-1, 2, 0), Vector3i(1, 2, 0), Vector3i(0, 2, 1)])
+	check(board.state.is_free(0), "the upper tile is free")
+	var into_upper := board.body_rect(0).end.y - board.body_rect(3).position.y
+	check(into_upper <= board.body_rect(0).end.y - board.body_rect(1).position.y + 0.5, "the higher tile reaches no further into the row above than a plain lower row")
+	board.queue_free()
+	# Mirror case: a second-layer tile a row ABOVE a free tile is drawn behind it (lower row in
+	# front), so it never paints over that free tile's top edge.
+	board = _board_for([Vector3i(-1, 0, 0), Vector3i(1, 0, 0), Vector3i(0, 0, 1), Vector3i(0, 2, 0)])
+	check(board.state.is_free(3), "the lower tile is free")
+	var order := board.state.geo.draw_order()
+	check(order.find(3) > order.find(2), "the free lower tile is drawn in front of the higher tile above it")
+	var mid := Vector2(board.body_rect(3).get_center().x, board.body_rect(3).position.y + 2.0)
+	check_eq(board.pick(mid), 3, "its top edge picks it, not the higher tile")
+	board.queue_free()
+
+
+func test_draw_order_keeps_covered_tiles_behind() -> void:
+	# Every tile is drawn after every tile it covers, on real shipped boards.
+	for id in [1, 13, 40, 150]:
+		var geo := ContentService.get_level(id).build_state().geo
+		var order := geo.draw_order()
+		var at := PackedInt32Array()
+		at.resize(geo.count)
+		for k in order.size():
+			at[order[k]] = k
+		var ok := true
+		for i in geo.count:
+			for j in geo.below[i]:
+				if at[i] < at[j]:
+					ok = false
+		check(ok, "level %d: covering tiles drawn on top" % id)

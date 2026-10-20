@@ -281,6 +281,21 @@ func test_tray_art_slots_fit_tiles() -> void:
 		tv.free()
 
 
+func test_resumed_tray_tiles_take_the_real_size() -> void:
+	# Owner bug 2026-10-20: after leaving a level and coming back, the tiles already in the tray
+	# were invisible. The screen restores them before the tray is laid out (width 0).
+	var tv := TrayView.new()
+	(Engine.get_main_loop() as SceneTree).root.add_child(tv)
+	tv.show_tray(PackedInt32Array([0, 1]), PackedStringArray(["circle_1", "bamboo_2"]), TrayRules.CAPACITY)
+	tv.size = Vector2(BoardFit.PLAY_AREA.x, TrayView.TRAY_H)
+	var ts := tv.tile_size()
+	for t in [0, 1]:
+		var n: TextureRect = tv._nodes[t]
+		check(n.size.distance_to(ts) < 0.5, "tray tile %d drawn at full size (%s, want %s)" % [t, n.size, ts])
+		check(n.position.distance_to(tv.slot_pos(t)) < 0.5, "tray tile %d in its slot" % t)
+	tv.queue_free()
+
+
 func test_snapshot_rejected_on_new_geometry() -> void:
 	# A rebuilt level keeps its key; a snapshot from the old geometry must not restore onto it.
 	var L := _row8()

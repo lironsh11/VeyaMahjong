@@ -306,6 +306,7 @@ func _fade_free(n: Control, animate: bool) -> void:
 
 
 func _layout(animate: bool) -> void:
+	var ts := tile_size()
 	for s in _order.size():
 		var t := _order[s]
 		if not _nodes.has(t):
@@ -313,6 +314,10 @@ func _layout(animate: bool) -> void:
 		var n: TextureRect = _nodes[t]
 		if n.has_meta("flying"):
 			continue  # the flight reads its slot every frame
+		# Tiles restored on screen build (resume) are made before the tray has its width, at a
+		# near-zero size: they take the real size once it is known, or they stay invisible.
+		n.size = ts
+		n.pivot_offset = ts * 0.5
 		var target := slot_pos(s)
 		if animate and _anim() and n.position.distance_to(target) > 0.5:
 			var tw := n.create_tween()

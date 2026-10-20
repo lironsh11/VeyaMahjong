@@ -11,9 +11,12 @@ extends RefCounted
 ## above it, the 3D "slab" look of popular tile-match games. It also lets tiles grow ~8%.
 const STEP_X := 0.915
 const STEP_Y := 0.82
-## Each layer up is shifted up-left by this much, so stacked layers read at a glance.
+## Each layer up is shifted left by this much, so stacked layers read at a glance. No upward
+## shift (owner request 2026-10-20): it pushed a higher tile into the row above it, so a free
+## tile there looked covered. Now a higher tile overlaps the row above it exactly as much as any
+## lower row does (see BoardGeometry.draw_order).
 const LAYER_DX := -0.095
-const LAYER_DY := -0.085
+const LAYER_DY := 0.0
 const ASPECT := 164.0 / 128.0
 const MAX_TILE_W := 112.0
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- **Stacked tiles no longer look like they cover the row above:** higher layers shift only
+  left now, not up, and the lower row is drawn in front whenever two tiles don't actually sit
+  on each other. A free tile above a second-layer tile used to look half covered.
+- **Tray tiles after coming back to a level:** tiles already in the tray were restored before
+  the tray had its width and stayed invisible (near-zero size); they now take their real size.
+
 ## 0.1.3 (build 4), 2026-10-20
 
 - **Debug APK installs next to the store app:** the `Android` preset now exports as

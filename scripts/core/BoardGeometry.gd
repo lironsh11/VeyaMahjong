@@ -113,11 +113,17 @@ func height_half_units() -> int:
 
 
 func draw_order() -> PackedInt32Array:
-	## Back-to-front: lower layers first, then rows top-to-bottom, then left-to-right.
+	## Back-to-front. A tile is always drawn after every tile it covers; otherwise the lower row
+	## is in front (the slab look), even across layers: a higher tile a full row above a lower
+	## one doesn't cover it, so it must not be drawn over its top edge.
+	## Key gy + 2*gz (half units): a covering pair has |dy| <= 1 and dz >= 1, so the top tile's
+	## key is always larger; equal keys are tiles a full row apart, ordered by row.
 	var idx: Array = range(count)
 	idx.sort_custom(func(a: int, b: int) -> bool:
-		if gz[a] != gz[b]:
-			return gz[a] < gz[b]
+		var ka := gy[a] + 2 * gz[a]
+		var kb := gy[b] + 2 * gz[b]
+		if ka != kb:
+			return ka < kb
 		if gy[a] != gy[b]:
 			return gy[a] < gy[b]
 		return gx[a] < gx[b])
