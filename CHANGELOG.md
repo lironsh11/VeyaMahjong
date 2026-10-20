@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.3 (build 4), 2026-10-20
 
 - **Debug APK installs next to the store app:** the `Android` preset now exports as
   `com.lishimahjong.app.debug` ("LiShi Debug"), so a QA build no longer replaces the Play Store
@@ -16,6 +16,8 @@
   upscaled and looked pixelated, especially in the tray and on phones the game treats as Low
   graphics. Board and tray now always draw the 192 px atlas (the pack's largest), and the tile
   atlases and state overlays are imported with mipmaps so small screens stay smooth.
+
+## Unreleased
 
 - **Match sound:** a pair now plays the owner's own asset-pack sound
   (`VeyaMahjong_AssetPack_v1/audio/sfx/match.wav`, copied unchanged as `sfx/match_pack.wav`),
