@@ -45,6 +45,22 @@ static func tab_button(text: String, active: bool, on_press: Callable) -> Button
 	return b
 
 
+static func world_tabs(selected: String, on_pick: Callable, mark_locked: bool = false) -> GridContainer:
+	## One tab per world, three per row (six worlds don't fit one row on a 540 px screen).
+	## on_pick(world_id) runs when a tab is pressed.
+	var grid := GridContainer.new()
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
+	for w in ContentService.worlds:
+		var wid := str(w.id)
+		var b := tab_button(LocalizationService.t(ContentService.world_name_key(wid)), wid == selected, func() -> void: on_pick.call(wid))
+		if mark_locked and not GameState.is_level_unlocked(ContentService.world_range(wid).x):
+			b.icon = UITheme.scaled_tex("ui/icons/emerald/lock.png", 0.27)
+		grid.add_child(b)
+	return grid
+
+
 static func tool_button(icon_name: String, text: String, white: bool = true, icon_size: int = 40, on_press: Callable = Callable()) -> Button:
 	## Icon + text vertical button with a generous hit area (icon and label are drawn as
 	## children; the Button itself is the touch target).

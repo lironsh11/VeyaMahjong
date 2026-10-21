@@ -12,7 +12,10 @@
     "level_first_clear": [
       {"from": 1, "to": 50, "coins": 20},
       {"from": 51, "to": 100, "coins": 30},
-      {"from": 101, "to": 150, "coins": 40}
+      {"from": 101, "to": 150, "coins": 40},
+      {"from": 151, "to": 200, "coins": 50},
+      {"from": 201, "to": 250, "coins": 60},
+      {"from": 251, "to": 300, "coins": 70}
     ],
     "world_complete": 250,
     "daily_first_clear": 50,

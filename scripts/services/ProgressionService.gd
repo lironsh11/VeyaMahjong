@@ -43,6 +43,7 @@ func complete_level(id: int, stats: Dictionary) -> Dictionary:
 	var first := not completed.has(key)
 	var before_disc := discoveries_unlocked_count()
 	var before_themes := unlocked_theme_ids()
+	var before_backs := unlocked_back_ids()
 	var no_hint := int(stats.get("hints", 0)) == 0
 	var score := int(stats.get("score", 0))
 	var stars_now := clampi(int(stats.get("stars", 0)), 0, 3)
@@ -61,6 +62,7 @@ func complete_level(id: int, stats: Dictionary) -> Dictionary:
 	result["stars"] = stars_now
 	result["best_score"] = maxi(prev_best, score)
 	result["new_best"] = not first and score > prev_best
+	result["backs"] = unlocked_back_ids().filter(func(b: String) -> bool: return not before_backs.has(b))
 	result.merge(_record_streak_win(id, first, stats), true)
 	var w := ContentService.world_for_level(id)
 	if first and not w.is_empty() and id == int(w.levels[1]):
@@ -282,4 +284,38 @@ func equip_theme(theme_id: String) -> bool:
 	GameState.data.cosmetics.equipped_theme = theme_id
 	GameState.save_now()
 	AnalyticsService.track("cosmetic_equipped", {"theme": theme_id})
+	return true
+
+
+# --- Tile backs ---------------------------------------------------------------------
+# One per "Three New Worlds" world, earned by completing that world's last level. Derived from
+# progress like themes, so it can never be lost or duplicated.
+
+func is_back_unlocked(back_id: String) -> bool:
+	if not ContentService.has_tile_back(back_id):
+		return false
+	return GameState.is_level_completed(ContentService.world_range(back_id).y)
+
+
+func unlocked_back_ids() -> Array:
+	var out: Array = []
+	for b in ContentService.tile_backs():
+		if is_back_unlocked(str(b.id)):
+			out.append(str(b.id))
+	return out
+
+
+func equipped_back() -> String:
+	## "" = no back: boards appear face-up at once, as before tile backs existed.
+	var id := str(GameState.data.cosmetics.get("equipped_back", ""))
+	return id if is_back_unlocked(id) else ""
+
+
+func equip_back(back_id: String) -> bool:
+	## back_id "" takes the back off.
+	if back_id != "" and not is_back_unlocked(back_id):
+		return false
+	GameState.data.cosmetics.equipped_back = back_id
+	GameState.save_now()
+	AnalyticsService.track("tile_back_equipped", {"back": back_id if back_id != "" else "none"})
 	return true

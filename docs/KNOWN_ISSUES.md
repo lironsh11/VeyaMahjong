@@ -3,12 +3,13 @@
 ## Product / content
 
 1. **Resolved: level pacing and mirrored tiles.** Levels 4-50 keep the pack shapes but have
-   re-scattered faces (the pack placed ~74% of tiles opposite their twin), and 51-150 are generated.
+   re-scattered faces (the pack placed ~74% of tiles opposite their twin), and 51-300 are generated.
    All are validated and ordered by measured difficulty (see MAHJONG_RULES_AND_SOLVER.md).
    Remaining caveat: the metrics are heuristics based on random play. Playtesting should confirm
-   that levels ~130-150 feel fair; both build tools can be retuned and rerun deterministically.
+   that levels ~130-150 and the hardest of 151-300 (~250-300) feel fair; both build tools can be retuned and rerun deterministically.
    Any rebuild after release must bump the tool's `BUILD_ID`, because in-progress saves on
-   changed boards are discarded (completions are kept).
+   changed boards are discarded (completions are kept). Rerunning 51-150 today would reselect 14
+   boards (it was built before the left/right rule), so it stays as shipped.
 2. Difficulty bands are stored per level but not displayed.
 3. Bloom: 26 unique sprites fill 30 discovery slots, so 4 sprites (pond, rocks, butterfly, grass
    patch) appear in two worlds. Positions were tuned on 16:9-20:9 screens only.

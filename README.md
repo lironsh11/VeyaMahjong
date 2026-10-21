@@ -20,13 +20,15 @@ built with **Godot 4.7** (GDScript, GL Compatibility renderer) from the supplied
   side open, the standard Mahjong Solitaire rule) and it flies into the tray; two identical tiles burst (every tile, Flowers and Seasons included, matches only an
   identical tile). Four unmatched tiles in the tray lose the board, with a second chance
   ("send 3 tiles back", first one free), Undo or Try again. Combos, score, juicy bursts.
-- 150 verified levels in 3 worlds, solver-backed Hint, Undo and a solvable Shuffle as boosters
+- 300 verified levels in 6 worlds, solver-backed Hint, Undo and a solvable Shuffle as boosters
   (coins + inventory, docs/MONETIZATION.md) with free fallbacks (rewind to the last solvable
   point, a free rescue shuffle, the first continue, restart). Levels 1-3 are the supplied pack;
-  4-50 keep the pack shapes with re-scattered tiles, and 51-150 are generated. All are
+  4-50 keep the pack shapes with re-scattered tiles, and 51-300 are generated (151-300 get harder
+  through traps: more layers, twins far apart, same tile size). All are
   validated (and proven clearable with the tray) and ordered by measured difficulty. No timers,
   lives or energy.
-- LiShi Bloom: Lights from new levels unlock 30 discoveries in illustrated worlds.
+- LiShi Bloom: Lights from new levels unlock 60 discoveries in illustrated worlds.
+- Finishing each of the three newer worlds earns its tile back, shown as a new board flips face-up.
 - Four tile themes, a deterministic offline Daily Puzzle with a 30-day archive, and optional daily tasks.
 - 10 languages, including Hebrew RTL, with instant switching. Accessibility options: Large Tiles,
   High Contrast, Reduce Motion, Dim Blocked Tiles, Soften Background, a Low graphics profile,
@@ -50,6 +52,9 @@ godot --headless --path . -s res://tools/build_early_levels.gd
 ```
 ```bash
 godot --headless --path . -s res://tools/build_levels.gd
+```
+```bash
+godot --headless --path . -s res://tools/build_levels.gd -- --range=151-300
 ```
 ```bash
 node tools/asset_usage_report.js

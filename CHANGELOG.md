@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+## 0.1.7 (build 8), 2026-10-21
+
+- **150 new levels (151-300) in three new worlds (owner request):** Jade Bamboo Valley
+  (151-200), Sunset Lotus Palace (201-250) and Frostlight Village (251-300), with art from the
+  owner's "Three New Worlds" pack (`tools/import_lishi_worlds.ps1` → `art/lishi_worlds/`).
+  - Harder through traps, same big tiles: 96-144 tiles, 4-6 layers, less ground, twins placed
+    far apart. Random-play dead-end rate climbs from 0.88 (level 150) to 1.00, score from 90 to
+    111, average layers from 4.3 to 5.4. Same gates as 4-150 (tiles ≥ 84 px, ≥ 88% screen fill),
+    every board validated and tray-solvable under the left/right rule.
+  - `tools/build_levels.gd -- --range=151-300` (`levels-151-300-v1`, deterministic) writes
+    `data/levels/levels_151_300_generated.json`; the default range (51-150, v8) is unchanged.
+    Levels 1-150 are untouched.
+  - World map and Bloom show the six worlds as two rows of tabs. The new worlds use the pack's
+    level nodes and world badge; their map shows the world art (the pack's map art has a
+    painted route of round markers that looked like level buttons).
+  - Music reuses the existing loops (Jade = Aurora Garden, Sunset = Pearl Coast, Frostlight =
+    Crystal Nocturne). First-clear coins 50 / 60 / 70 per world.
+  - Bloom: 10 discoveries per new world from the pack's props (60 in all), with names and
+    stories in every language.
+- **Tile backs (owner request):** finishing each new world earns its tile back (Collections →
+  Tile Backs). With a back equipped, a new board starts face-down and flips face-up in a quick
+  wave (after the level-start dialog; not on a resumed board or with reduced motion).
+
+## 0.1.6 (build 7), 2026-10-21
+
 - **Left/right rule (owner request):** a tile with neighbours on both its left and right sides
   can no longer be picked. This is the standard Mahjong Solitaire rule: a tile is free when
   nothing lies on top of it and its left or right side is open. Every level and daily board was

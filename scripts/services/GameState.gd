@@ -44,7 +44,7 @@ static func defaults() -> Dictionary:
 		"first_open_logged": false,
 		"progress": {"completed": {}, "light_sources": []},
 		"bloom": {"seen": []},
-		"cosmetics": {"equipped_theme": "classic", "seen_themes": ["classic"]},
+		"cosmetics": {"equipped_theme": "classic", "seen_themes": ["classic"], "equipped_back": ""},
 		"entitlements": {},
 		"processed_transactions": [],
 		"ads": {"reward_grants": [], "rewarded_day": "", "rewarded_count": 0, "rewarded_counts": {},

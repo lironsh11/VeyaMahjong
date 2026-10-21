@@ -192,8 +192,42 @@ func _run() -> void:
 	await _shot("14_shop")
 	await _go("settings")
 	await _shot("15_settings")
+	await _new_worlds_tour()
 	print("TOUR done")
 	get_tree().quit()
+
+
+func _new_worlds_tour() -> void:
+	## The "Three New Worlds" (levels 151-300): maps, boards, Bloom and the tile back.
+	for id in range(13, 201):
+		ProgressionService.complete_level(id, {"moves": 10, "hints": 0, "score": 300, "stars": 1 + (id % 3)})
+	ProgressionService.equip_back("jade_bamboo_valley")
+	await _go("worlds", {"world": "jade_bamboo_valley"})
+	await _shot("16_worlds_jade")
+	await _go("worlds", {"world": "sunset_lotus_palace"})
+	await _shot("16b_worlds_sunset")
+	await _go("worlds", {"world": "frostlight_village"})
+	await _shot("16c_worlds_frost_locked")
+	await _go("gameplay", {"mode": "level", "level": 201, "restart": true})
+	var scr: Node = Router.current_screen()
+	for m in scr.find_children("*", "ModalDialog", true, false):
+		m.close("play")
+	await _wait(0.12)
+	await _shot("17a_deal_flip")
+	await _wait(0.8)
+	await _shot("17_gameplay_l201")
+	await _go("gameplay", {"mode": "level", "level": 300, "restart": true})
+	scr = Router.current_screen()
+	await _close_modals(scr, "play")
+	await _shot("18_gameplay_l300")
+	await _go("bloom", {"world": "jade_bamboo_valley"})
+	await _wait(0.8)
+	await _shot("19_bloom_jade")
+	await _go("collection")
+	for sc in Router.current_screen().find_children("*", "ScrollContainer", true, false):
+		(sc as ScrollContainer).scroll_vertical = 100000
+	await _wait(0.3)
+	await _shot("20_collection_backs")
 
 
 func _economy_tour() -> void:

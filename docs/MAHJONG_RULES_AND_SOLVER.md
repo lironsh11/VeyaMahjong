@@ -213,6 +213,7 @@ themselves. Real Mahjong Solitaire distributes faces randomly.
 |---|---|---|
 | 1-3 | Supplied pack levels, unchanged (gentle follow-ups to the tutorial) | — |
 | 4-50 | The pack's own 47 shapes, each used once, with **re-scattered faces**; ordered by composite score | `tools/build_early_levels.gd` (`levels-4-50-v1`): 24 validated variants per shape (pairing spread 0.6/0.3/0.0), one chosen per shape to spread from level 3's difficulty upward |
+| 151-300 | Generated dense boards, harder through traps (96-144 tiles, 4-6 layers, less ground, twins far apart), continuing from level 150 | `tools/build_levels.gd -- --range=151-300` (`levels-151-300-v1`): 3,000 candidates → 2,222 validated → 150 selected; dead-end target p98, score target p99, score weight 0.6 (the dead-end rate is already 0.88 at level 150). See `docs/reports/levels_151_300.md` |
 | 51-150 | Generated boards (procedural shapes + pack shapes with new faces, each pack shape at most once) | `tools/build_levels.gd` (`levels-51-150-v5`): 2,400 candidates → 959 validated → 100 selected |
 
 Selection for 51-150 ramps **two axes together** from where level 50 ends: the random-play
@@ -221,9 +222,9 @@ score is secondary (weight 0.35). Ramping the composite score alone had placed s
 boards right after big-but-forgiving ones, so the dead-end rate jumped from ~0.13 to ~0.6 at
 level 51. The final order uses the stored `metrics.progression` value.
 
-Every board in 4-150 has its witness replayed legally and is independently solved. Each file
+Every board in 4-300 has its witness replayed legally and is independently solved. Each file
 stores seed, generator version, build id and metrics, and is committed data, so boards never
-change at runtime. `LevelCatalog` merges the three sources for the game, tests and tools.
+change at runtime. `LevelCatalog` merges the four sources for the game, tests and tools.
 Both tools are deterministic.
 
 Result (validator, 2026-10-18):
@@ -239,7 +240,7 @@ Result (validator, 2026-10-18):
 Tests enforce: levels 1-3 byte-identical to the pack; levels 4-50 use exactly the pack
 geometries (each once); mirrored twins under 40% per level and under 15% on average (pack: 74%);
 4-50 scores monotonic with steps ≤ 5; 51-150 progression monotonic; the 7-level moving average
-of the dead-end rate changes ≤ 0.08 per level across 4-150 (no cliff at 50/51); each world is
+of the dead-end rate changes ≤ 0.08 per level across 4-300 (no cliff at 50/51 or 150/151); each world is
 harder than the previous one on both axes; stored metrics reproduce exactly.
 
 *(The validator's table uses 24 playouts, seed 7; the stored build metrics use 32 playouts,
@@ -276,7 +277,7 @@ AND height, with big tiles.
 - Upper layers sit only where they are fully supported (`_fully_supported`, quarter-footprint
   test). A layer may be shifted by half a tile in x and/or y (the brick look).
 
-**Gates.** Levels 4-150 (`tools/build_early_levels.gd`, `tools/build_levels.gd`) and the daily
+**Gates.** Levels 4-300 (`tools/build_early_levels.gd`, `tools/build_levels.gd`) and the daily
 (`daily-4`) accept a board only if it covers ≥ 88% of the area's width and height with tiles
 ≥ 84 px.
 - `test_boards_fill_the_screen` and `test_daily_boards_fill_the_screen` enforce this at
@@ -289,3 +290,4 @@ AND height, with big tiles.
 | 1-3 (pack) | 4-6 | 91-112 | not gated |
 | 4-50 | 5-6 | 92-112 | 0.99-1.00 / 0.92-1.00 |
 | 51-150 | 5-6 | ≥ 84 (see `docs/reports/levels_051_150.md`) | ≥ 0.88 / ≥ 0.88 |
+| 151-300 | 5-6 | ≥ 84 (see `docs/reports/levels_151_300.md`) | ≥ 0.88 / ≥ 0.88 |

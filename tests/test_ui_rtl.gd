@@ -107,6 +107,33 @@ func _board_for(positions: Array) -> BoardView:
 	return board
 
 
+func test_deal_flip_shows_the_back_and_never_sticks() -> void:
+	var prev_rm: Variant = GameState.setting("reduced_motion")
+	GameState.data.settings["reduced_motion"] = false
+	var board := _board_for([Vector3i(0, 0, 0), Vector3i(2, 0, 0), Vector3i(4, 0, 0), Vector3i(6, 0, 0)])
+	board.play_deal(ContentService.tile_back_texture("jade_bamboo_valley"))
+	for tv in board.tiles:
+		check(tv._back_rect != null, "tile %d starts on its back" % tv.index)
+	# A tile touched mid-deal (selected, matched, hinted...) shows its face at once.
+	board.tiles[0].set_selected(true, false)
+	check(board.tiles[0]._back_rect == null, "a selected tile drops its back")
+	check_eq(board.tiles[0].scale, Vector2.ONE)
+	board.queue_free()
+	# Held under the level-start dialog: backs show, nothing flips until released.
+	board = _board_for([Vector3i(0, 0, 0), Vector3i(2, 0, 0)])
+	board.play_deal(ContentService.tile_back_texture("jade_bamboo_valley"), true)
+	check(board.tiles[1]._back_rect != null and board.tiles[1]._tw == null, "held deal waits face-down")
+	board.release_deal()
+	check(board.tiles[1]._tw != null and board.tiles[1]._tw.is_valid(), "released deal flips")
+	board.queue_free()
+	GameState.data.settings["reduced_motion"] = true
+	board = _board_for([Vector3i(0, 0, 0), Vector3i(2, 0, 0)])
+	board.play_deal(ContentService.tile_back_texture("jade_bamboo_valley"))
+	check(board.tiles[0]._back_rect == null, "reduced motion: no deal flip")
+	board.queue_free()
+	GameState.data.settings["reduced_motion"] = prev_rm
+
+
 func test_higher_tile_does_not_look_like_it_covers_the_row_above() -> void:
 	# Owner's case (2026-10-20): a free tile, and one row below it a second-layer tile resting on
 	# two tiles. The second-layer tile may overlap it only as much as any lower row does.
@@ -128,7 +155,7 @@ func test_higher_tile_does_not_look_like_it_covers_the_row_above() -> void:
 
 func test_draw_order_keeps_covered_tiles_behind() -> void:
 	# Every tile is drawn after every tile it covers, on real shipped boards.
-	for id in [1, 13, 40, 150]:
+	for id in [1, 13, 40, 150, 151, 300]:
 		var geo := ContentService.get_level(id).build_state().geo
 		var order := geo.draw_order()
 		var at := PackedInt32Array()

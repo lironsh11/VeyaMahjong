@@ -36,15 +36,10 @@ func build() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	safe.add_child(root)
 	root.add_child(UIKit.header(t("veya_bloom"), func() -> void: Router.back(), true))
-	var tabs := UIKit.hbox(6)
-	for w in ContentService.worlds:
-		var wid := str(w.id)
-		var b := UIKit.tab_button(t(ContentService.world_name_key(wid)), wid == _world_id, func() -> void:
-			_world_id = wid
-			AudioService.play_world_music(wid)
-			_rebuild())
-		tabs.add_child(b)
-	root.add_child(tabs)
+	root.add_child(UIKit.world_tabs(_world_id, func(wid: String) -> void:
+		_world_id = wid
+		AudioService.play_world_music(wid)
+		_rebuild()))
 	var info := UIKit.panel("CardFlat")
 	var iv := UIKit.vbox(4)
 	info.add_child(iv)

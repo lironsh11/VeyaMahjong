@@ -9,15 +9,20 @@ extends RefCounted
 ##                   opposite their identical twin, so boards largely solved themselves.
 ##   levels 51-150 : generated, validated boards ordered by measured difficulty
 ##                   (data/levels/levels_051_150_generated.json, tools/build_levels.gd)
+##   levels 151-300: the same pipeline, harder through traps, continuing from level 150
+##                   (data/levels/levels_151_300_generated.json, build_levels.gd --range=151-300)
 ## Used by ContentService, the tests and the content validator so they can never disagree.
-## Missing or malformed generated files fall back to the pack's own levels (reported).
+## Missing or malformed files for 4-150 fall back to the pack's own levels (reported). The pack
+## has no levels past 150, so a missing 151-300 file ends the journey at 150 (reported).
 
 const PACK_PATH := "res://data/levels/levels_001_150_verified.json"
 const EARLY_PATH := "res://data/levels/levels_004_050_regenerated.json"
 const GENERATED_PATH := "res://data/levels/levels_051_150_generated.json"
+const LATE_PATH := "res://data/levels/levels_151_300_generated.json"
 const PACK_LEVELS_KEPT := 3
 const EARLY_LAST := 50
-const TOTAL := 150
+const PACK_TOTAL := 150
+const TOTAL := 300
 
 
 static func _load_range(path: String, first_id: int, last_id: int) -> Array:
@@ -35,7 +40,7 @@ static func _load_range(path: String, first_id: int, last_id: int) -> Array:
 
 static func load_merged(errors: PackedStringArray = PackedStringArray()) -> Array:
 	var pack: Variant = JSON.parse_string(FileAccess.get_file_as_string(PACK_PATH)) if FileAccess.file_exists(PACK_PATH) else null
-	if typeof(pack) != TYPE_ARRAY or (pack as Array).size() != TOTAL:
+	if typeof(pack) != TYPE_ARRAY or (pack as Array).size() != PACK_TOTAL:
 		errors.append("pack levels missing or invalid")
 		return []
 	var out: Array = []
@@ -46,11 +51,15 @@ static func load_merged(errors: PackedStringArray = PackedStringArray()) -> Arra
 		errors.append("re-scattered levels 4-50 missing or invalid; using pack levels 4-50")
 		early = (pack as Array).slice(PACK_LEVELS_KEPT, EARLY_LAST).map(identical_pairs)
 	out.append_array(early)
-	var later := _load_range(GENERATED_PATH, EARLY_LAST + 1, TOTAL)
+	var later := _load_range(GENERATED_PATH, EARLY_LAST + 1, PACK_TOTAL)
 	if later.is_empty():
 		errors.append("generated levels 51-150 missing or invalid; using pack levels 51-150")
-		later = (pack as Array).slice(EARLY_LAST, TOTAL).map(identical_pairs)
+		later = (pack as Array).slice(EARLY_LAST, PACK_TOTAL).map(identical_pairs)
 	out.append_array(later)
+	var late := _load_range(LATE_PATH, PACK_TOTAL + 1, TOTAL)
+	if late.is_empty():
+		errors.append("generated levels 151-300 missing or invalid; the journey ends at 150")
+	out.append_array(late)
 	return out
 
 

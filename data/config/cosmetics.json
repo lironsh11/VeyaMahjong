@@ -6,5 +6,11 @@
     {"id": "sakura", "name_key": "theme_sakura", "unlock": {"type": "lights", "value": 10}, "entitlement": "theme_bundle"},
     {"id": "ocean", "name_key": "theme_ocean", "unlock": {"type": "level", "value": 50}, "entitlement": "theme_bundle"},
     {"id": "nocturne", "name_key": "theme_nocturne", "unlock": {"type": "level", "value": 100}, "entitlement": "theme_bundle"}
+  ],
+  "_comment_tile_backs": "Tile backs: one per \"Three New Worlds\" world, unlocked by completing that world's last level. The id is the world id (save key, never changes). The equipped back shows as tiles flip face-up when a new board is dealt.",
+  "tile_backs": [
+    {"id": "jade_bamboo_valley"},
+    {"id": "sunset_lotus_palace"},
+    {"id": "frostlight_village"}
   ]
 }

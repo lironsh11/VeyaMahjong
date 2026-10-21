@@ -43,8 +43,20 @@
     "crystal_nocturne": [
       "music/crystal_nocturne_a.ogg",
       "music/crystal_nocturne_b.ogg"
+    ],
+    "jade_bamboo_valley": [
+      "music/aurora_garden_a.ogg",
+      "music/aurora_garden_b.ogg"
+    ],
+    "sunset_lotus_palace": [
+      "music/pearl_coast_a.ogg",
+      "music/pearl_coast_b.ogg"
+    ],
+    "frostlight_village": [
+      "music/crystal_nocturne_a.ogg",
+      "music/crystal_nocturne_b.ogg"
     ]
   },
-  "key": "D major pentatonic (D E F# A B) for all tonal effects; music: Aurora Garden D major/B minor, Pearl Coast G major/E minor, Crystal Nocturne B minor/D major",
+  "key": "D major pentatonic (D E F# A B) for all tonal effects; music: Aurora Garden D major/B minor, Pearl Coast G major/E minor, Crystal Nocturne B minor/D major. The three newer worlds reuse them (Jade Bamboo Valley = Aurora Garden, Sunset Lotus Palace = Pearl Coast, Frostlight Village = Crystal Nocturne) until they get their own music.",
   "audio_origins": "Original audio synthesized by tools/audio/make_audio.mjs (no samples, no third-party material). Replaces the asset pack audio (kept unchanged in VeyaMahjong_AssetPack_v1/audio)."
 }

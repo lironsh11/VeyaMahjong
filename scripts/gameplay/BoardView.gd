@@ -25,6 +25,7 @@ const MAX_TILE_W := BoardFit.MAX_TILE_W
 const LARGE_TILE_MIN_W := 66.0
 const TAP_SLOP := 14.0
 const HIT_GROW := 0.10
+const DEAL_WAVE_S := 0.35  ## the last tile starts flipping this long after the first
 
 var state: BoardState
 var theme_id: String = "classic"
@@ -38,6 +39,8 @@ var _layer: Control
 var _fx: Control
 var _pan: Vector2 = Vector2.ZERO
 var _content_size: Vector2 = Vector2.ZERO
+var _deal_back: Texture2D  ## set by play_deal() until the tiles exist to flip
+var _deal_held: bool = false  ## backs showing, waiting for release_deal()
 var _can_pan: bool = false
 var _press_pos: Vector2 = Vector2.ZERO
 var _pressing: bool = false
@@ -82,6 +85,41 @@ func setup(p_state: BoardState, p_theme: String) -> void:
 
 func _anim() -> bool:
 	return not AccessibilityService.reduced_motion()
+
+
+func play_deal(back_tex: Texture2D, hold: bool = false) -> void:
+	## The board starts face-down (the equipped tile back) and flips face-up in a quick wave;
+	## with `hold` it stays face-down until release_deal() (a dialog covers the board first).
+	## Purely visual: taps work throughout, and a touched tile simply shows its face at once.
+	if back_tex == null or not _anim():
+		return
+	_deal_back = back_tex
+	_deal_held = hold
+	if not tiles.is_empty() and tiles[0] != null and tiles[0].face_rect != null:
+		_start_deal()
+
+
+func release_deal() -> void:
+	if _deal_held:
+		_deal_held = false
+		if _deal_back == null:  # the backs are already showing
+			_flip_all()
+
+
+func _start_deal() -> void:
+	var back := _deal_back
+	_deal_back = null
+	for tv in tiles:
+		if not tv.gone:
+			tv.show_back(back)
+	if not _deal_held:
+		_flip_all()
+
+
+func _flip_all() -> void:
+	var n := maxi(1, _order.size() - 1)
+	for k in _order.size():
+		tiles[_order[k]].flip_to_face(DEAL_WAVE_S * float(k) / float(n))
 
 
 func _physical_scale() -> float:
@@ -138,7 +176,10 @@ func _relayout() -> void:
 		tv.gone = state.is_removed(i)
 		tv.modulate.a = 1.0
 		tv.scale = Vector2.ONE
+		tv.fit_back()
 	refresh_free()
+	if _deal_back != null:
+		_start_deal()
 
 
 func tile_pos(i: int, origin: Vector2, sprite: Vector2) -> Vector2:

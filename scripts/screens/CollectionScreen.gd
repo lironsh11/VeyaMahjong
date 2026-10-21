@@ -1,5 +1,6 @@
 extends Screen
-## Tile theme gallery with real tile previews and Locked / Unlocked / Equipped states.
+## Tile theme gallery with real tile previews and Locked / Unlocked / Equipped states, plus
+## the tile backs earned by finishing the newer worlds.
 ## Equipping applies immediately (next board render) and persists across launches.
 
 const PREVIEW_FACES := ["dragon_red", "circle_5", "bamboo_1", "flower_plum"]
@@ -18,6 +19,12 @@ func build() -> void:
 	var equipped := ProgressionService.equipped_theme()
 	for th in ContentService.themes():
 		list.add_child(_theme_card(str(th.id), equipped))
+	# Tile backs (one per newer world, earned by finishing it)
+	if not ContentService.tile_backs().is_empty():
+		list.add_child(UIKit.label(t("tile_backs"), UITheme.FONT_H2, true, null, HORIZONTAL_ALIGNMENT_CENTER))
+		var eq_back := ProgressionService.equipped_back()
+		for b in ContentService.tile_backs():
+			list.add_child(_back_card(str(b.id), eq_back))
 	# Bloom summary (the other collectible)
 	var p := UIKit.panel("CardFlat")
 	var h := UIKit.hbox(10)
@@ -67,4 +74,45 @@ func _theme_card(theme_id: String, equipped: String) -> Control:
 				_rebuild()))
 	else:
 		v.add_child(UIKit.label(ProgressionService.theme_unlock_hint(theme_id), UITheme.FONT_SMALL, false, UITheme.text_soft(), HORIZONTAL_ALIGNMENT_CENTER))
+	return p
+
+
+func _back_card(back_id: String, equipped: String) -> Control:
+	## A tile back shows while a new board flips face-up; it never changes how tiles match.
+	var unlocked := ProgressionService.is_back_unlocked(back_id)
+	var is_eq := back_id == equipped
+	var world_name := t(ContentService.world_name_key(back_id))
+	var p := UIKit.panel("CollectionCard")
+	var h := UIKit.hbox(12)
+	p.add_child(h)
+	var img := UIKit.texrect(ContentService.tile_back_texture(back_id), Vector2(64, 80))
+	if not unlocked:
+		img.modulate = Color(1, 1, 1, 0.55)
+	h.add_child(img)
+	var v := UIKit.vbox(6)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(v)
+	var top := UIKit.hbox(8)
+	var name_l := UIKit.label(t("tile_back_name", {"world": world_name}), UITheme.FONT_BODY, true)
+	name_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top.add_child(name_l)
+	if is_eq:
+		top.add_child(UIKit.chip(t("equipped"), "ChipEmerald"))
+	elif unlocked:
+		top.add_child(UIKit.chip(t("unlocked"), "BadgeGreen"))
+	else:
+		top.add_child(UIKit.chip(t("locked"), "ChipCream"))
+	v.add_child(top)
+	if is_eq:
+		v.add_child(UIKit.button(t("unequip_back"), "cream", "small", func() -> void:
+			if ProgressionService.equip_back(""):
+				_rebuild()))
+	elif unlocked:
+		v.add_child(UIKit.button(t("equip_back"), "green", "small", func() -> void:
+			if ProgressionService.equip_back(back_id):
+				AudioService.play("reward")
+				Router.toast(t("tile_back_equipped", {"world": world_name}))
+				_rebuild()))
+	else:
+		v.add_child(UIKit.label(t("unlock_back_by_world", {"world": world_name}), UITheme.FONT_SMALL, false, UITheme.text_soft()))
 	return p

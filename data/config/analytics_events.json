@@ -18,6 +18,7 @@
     "daily_completed": {"date": "str", "first_time": "bool"},
     "bloom_item_unlocked": {"item": "str", "lights": "int"},
     "cosmetic_equipped": {"theme": "str"},
+    "tile_back_equipped": {"back": "str"},
     "rewarded_ad_offered": {"placement": "str"},
     "rewarded_ad_completed": {"placement": "str"},
     "iap_attempted": {"product": "str"},

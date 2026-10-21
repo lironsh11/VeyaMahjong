@@ -1,5 +1,5 @@
 {
-  "_comment": "LiShi Bloom discoveries. One discovery unlocks every lights_per_discovery LiShi Lights, in this order across worlds. Positions are normalized (0..1) on the 1080x1920 world background (anchor = sprite bottom-centre) and kept between y 0.40 and 0.86 so they stay clear of the header card and bottom bar on 16:9-20:9 phones. \"art\" names a LiShi v2 prop (art/lishi_v2/props/); discoveries without it use the legacy decoration named by \"sprite\" (Pearl Coast, and objects the v2 pack does not cover yet). \"sprite\" also keys the localized name and story, so it never changes.",
+  "_comment": "LiShi Bloom discoveries. One discovery unlocks every lights_per_discovery LiShi Lights, in this order across worlds. Positions are normalized (0..1) on the 1080x1920 world background (anchor = sprite bottom-centre) and kept between y 0.40 and 0.86 so they stay clear of the header card and bottom bar on 16:9-20:9 phones. \"art\" names a LiShi v2 prop (art/lishi_v2/props/); discoveries without it use the legacy decoration named by \"sprite\" (Pearl Coast, and objects the v2 pack does not cover yet). \"world_art\" names a prop of a \"Three New Worlds\" pack world (art/lishi_worlds/<world>/props/). \"sprite\" also keys the localized name and story, so it never changes.",
   "lights_per_discovery": 5,
   "worlds": [
     {
@@ -299,6 +299,321 @@
             0.62
           ],
           "size": 0.2
+        }
+      ]
+    },
+    {
+      "world": "jade_bamboo_valley",
+      "discoveries": [
+        {
+          "id": "jb_bamboo",
+          "sprite": "bamboo",
+          "world_art": "bamboo",
+          "pos": [
+            0.2,
+            0.5
+          ],
+          "size": 0.2
+        },
+        {
+          "id": "jb_koi",
+          "sprite": "koi",
+          "world_art": "koi",
+          "pos": [
+            0.52,
+            0.5
+          ],
+          "size": 0.15
+        },
+        {
+          "id": "jb_lotus",
+          "sprite": "lotus",
+          "world_art": "lotus",
+          "pos": [
+            0.82,
+            0.5
+          ],
+          "size": 0.15
+        },
+        {
+          "id": "jb_bridge",
+          "sprite": "bridge",
+          "world_art": "bridge",
+          "pos": [
+            0.36,
+            0.62
+          ],
+          "size": 0.19
+        },
+        {
+          "id": "jb_stone_lantern",
+          "sprite": "stone_lantern",
+          "world_art": "stone_lantern",
+          "pos": [
+            0.68,
+            0.62
+          ],
+          "size": 0.14
+        },
+        {
+          "id": "jb_pagoda",
+          "sprite": "pagoda",
+          "world_art": "pagoda",
+          "pos": [
+            0.16,
+            0.74
+          ],
+          "size": 0.18
+        },
+        {
+          "id": "jb_reeds",
+          "sprite": "reeds",
+          "world_art": "reeds",
+          "pos": [
+            0.5,
+            0.74
+          ],
+          "size": 0.15
+        },
+        {
+          "id": "jb_rocks",
+          "sprite": "rocks",
+          "world_art": "rocks",
+          "pos": [
+            0.84,
+            0.74
+          ],
+          "size": 0.14
+        },
+        {
+          "id": "jb_lantern",
+          "sprite": "lantern",
+          "world_art": "lantern",
+          "pos": [
+            0.34,
+            0.86
+          ],
+          "size": 0.13
+        },
+        {
+          "id": "jb_chest",
+          "sprite": "chest",
+          "world_art": "chest",
+          "pos": [
+            0.68,
+            0.86
+          ],
+          "size": 0.15
+        }
+      ]
+    },
+    {
+      "world": "sunset_lotus_palace",
+      "discoveries": [
+        {
+          "id": "sl_lotus",
+          "sprite": "lotus",
+          "world_art": "lotus",
+          "pos": [
+            0.2,
+            0.5
+          ],
+          "size": 0.16
+        },
+        {
+          "id": "sl_maple_leaves",
+          "sprite": "maple_leaves",
+          "world_art": "maple",
+          "pos": [
+            0.52,
+            0.5
+          ],
+          "size": 0.19
+        },
+        {
+          "id": "sl_fan",
+          "sprite": "fan",
+          "world_art": "fan",
+          "pos": [
+            0.82,
+            0.5
+          ],
+          "size": 0.15
+        },
+        {
+          "id": "sl_pagoda",
+          "sprite": "pagoda",
+          "world_art": "pagoda",
+          "pos": [
+            0.36,
+            0.62
+          ],
+          "size": 0.18
+        },
+        {
+          "id": "sl_lantern",
+          "sprite": "lantern",
+          "world_art": "lantern",
+          "pos": [
+            0.68,
+            0.62
+          ],
+          "size": 0.13
+        },
+        {
+          "id": "sl_koi",
+          "sprite": "koi",
+          "world_art": "koi",
+          "pos": [
+            0.16,
+            0.74
+          ],
+          "size": 0.15
+        },
+        {
+          "id": "sl_bridge",
+          "sprite": "bridge",
+          "world_art": "bridge",
+          "pos": [
+            0.5,
+            0.74
+          ],
+          "size": 0.19
+        },
+        {
+          "id": "sl_flower",
+          "sprite": "flower",
+          "world_art": "flower",
+          "pos": [
+            0.84,
+            0.74
+          ],
+          "size": 0.15
+        },
+        {
+          "id": "sl_gem",
+          "sprite": "gem",
+          "world_art": "gem",
+          "pos": [
+            0.34,
+            0.86
+          ],
+          "size": 0.13
+        },
+        {
+          "id": "sl_signboard",
+          "sprite": "signboard",
+          "world_art": "signboard",
+          "pos": [
+            0.68,
+            0.86
+          ],
+          "size": 0.15
+        }
+      ]
+    },
+    {
+      "world": "frostlight_village",
+      "discoveries": [
+        {
+          "id": "fv_snow_house",
+          "sprite": "snow_house",
+          "world_art": "snow_house",
+          "pos": [
+            0.2,
+            0.5
+          ],
+          "size": 0.19
+        },
+        {
+          "id": "fv_snow_tree",
+          "sprite": "snow_tree",
+          "world_art": "snow_tree",
+          "pos": [
+            0.52,
+            0.5
+          ],
+          "size": 0.2
+        },
+        {
+          "id": "fv_snowflake",
+          "sprite": "snowflake",
+          "world_art": "snowflake",
+          "pos": [
+            0.82,
+            0.5
+          ],
+          "size": 0.13
+        },
+        {
+          "id": "fv_stone_lantern",
+          "sprite": "stone_lantern",
+          "world_art": "stone_lantern",
+          "pos": [
+            0.36,
+            0.62
+          ],
+          "size": 0.14
+        },
+        {
+          "id": "fv_bridge",
+          "sprite": "bridge",
+          "world_art": "bridge",
+          "pos": [
+            0.68,
+            0.62
+          ],
+          "size": 0.19
+        },
+        {
+          "id": "fv_lantern",
+          "sprite": "lantern",
+          "world_art": "lantern",
+          "pos": [
+            0.16,
+            0.74
+          ],
+          "size": 0.13
+        },
+        {
+          "id": "fv_pagoda",
+          "sprite": "pagoda",
+          "world_art": "pagoda",
+          "pos": [
+            0.5,
+            0.74
+          ],
+          "size": 0.18
+        },
+        {
+          "id": "fv_cloud",
+          "sprite": "cloud",
+          "world_art": "cloud",
+          "pos": [
+            0.84,
+            0.74
+          ],
+          "size": 0.15
+        },
+        {
+          "id": "fv_rocks",
+          "sprite": "rocks",
+          "world_art": "rocks",
+          "pos": [
+            0.34,
+            0.86
+          ],
+          "size": 0.14
+        },
+        {
+          "id": "fv_chest",
+          "sprite": "chest",
+          "world_art": "chest",
+          "pos": [
+            0.68,
+            0.86
+          ],
+          "size": 0.15
         }
       ]
     }

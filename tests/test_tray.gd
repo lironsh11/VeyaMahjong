@@ -232,7 +232,7 @@ func test_shuffle_with_tray_is_solvable() -> void:
 
 
 func test_every_shipped_witness_is_a_tray_witness() -> void:
-	check_eq(ContentService.level_count(), 150)
+	check_eq(ContentService.level_count(), LevelCatalog.TOTAL)
 	for id in range(1, ContentService.level_count() + 1):
 		var L := ContentService.get_level(id)
 		var picks := TraySolver.flatten(L.solution)

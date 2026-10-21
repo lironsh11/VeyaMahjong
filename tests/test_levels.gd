@@ -1,7 +1,7 @@
 extends TestCase
 ## Content validation for the shipped journey:
 ##   1-3 supplied pack levels (unchanged), 4-50 pack shapes with re-scattered faces,
-##   51-150 generated boards. 4-150 are ordered by measured difficulty.
+##   51-150 and 151-300 generated boards. 4-150 and 151-300 are ordered by measured difficulty.
 
 const MAX_SCORE_STEP := 5.0
 const MAX_TRICKINESS_STEP := 0.08   ## moving-average (window 7) dead-end rate change per level
@@ -11,11 +11,11 @@ func _merged() -> Array:
 	return LevelCatalog.load_merged()
 
 
-func test_all_150_shipped_levels_valid() -> void:
+func test_all_shipped_levels_valid() -> void:
 	var errs := PackedStringArray()
 	var raw := LevelCatalog.load_merged(errs)
 	check(errs.is_empty(), "catalog loads without fallback: %s" % [errs])
-	check_eq(raw.size(), 150, "150 levels")
+	check_eq(raw.size(), LevelCatalog.TOTAL, "%d levels" % LevelCatalog.TOTAL)
 	var bad := 0
 	for i in raw.size():
 		var L := LevelDefinition.from_dict(raw[i])
@@ -54,7 +54,7 @@ func test_every_pair_is_identical() -> void:
 			check(counts[f] % 2 == 0, "level %d face %s appears %d times" % [d.id, f, counts[f]])
 
 
-func test_levels_4_150_use_dense_layouts() -> void:
+func test_levels_after_3_use_dense_layouts() -> void:
 	# Since 2026-10-19 every level after the 3 pack levels is a dense, screen-filling board.
 	var merged := _merged()
 	for i in range(3, merged.size()):
@@ -85,7 +85,7 @@ func test_boards_fill_the_screen() -> void:
 		check(fr.x >= 0.88 and fr.y >= 0.88, "level %d fills only %.0f%% x %.0f%% of the screen" % [d.id, fr.x * 100, fr.y * 100])
 		worst = minf(worst, fit)
 		worst_fill = minf(worst_fill, minf(fr.x, fr.y))
-	print("  levels 4-150: smallest tile %.1f px, least fill %.0f%%" % [worst, worst_fill * 100])
+	print("  levels 4-%d: smallest tile %.1f px, least fill %.0f%%" % [merged.size(), worst, worst_fill * 100])
 
 
 func test_daily_boards_fill_the_screen() -> void:
@@ -122,19 +122,20 @@ func _mirror_rate(L: LevelDefinition) -> float:
 
 
 func test_no_mirrored_twin_pattern() -> void:
-	# The pack placed ~74% of tiles opposite their identical twin. Shipped levels 4-150 must not.
+	# The pack placed ~74% of tiles opposite their identical twin. Shipped levels 4+ must not.
 	var merged := _merged()
 	var total := 0.0
-	for i in range(3, 150):
+	for i in range(3, merged.size()):
 		var r := _mirror_rate(LevelDefinition.from_dict(merged[i]))
 		total += r
 		check(r < 0.4, "level %d mirrored twins %.0f%%" % [i + 1, r * 100.0])
-	check(total / 147.0 < 0.15, "average mirrored twins %.0f%%" % (total / 147.0 * 100.0))
+	var n := float(merged.size() - 3)
+	check(total / n < 0.15, "average mirrored twins %.0f%%" % (total / n * 100.0))
 
 
 func test_generated_levels_metadata() -> void:
 	var merged := _merged()
-	for i in range(3, 150):
+	for i in range(3, merged.size()):
 		var d: Dictionary = merged[i]
 		check_eq(str(d.get("unit")), "half", "level %d half units" % d.id)
 		check(str(d.get("generator_version", "")) == BoardGenerator.VERSION, "level %d generator version" % d.id)
@@ -144,6 +145,8 @@ func test_generated_levels_metadata() -> void:
 		check(tc % 2 == 0 and tc <= 144, "level %d tile count %d" % [d.id, tc])
 		if i >= 50:
 			check(tc >= 56, "level %d at least 56 tiles" % d.id)
+		if i >= 150:
+			check(tc >= 96, "level %d at least 96 tiles" % d.id)
 
 
 func test_levels_4_50_ordered_and_smooth() -> void:
@@ -159,20 +162,23 @@ func test_levels_4_50_ordered_and_smooth() -> void:
 	check(max_step <= MAX_SCORE_STEP, "no sudden spikes in 4-50 (max step %.1f)" % max_step)
 
 
-func test_levels_51_150_ordered() -> void:
+func test_generated_ranges_ordered() -> void:
+	# 51-150 and 151-300 are separate builds, each ordered by its own progression value.
 	var merged := _merged()
-	var prev := -INF
-	for i in range(50, 150):
-		var p := float(merged[i].metrics.progression)
-		check(p >= prev, "level %d progression not below previous" % merged[i].id)
-		prev = p
+	for r in [[50, 150], [150, merged.size()]]:
+		var prev := -INF
+		for i in range(r[0], r[1]):
+			var p := float(merged[i].metrics.progression)
+			check(p >= prev, "level %d progression not below previous" % merged[i].id)
+			prev = p
 
 
 func test_trickiness_has_no_cliff() -> void:
-	# What players feel as getting stuck must ramp smoothly across 4-150, incl. the 50/51 boundary.
+	# What players feel as getting stuck must ramp smoothly across 4-300, incl. the 50/51 and
+	# 150/151 boundaries.
 	var merged := _merged()
 	var dr: Array = []
-	for i in range(3, 150):
+	for i in range(3, merged.size()):
 		dr.append(float(merged[i].metrics.dead_end_rate))
 	var ma: Array = []
 	for i in dr.size():
@@ -193,17 +199,20 @@ func test_worlds_get_progressively_harder() -> void:
 		for i in range(a - 1, b):
 			t += float(merged[i].metrics[key])
 		return t / float(b - a + 1)
+	# Aurora Garden is compared from level 21 (its first levels are the gentle introduction).
+	var ranges := [[21, 50]]
+	for w in ContentService.worlds.slice(1):
+		ranges.append([int(w.levels[0]), int(w.levels[1])])
 	for key in ["dead_end_rate", "score"]:
-		var w1: float = avg.call(21, 50, key)
-		var w2: float = avg.call(51, 100, key)
-		var w3: float = avg.call(101, 150, key)
-		check(w2 > w1, "%s: Pearl Coast (%.2f) above levels 21-50 (%.2f)" % [key, w2, w1])
-		check(w3 > w2, "%s: Crystal Nocturne (%.2f) above Pearl Coast (%.2f)" % [key, w3, w2])
+		for k in range(1, ranges.size()):
+			var lo: float = avg.call(ranges[k - 1][0], ranges[k - 1][1], key)
+			var hi: float = avg.call(ranges[k][0], ranges[k][1], key)
+			check(hi > lo, "%s: levels %d-%d (%.2f) above %d-%d (%.2f)" % [key, ranges[k][0], ranges[k][1], hi, ranges[k - 1][0], ranges[k - 1][1], lo])
 
 
 func test_stored_metrics_reproduce() -> void:
 	var merged := _merged()
-	for id in [4, 30, 51, 120, 150]:
+	for id in [4, 30, 51, 120, 150, 151, 220, 300]:
 		var d: Dictionary = merged[id - 1]
 		var L := LevelDefinition.from_dict(d, str(d.analysis_key))
 		var an := DifficultyAnalyzer.analyze(L, 32, 11)
@@ -234,7 +243,7 @@ func test_level_worlds_match_world_ranges() -> void:
 
 func test_no_repeated_layout_back_to_back() -> void:
 	var merged := _merged()
-	for i in range(4, 150):
+	for i in range(4, merged.size()):
 		check(str(merged[i].layout_id) != str(merged[i - 1].layout_id) or str(merged[i].layout_id).begins_with("proc:"), "levels %d/%d differ in layout" % [i, i + 1])
 
 

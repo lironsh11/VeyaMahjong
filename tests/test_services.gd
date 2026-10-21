@@ -136,6 +136,40 @@ func test_world_unlock_reported_once() -> void:
 	check_eq(ProgressionService.complete_level(50, {}).world_unlocked, "", "not reported again")
 
 
+func test_level_150_opens_the_newer_worlds() -> void:
+	_reset()
+	for id in range(1, 150):
+		GameState.data.progress.completed[str(id)] = {"t": 0}
+	check_eq(ProgressionService.complete_level(150, {}).world_unlocked, "jade_bamboo_valley")
+	check(GameState.is_level_unlocked(151))
+	check(ContentService.get_level(151) != null and ContentService.get_level(300) != null, "levels 151-300 load")
+	check_eq(str(ContentService.world_for_level(300).id), "frostlight_village")
+	check(EconomyService.level_reward(300) > 0, "levels 151-300 pay first-clear coins")
+
+
+func test_tile_back_earned_by_finishing_its_world() -> void:
+	_reset()
+	check_eq(ProgressionService.equipped_back(), "", "no back by default")
+	check(not ProgressionService.equip_back("jade_bamboo_valley"), "locked back cannot be equipped")
+	for id in range(1, 200):
+		GameState.data.progress.completed[str(id)] = {"t": 0}
+	var r := ProgressionService.complete_level(200, {})
+	check_eq(r.backs, ["jade_bamboo_valley"], "finishing Jade Bamboo Valley earns its back")
+	check_eq(r.world_unlocked, "sunset_lotus_palace")
+	check_eq(ProgressionService.complete_level(200, {}).backs, [], "not reported again")
+	check(not ProgressionService.is_back_unlocked("sunset_lotus_palace"))
+	check(ProgressionService.equip_back("jade_bamboo_valley"))
+	check(SaveService.write(GameState.data))
+	GameState.data = GameState.migrate(SaveService.read().payload)
+	check_eq(ProgressionService.equipped_back(), "jade_bamboo_valley", "equipped back persists")
+	check(ProgressionService.equip_back(""), "back can be taken off")
+	check_eq(ProgressionService.equipped_back(), "")
+	# An old save without the key still loads with no back.
+	var old := GameState.defaults()
+	old.cosmetics.erase("equipped_back")
+	check_eq(str(GameState.migrate(old).cosmetics.equipped_back), "")
+
+
 # --- daily ---------------------------------------------------------------------------
 
 func test_daily_dates_and_archive() -> void:

@@ -37,5 +37,41 @@
     "map": "backgrounds/maps/crystal_nocturne_map_1080x1920.png",
     "music": "audio/music/crystal_nocturne_loop.ogg",
     "default_tile_theme": "nocturne"
+  },
+  {
+    "id": "jade_bamboo_valley",
+    "name": "Jade Bamboo Valley",
+    "chapter": 4,
+    "levels": [
+      151,
+      200
+    ],
+    "bg": "res://art/lishi_worlds/jade_bamboo_valley/backgrounds/world_background_1440x2560.jpg",
+    "map": "res://art/lishi_worlds/jade_bamboo_valley/backgrounds/world_background_1440x2560.jpg",
+    "default_tile_theme": "classic"
+  },
+  {
+    "id": "sunset_lotus_palace",
+    "name": "Sunset Lotus Palace",
+    "chapter": 5,
+    "levels": [
+      201,
+      250
+    ],
+    "bg": "res://art/lishi_worlds/sunset_lotus_palace/backgrounds/world_background_1440x2560.jpg",
+    "map": "res://art/lishi_worlds/sunset_lotus_palace/backgrounds/world_background_1440x2560.jpg",
+    "default_tile_theme": "classic"
+  },
+  {
+    "id": "frostlight_village",
+    "name": "Frostlight Village",
+    "chapter": 6,
+    "levels": [
+      251,
+      300
+    ],
+    "bg": "res://art/lishi_worlds/frostlight_village/backgrounds/world_background_1440x2560.jpg",
+    "map": "res://art/lishi_worlds/frostlight_village/backgrounds/world_background_1440x2560.jpg",
+    "default_tile_theme": "classic"
   }
 ]

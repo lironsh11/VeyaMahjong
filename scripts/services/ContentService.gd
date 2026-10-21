@@ -11,7 +11,14 @@ const COSMETICS_PATH := "res://data/config/cosmetics.json"
 const RULES_PATH := "res://data/levels/tile_match_rules.json"
 const ASSET_ROOT := "res://assets/veya/"   ## audio, effects and legacy art
 const ART_ROOT := "res://art/lishi_v2/"
-const WORLD_NAME_KEYS := {"aurora_garden": "world_aurora", "pearl_coast": "world_coast", "crystal_nocturne": "world_nocturne"}
+## "Three New Worlds" pack (tools/import_lishi_worlds.ps1): one folder per world with its own
+## backgrounds, UI and props, as the pack ships them.
+const WORLDS_ART_ROOT := "res://art/lishi_worlds/"
+const PACK_WORLDS := ["jade_bamboo_valley", "sunset_lotus_palace", "frostlight_village"]
+const WORLD_NAME_KEYS := {
+	"aurora_garden": "world_aurora", "pearl_coast": "world_coast", "crystal_nocturne": "world_nocturne",
+	"jade_bamboo_valley": "world_jade", "sunset_lotus_palace": "world_sunset", "frostlight_village": "world_frost",
+}
 ## Tile theme ids are save keys and never change; only the art each one shows does.
 const TILE_THEME_ART := {"classic": "sakura_premium", "sakura": "jade_garden", "ocean": "pearl_ocean", "nocturne": "moonlit_lilac"}
 ## Pearl Coast keeps its legacy illustration until the pack provides a matching one.
@@ -140,6 +147,19 @@ func theme_def(theme_id: String) -> Dictionary:
 	return {}
 
 
+func tile_backs() -> Array:
+	## [{id}], the id being the world whose completion unlocks it.
+	return cosmetics.get("tile_backs", [])
+
+
+func has_tile_back(back_id: String) -> bool:
+	return tile_backs().any(func(b: Dictionary) -> bool: return str(b.id) == back_id)
+
+
+func tile_back_texture(back_id: String) -> Texture2D:
+	return world_art(back_id, "ui/cosmetic_tile_back_256x320.png")
+
+
 # --- textures -----------------------------------------------------------------------
 
 func tex(rel_path: String) -> Texture2D:
@@ -167,11 +187,26 @@ func icon(name: String, white: bool = false) -> Texture2D:
 func world_bg(world_id: String, kind: String, low: bool) -> Texture2D:
 	## kind: "world" (full art), "gameplay" (pre-blurred board art), "map", "bloom" (the world
 	## art pre-blurred, so discoveries read as the sharp focal objects)
+	if PACK_WORLDS.has(world_id):
+		# The pack's gameplay backdrop is already subdued and defocused, so it serves Bloom too.
+		# Its map_background has a painted route of 12 round markers that read as level buttons
+		# behind the real level grid, so the map uses the world art instead.
+		var pack_kind: String = {"bloom": "gameplay", "map": "world"}.get(kind, kind)
+		return world_art(world_id, "backgrounds/%s_background_%s.jpg" % [pack_kind, "720x1280" if low else "1440x2560"])
 	var names: Dictionary = WORLD_BACKGROUNDS.get(world_id, WORLD_BACKGROUNDS.aurora_garden)
 	var file: String = names.get(kind, names.world)
 	if kind == "gameplay" or kind == "bloom":
 		return art("backgrounds/%s/%s.png" % ["soft_low" if low else "soft", file])
 	return art("backgrounds/%s/%s.png" % ["low" if low else "full", file])
+
+
+func world_art(world_id: String, rel_path: String) -> Texture2D:
+	## Texture from a world of the "Three New Worlds" pack, e.g. "ui/world_badge_512.png".
+	return tex(WORLDS_ART_ROOT + world_id + "/" + rel_path)
+
+
+func is_pack_world(world_id: String) -> bool:
+	return PACK_WORLDS.has(world_id)
 
 
 func screen_bg(screen: String, low: bool) -> Texture2D:
@@ -212,8 +247,10 @@ func tile_overlay(state: String, hi_res: bool) -> Texture2D:
 
 
 func discovery_texture(d: Dictionary, hi: bool) -> Texture2D:
-	## Bloom sprite: the pack prop named by "art", else the legacy decoration (Pearl Coast and
-	## objects the pack does not cover yet).
+	## Bloom sprite: a "Three New Worlds" prop named by "world_art", the v2 pack prop named by
+	## "art", else the legacy decoration (Pearl Coast and objects the pack does not cover yet).
+	if d.has("world_art"):
+		return world_art(str(d.world), "props/%s_%d.png" % [d.world_art, 512 if hi else 256])
 	if d.has("art"):
 		return art("props/%s/%s.png" % ["hi" if hi else "lo", d.art])
 	return tex("decorations/%s_%d.png" % [d.sprite, 512 if hi else 256])

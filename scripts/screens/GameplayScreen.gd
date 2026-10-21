@@ -29,6 +29,7 @@ var _banner: PanelContainer
 var _banner_label: Label
 var _won: bool = false
 var _resumed: bool = false
+var _dealt: bool = false
 var _timer_accum: float = 0.0
 
 
@@ -179,6 +180,13 @@ func build() -> void:
 	AccessibilityService.set_access_name(board, t("a11y_board"))
 	root.add_child(board)
 	board.setup(session.state, ProgressionService.equipped_theme())
+	# A newly dealt board flips face-up from the equipped tile back, once per screen (a rebuild
+	# for a language or setting change, a resumed board and a won board appear face-up). When the
+	# level-start dialog covers the board, the tiles stay face-down until it closes.
+	var back := ProgressionService.equipped_back()
+	if back != "" and not _dealt and not _resumed and not _won:
+		board.play_deal(ContentService.tile_back_texture(back), has_meta("pre_level"))
+	_dealt = true
 	controller.attach_view(board, tray)
 	board.input_enabled = not _won
 	# --- toolbar ---
@@ -581,6 +589,8 @@ func _open_level_start() -> void:
 	## Before a new board: the streak bonus (if any) and the option to add an Extra Slot.
 	## "Play" without a booster is the default, and closing the dialog just plays.
 	if not is_inside_tree() or session.history.size() > 0 or _won:
+		if board != null:
+			board.release_deal()
 		return
 	controller.stop_clock()
 	var m := ModalDialog.open(self, t("level_n", {"level": level.id}))
@@ -604,7 +614,8 @@ func _open_level_start() -> void:
 	m.closed.connect(func(r: String) -> void:
 		if r == "slot":
 			_use_extra_slot()
-		controller.start_clock())
+		controller.start_clock()
+		board.release_deal())
 
 
 func _open_rescue(no_moves: bool) -> void:
@@ -724,6 +735,12 @@ func _open_win(result: Dictionary, stats: Dictionary) -> void:
 		box.add_child(UIKit.progress_bar(np.x, np.y, 14))
 	for th in result.themes:
 		box.add_child(UIKit.label(t("collection_unlocked") + " " + t("theme_" + str(th)), UITheme.FONT_BODY, true, UITheme.GREEN, HORIZONTAL_ALIGNMENT_CENTER))
+	for back in result.get("backs", []):
+		var brow := UIKit.hbox(10)
+		brow.alignment = BoxContainer.ALIGNMENT_CENTER
+		brow.add_child(UIKit.texrect(ContentService.tile_back_texture(str(back)), Vector2(36, 45)))
+		brow.add_child(UIKit.label(t("tile_back_unlocked", {"world": t(ContentService.world_name_key(str(back)))}), UITheme.FONT_BODY, true, UITheme.GREEN, HORIZONTAL_ALIGNMENT_CENTER))
+		box.add_child(brow)
 	if str(result.get("world_unlocked", "")) != "":
 		box.add_child(UIKit.label(t("world_unlock") + " " + t(ContentService.world_name_key(result.world_unlocked)), UITheme.FONT_BODY, true, UITheme.BLUE, HORIZONTAL_ALIGNMENT_CENTER))
 		AudioService.play("world_unlock")

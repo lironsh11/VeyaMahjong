@@ -112,7 +112,7 @@ func scaled_tex(rel_path: String, factor: float = UI_SCALE) -> Texture2D:
 	var key := "%s@%s" % [rel_path, factor]
 	if _scaled.has(key):
 		return _scaled[key]
-	var src := ContentService.art(rel_path)
+	var src := ContentService.tex(rel_path) if rel_path.begins_with("res://") else ContentService.art(rel_path)
 	if src == null:
 		return null
 	var img := src.get_image()

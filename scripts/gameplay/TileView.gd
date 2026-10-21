@@ -10,6 +10,8 @@ const DEPTH_SHADOW_COLOR := Color(0.04, 0.12, 0.08, 0.5)
 ## Brightness of a tile per layer below the board's top layer.
 const LAYER_SHADE_STEP := 0.07
 const LAYER_SHADE_MIN := 0.82
+## One tile's flip from its back to its face when a board is dealt.
+const DEAL_FLIP_S := 0.22
 
 var index: int = -1
 var shadow: TextureRect      ## first child, so it sits under this tile's face
@@ -25,6 +27,7 @@ var _high_contrast: bool = false
 var _layer_shade := Color.WHITE
 var _tw: Tween
 var _hint_tw: Tween
+var _back_rect: TextureRect  ## the tile back while a deal flip is pending (BoardView.play_deal)
 
 
 func setup(p_index: int, tex: Texture2D, sprite_size: Vector2, hi_res: bool) -> void:
@@ -114,6 +117,46 @@ func set_layer_depth(below_top: int) -> void:
 func _kill() -> void:
 	if _tw and _tw.is_valid():
 		_tw.kill()
+	if _back_rect != null:
+		# A deal flip cut short (the tile was tapped, hinted, matched...) ends face-up.
+		_back_rect.queue_free()
+		_back_rect = null
+		scale = Vector2.ONE
+
+
+func show_back(back_tex: Texture2D) -> void:
+	## Covers the tile body with a tile back (a board about to be dealt, BoardView.play_deal).
+	_kill()
+	_back_rect = TextureRect.new()
+	add_child(_back_rect)  # attach BEFORE positioning (RTL locales would otherwise mirror the offset)
+	_back_rect.texture = back_tex
+	_back_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_back_rect.stretch_mode = TextureRect.STRETCH_SCALE
+	_back_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fit_back()
+
+
+func fit_back() -> void:
+	if _back_rect != null:
+		_back_rect.position = BoardView.BODY.position * size
+		_back_rect.size = BoardView.BODY.size * size
+		_back_rect.self_modulate = _layer_shade
+
+
+func flip_to_face(delay: float) -> void:
+	## Turns a tile shown by show_back() face-up after `delay` seconds.
+	if _back_rect == null:
+		return
+	if _tw and _tw.is_valid():
+		_tw.kill()
+	_tw = create_tween()
+	_tw.tween_interval(delay)
+	_tw.tween_property(self, "scale:x", 0.0, DEAL_FLIP_S * 0.5).set_ease(Tween.EASE_IN)
+	_tw.tween_callback(func() -> void:
+		if _back_rect != null:
+			_back_rect.queue_free()
+			_back_rect = null)
+	_tw.tween_property(self, "scale:x", 1.0, DEAL_FLIP_S * 0.5).set_ease(Tween.EASE_OUT)
 
 
 func set_selected(on: bool, animate: bool) -> void:

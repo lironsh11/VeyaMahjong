@@ -1,5 +1,5 @@
 extends Screen
-## Journey / chapter map: three worlds, 50 real levels each, with completed / current /
+## Journey / chapter map: six worlds, 50 real levels each, with completed / current /
 ## locked states. Locked levels explain why instead of doing nothing.
 
 const COLS := 5
@@ -26,28 +26,23 @@ func build() -> void:
 	var root := UIKit.vbox(10)
 	safe.add_child(root)
 	root.add_child(UIKit.header(t("worlds"), func() -> void: Router.back(), true))
-	# World tabs
-	var tabs := UIKit.hbox(6)
-	for w in ContentService.worlds:
-		var wid := str(w.id)
-		var range_v := ContentService.world_range(wid)
-		var unlocked := GameState.is_level_unlocked(range_v.x)
-		var b := UIKit.tab_button(t(ContentService.world_name_key(wid)), wid == _world_id, func() -> void:
-			_world_id = wid
-			AudioService.play_world_music(wid)
-			_rebuild())
-		if not unlocked:
-			b.icon = UITheme.scaled_tex("ui/icons/emerald/lock.png", 0.27)
-		tabs.add_child(b)
-	root.add_child(tabs)
+	root.add_child(UIKit.world_tabs(_world_id, func(wid: String) -> void:
+		_world_id = wid
+		AudioService.play_world_music(wid)
+		_rebuild(), true))
 	var r := ContentService.world_range(_world_id)
 	var done := 0
 	for id in range(r.x, r.y + 1):
 		if GameState.is_level_completed(id):
 			done += 1
 	var summary := UIKit.panel("CardFlat")
+	var sh := UIKit.hbox(10)
+	summary.add_child(sh)
+	if ContentService.is_pack_world(_world_id):
+		sh.add_child(UIKit.texrect(UITheme.scaled_tex(ContentService.WORLDS_ART_ROOT + _world_id + "/ui/world_badge_512.png", 0.125), Vector2(64, 64)))
 	var sv := UIKit.vbox(4)
-	summary.add_child(sv)
+	sv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sh.add_child(sv)
 	sv.add_child(UIKit.label(t("world_progress", {"done": done, "total": r.y - r.x + 1}), UITheme.FONT_BODY, true, null, HORIZONTAL_ALIGNMENT_CENTER))
 	sv.add_child(UIKit.progress_bar(done, r.y - r.x + 1, 12))
 	if not GameState.is_level_unlocked(r.x):
@@ -93,18 +88,32 @@ func _level_node(id: int, next: int) -> Control:
 	b.custom_minimum_size = Vector2(84, 84)
 	b.focus_mode = Control.FOCUS_ALL
 	var sprite := "complete" if completed else ("current" if id == next else ("available" if unlocked else "locked"))
-	var bg := UIKit.texrect(UITheme.scaled_tex("ui/level_nodes/%s.png" % sprite, 0.6), Vector2(80, 80))
+	# The "Three New Worlds" pack has its own nodes: one open disc, a check-mark disc and a
+	# padlock disc. Its check and padlock leave no room for the number, so those show none
+	# (the accessible name still says it).
+	var pack := ContentService.is_pack_world(_world_id)
+	var node_tex := UITheme.scaled_tex("ui/level_nodes/%s.png" % sprite, 0.6)
+	if pack:
+		var pack_state := "completed" if completed else ("active" if unlocked else "locked")
+		node_tex = UITheme.scaled_tex(ContentService.WORLDS_ART_ROOT + "%s/ui/level_node_%s_256.png" % [_world_id, pack_state], 0.33)
+	var bg := UIKit.texrect(node_tex, Vector2(80, 80))
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	b.add_child(bg)
-	var l := UIKit.label(LocalizationService.format_number(id), UITheme.FONT_H2, true, Color.WHITE if unlocked else Color(1, 1, 1, 0.8), HORIZONTAL_ALIGNMENT_CENTER, false)
-	l.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	l.offset_bottom = -NODE_DISC_LIFT  # the node disc sits above its drop shadow
-	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	l.add_theme_color_override("font_outline_color", Color(UITheme.NAVY, 0.55))
-	l.add_theme_constant_override("outline_size", 5)
-	b.add_child(l)
+	if not pack or (unlocked and not completed):
+		var l := UIKit.label(LocalizationService.format_number(id), UITheme.FONT_H2, true, Color.WHITE if unlocked else Color(1, 1, 1, 0.8), HORIZONTAL_ALIGNMENT_CENTER, false)
+		l.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		if not pack:
+			l.offset_bottom = -NODE_DISC_LIFT  # the node disc sits above its drop shadow
+		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		l.add_theme_color_override("font_outline_color", Color(UITheme.NAVY, 0.55))
+		l.add_theme_constant_override("outline_size", 5)
+		b.add_child(l)
+	if pack and id == next:
+		# The pack has one open disc; the level to play next stands out a little.
+		bg.pivot_offset = Vector2(42, 42)
+		bg.scale = Vector2(1.08, 1.08)
 	var stars := ProgressionService.level_stars(id) if completed else 0
-	if completed and stars <= 0:
+	if completed and stars <= 0 and not pack:
 		# Cleared before stars existed: keep the plain check mark.
 		var chk := UIKit.texrect(ContentService.icon("check", false), Vector2(26, 26))
 		b.add_child(chk)  # attach before positioning (RTL mirrors the corner automatically)
