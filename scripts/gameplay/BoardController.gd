@@ -41,6 +41,7 @@ var _hint_busy: bool = false
 var _hint_shown_gen: int = -1   ## _gen at which the last hint was shown (repeat is free)
 var _hint_last: Dictionary = {}
 var _clock_start: int = -1
+var _paused_at: int = -1   ## when the clock was last stopped (pauses keep the combo window)
 
 
 func _init(p_session: GameSession, p_mode: String, p_persist: bool = true) -> void:
@@ -61,12 +62,22 @@ func attach_view(v: BoardView, t: TrayView = null) -> void:
 func start_clock() -> void:
 	if _clock_start < 0 and not session.completed:
 		_clock_start = Time.get_ticks_msec()
+		if _paused_at >= 0:
+			# Time spent paused (dialogs, settings) does not use up the combo window.
+			_last_match_ms += _clock_start - _paused_at
+			_paused_at = -1
+		if is_instance_valid(tray_view):
+			tray_view.set_combo_paused(false)
 
 
 func stop_clock() -> void:
 	if _clock_start >= 0:
-		session.stats.elapsed_ms = int(session.stats.elapsed_ms) + (Time.get_ticks_msec() - _clock_start)
+		var now := Time.get_ticks_msec()
+		session.stats.elapsed_ms = int(session.stats.elapsed_ms) + (now - _clock_start)
 		_clock_start = -1
+		_paused_at = now
+		if is_instance_valid(tray_view):
+			tray_view.set_combo_paused(true)
 
 
 func elapsed_ms() -> int:

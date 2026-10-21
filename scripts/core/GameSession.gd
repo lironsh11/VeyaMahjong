@@ -5,7 +5,7 @@ extends RefCounted
 ## board and tray change the instant a tile is tapped, animations only follow, so visual
 ## effects can never cause double picks or delay the logical update.
 ##
-## Tray play: tapping a free (uncovered) tile moves it into the tray. A tile whose twin is
+## Tray play: tapping a free tile (nothing on top, left or right side open) moves it into the tray. A tile whose twin is
 ## already there clears with it. A tray holding `capacity` tiles is a loss (`failed`); the
 ## player then undoes, sends tiles back to the board (second chance) or restarts.
 
@@ -21,7 +21,8 @@ var capacity: int = TrayRules.CAPACITY
 var failed: bool = false
 var score: int = 0
 ## Each entry:
-##   {"t": "p", "i": tile, "m": partner (-1 = went into the tray), "ms": partner's slot, "pts": points}
+##   {"t": "p", "i": tile, "m": partner (-1 = went into the tray), "ms": partner's slot, "pts": points,
+##    "bc": best combo before this match (only on scored matches, so undo can restore it)}
 ##   {"t": "s", "before": PackedStringArray}                      shuffle
 ##   {"t": "r", "tiles": PackedInt32Array, "slots": PackedInt32Array}  tiles sent back to the board
 var history: Array = []
@@ -86,6 +87,8 @@ func award(points: int, combo: int) -> void:
 	## entry so undoing the match takes the points back.
 	if history.is_empty() or history[-1].t != "p" or int(history[-1].m) < 0:
 		return
+	if not history[-1].has("bc"):
+		history[-1].bc = int(stats.best_combo)  # best combo before this match, for undo
 	history[-1].pts = int(history[-1].pts) + points
 	score += points
 	stats.best_combo = maxi(int(stats.best_combo), combo)
@@ -122,6 +125,8 @@ func undo() -> Dictionary:
 				slot = int(e.ms)
 				tray.insert(slot, int(e.m))
 				score = maxi(0, score - int(e.pts))
+				if e.has("bc"):
+					stats.best_combo = int(e.bc)
 				_count_family(i, -2)
 			else:
 				slot = tray.find(i)
@@ -151,7 +156,7 @@ func undo_to_checkpoint() -> int:
 
 func send_back(n: int) -> Dictionary:
 	## Second chance: the last `n` tiles that entered the tray return to their board places
-	## (they were uncovered when picked, and nothing can be stacked on them since). No match or
+	## (they were free when picked, and nothing can be stacked on them since). No match or
 	## score is lost. Returns {"tiles", "slots"} or {} when there is nothing to send back.
 	if completed or tray.is_empty() or n <= 0:
 		return {}
@@ -201,7 +206,8 @@ func mark_solvable_now() -> void:
 
 
 func has_moves() -> bool:
-	## With the "uncovered" rule the topmost tile is always free, so only a full tray stops play.
+	## A free tile always exists (the leftmost tile of the highest layer has nothing on top and
+	## nothing to its left), so only a full tray stops play.
 	return not failed and not completed and state.remaining > 0
 
 
@@ -223,7 +229,10 @@ func to_dict() -> Dictionary:
 	for e in history:
 		match e.t:
 			"p":
-				hist.append({"t": "p", "i": e.i, "m": e.m, "ms": e.ms, "pts": e.pts})
+				var pe := {"t": "p", "i": e.i, "m": e.m, "ms": e.ms, "pts": e.pts}
+				if e.has("bc"):
+					pe.bc = e.bc
+				hist.append(pe)
 			"r":
 				hist.append({"t": "r", "tiles": Array(e.tiles), "slots": Array(e.slots)})
 			_:
@@ -291,7 +300,10 @@ static func restore(p_level: LevelDefinition, d: Dictionary) -> GameSession:
 				s.history.append({"t": "p", "i": int(e.a), "m": -1, "ms": -1, "pts": 0})
 				s.history.append({"t": "p", "i": int(e.b), "m": int(e.a), "ms": 0, "pts": 0})
 			"p":
-				s.history.append({"t": "p", "i": int(e.i), "m": int(e.get("m", -1)), "ms": int(e.get("ms", -1)), "pts": maxi(0, int(e.get("pts", 0)))})
+				var pe := {"t": "p", "i": int(e.i), "m": int(e.get("m", -1)), "ms": int(e.get("ms", -1)), "pts": maxi(0, int(e.get("pts", 0)))}
+				if e.has("bc"):
+					pe.bc = maxi(0, int(e.bc))
+				s.history.append(pe)
 			"r":
 				var tiles := PackedInt32Array(e.get("tiles", []))
 				var slots := PackedInt32Array(e.get("slots", []))

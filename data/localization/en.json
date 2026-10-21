@@ -98,7 +98,7 @@
       "other": "{count} tiles left"
     },
     "undo_nothing": "Nothing to undo yet",
-    "tile_blocked_help": "That tile is covered. You can tap any tile that has nothing on top of it.",
+    "tile_blocked_help": "That tile is blocked. You can pick a tile when nothing is on top of it and its left or right side is free.",
     "hint_unverified": "Here's a matching pair. There wasn't time to check further ahead.",
     "hint_dead": "No pair here can still clear the board. Try Undo or Shuffle, or go back to the last solvable point.",
     "stuck_banner": "This board can't be finished from here. Use Undo or Shuffle, or go back to keep playing.",
@@ -243,7 +243,7 @@
     "tut_title": "How to play",
     "tut_progress": "Step {step} of {total}",
     "tut_step_tray": "Tap a tile to send it to the tray. Two identical tiles in the tray burst! Try the glowing tiles.",
-    "tut_step_stack": "You can tap any tile with nothing on top of it. Tiles underneath wait until the tiles above are gone.",
+    "tut_step_stack": "You can pick a tile when nothing is on top of it and its left or right side is free. A tile with neighbours on both sides waits until one side opens.",
     "tut_step_full": "The tray holds 4 tiles. If it fills up without a pair, the round is lost - so look for twins before you tap.",
     "tut_step_bonus": "Flowers and Seasons match only an identical tile: same picture, same color.",
     "tut_ready": "You're ready! Stuck? Use Hint, Undo or Shuffle - you start with a few and earn coins for more.",

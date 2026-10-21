@@ -98,7 +98,7 @@
       "other": "Quedan {count} fichas"
     },
     "undo_nothing": "Aún no hay nada que deshacer",
-    "tile_blocked_help": "Esa ficha está tapada. Puedes tocar cualquier ficha que no tenga nada encima.",
+    "tile_blocked_help": "Esa ficha está bloqueada. Puedes elegir una ficha si no tiene nada encima y su lado izquierdo o derecho está libre.",
     "hint_unverified": "Aquí tienes una pareja. No hubo tiempo de comprobar más jugadas por adelantado.",
     "hint_dead": "Ninguna pareja de aquí puede terminar el tablero. Prueba Deshacer o Mezclar, o vuelve al último punto con solución.",
     "stuck_banner": "Este tablero ya no se puede terminar desde aquí. Deshaz, mezcla o vuelve atrás para seguir.",
@@ -243,7 +243,7 @@
     "tut_title": "Cómo jugar",
     "tut_progress": "Paso {step} de {total}",
     "tut_step_tray": "Toca una ficha para enviarla a la bandeja. ¡Dos fichas iguales en la bandeja explotan! Prueba con las fichas que brillan.",
-    "tut_step_stack": "Puedes tocar cualquier ficha que no tenga nada encima. Las de abajo esperan hasta que se retiren las de encima.",
+    "tut_step_stack": "Puedes elegir una ficha si no tiene nada encima y su lado izquierdo o derecho está libre. Una ficha con vecinas a ambos lados espera hasta que se libere un lado.",
     "tut_step_full": "La bandeja tiene 4 espacios. Si se llena sin una pareja, pierdes la ronda: busca gemelas antes de tocar.",
     "tut_step_bonus": "Las Flores y las Estaciones solo se emparejan con una ficha idéntica: mismo dibujo, mismo color.",
     "tut_ready": "¡Listo! ¿Atascado? Usa Pista, Deshacer o Mezclar: empiezas con algunos y ganas monedas para más.",

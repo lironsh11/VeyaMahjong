@@ -2,9 +2,9 @@ class_name BoardState
 extends RefCounted
 ## Mutable board: which tiles remain and which face each slot shows.
 ##
-## Tray rules (the game's only mode): a tile can be picked when nothing lies on top of it.
-## Classic side blocking (left AND right neighbours) stays behind `side_blocking` for tools
-## and tests; play never turns it on.
+## A tile can be picked when it is free under the standard Mahjong Solitaire rule: nothing lies
+## on top of it and its left OR right side is open (a tile with neighbours on both sides is
+## blocked; owner request 2026-10-20). `side_blocking = false` (top cover only) is kept for tests.
 ##
 ## Freedom is maintained incrementally: each tile keeps counts of remaining covering tiles
 ## and remaining left/right neighbours, updated in O(neighbours) on every removal/restore.
@@ -21,7 +21,7 @@ var right_cnt := PackedInt32Array()
 var key_remaining := PackedInt32Array() ## remaining tiles per match key
 var remaining: int = 0
 var zhash: int = 0                      ## Zobrist hash of the removed set
-var side_blocking: bool = false         ## classic rule: a tile also needs a free left or right side
+var side_blocking: bool = true          ## standard rule: a tile also needs a free left or right side
 
 
 static func create(p_geo: BoardGeometry, p_faces: PackedStringArray) -> BoardState:

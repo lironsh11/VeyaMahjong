@@ -26,8 +26,11 @@ engine does not assume tiles are stacked at exactly the same coordinates.
 The game plays like popular tile-match mahjong games. Classic pair play (below) is kept only
 for content tools.
 
-1. **Pickable** = not removed and not covered. Neighbours on the left and right do not matter
-   (`BoardState.side_blocking` is false in play).
+1. **Pickable** = free under the standard Mahjong Solitaire rule (classic rules 1-3 below): not
+   removed, not covered, and the left **or** right side open. A tile with neighbours on both
+   sides is blocked (owner request 2026-10-20; `BoardState.side_blocking` is true by default,
+   `false` gives the top-cover-only rule for tests). A free tile always exists: the leftmost
+   tile of the highest remaining layer has nothing on top and nothing to its left.
 2. Tapping a pickable tile moves it off the board into the **tray** (`GameSession.tap`), which
    uncovers the tiles beneath it at once.
 3. If the tray already holds an identical tile, both clear immediately (`Tap.MATCHED`). So the
@@ -42,8 +45,8 @@ for content tools.
    to their board places. They were uncovered when picked and nothing can be stacked on them
    since, so no match or score is lost.
 8. **Score:** 10 points × the combo multiplier (capped at ×10). Matches less than 3 s apart
-   build the combo (`BoardController.COMBO_WINDOW_MS`). Points are stored on the history entry,
-   so Undo takes them back.
+   build the combo (`BoardController.COMBO_WINDOW_MS`; time paused in dialogs doesn't count).
+   Points and the previous best combo are stored on the history entry, so Undo takes both back.
 9. **Stars (`Scoring`):** on a win, a clean board (no Undo, no full tray) adds 5 points per
    pair. The total is compared with the base score (10 per pair): any win is 1 star,
    1.6× base is 2 stars, 3× base is 3 stars.
@@ -54,7 +57,8 @@ for content tools.
 
 **Why every existing board stays solvable.** A classic witness is a list of pairs whose two
 tiles are free together. Picking a pair's tiles one after the other is legal in tray play
-("uncovered" is looser than "free"), and the tray never holds more than one tile. So
+(the same freedom rule, and taking a tile only frees others), and the tray never holds more
+than one tile. So
 `TraySolver.flatten(witness)` is a tray witness. The validator checks this
 (`BoardValidator`, "witness solution is not legal in tray play"), and a test checks it for all
 150 levels.
@@ -160,8 +164,8 @@ order is biased toward far-apart partners to avoid trivial adjacent twins.
 ## Shuffle and rescue (`ShuffleRescue`)
 
 Only the faces of the tiles still **on the board** move; tray tiles keep theirs. The shuffle:
-1. Builds a random legal pick order for the board tiles. With the uncovered rule one always
-   exists: the highest tile is never covered.
+1. Builds a random legal pick order for the board tiles. One always exists: the leftmost tile
+   of the highest layer is always free.
 2. Gives the first picks the twins of the tray tiles.
 3. Assigns the remaining faces in pairs to consecutive picks.
 4. Replays the result through `TraySolver.replay_is_legal`.

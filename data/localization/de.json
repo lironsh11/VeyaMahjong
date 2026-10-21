@@ -98,7 +98,7 @@
       "other": "Noch {count} Steine"
     },
     "undo_nothing": "Noch nichts zum Zurücknehmen",
-    "tile_blocked_help": "Dieser Stein ist verdeckt. Du kannst jeden Stein antippen, auf dem nichts liegt.",
+    "tile_blocked_help": "Dieser Stein ist blockiert. Du kannst einen Stein wählen, wenn nichts auf ihm liegt und seine linke oder rechte Seite frei ist.",
     "hint_unverified": "Hier ist ein passendes Paar. Für eine weitere Vorausschau war keine Zeit.",
     "hint_dead": "Kein Paar hier kann das Brett noch lösen. Versuch Zurück oder Mischen, oder geh zum letzten lösbaren Punkt.",
     "stuck_banner": "Dieses Brett lässt sich von hier nicht mehr lösen. Nutze Zurück, Mischen oder geh zurück, um weiterzuspielen.",
@@ -243,7 +243,7 @@
     "tut_title": "So wird gespielt",
     "tut_progress": "Schritt {step} von {total}",
     "tut_step_tray": "Tippe auf einen Stein, um ihn in die Ablage zu schicken. Zwei gleiche Steine in der Ablage zerplatzen! Probier die leuchtenden Steine.",
-    "tut_step_stack": "Du kannst jeden Stein antippen, auf dem nichts liegt. Untere Steine warten, bis die Steine darauf weg sind.",
+    "tut_step_stack": "Du kannst einen Stein wählen, wenn nichts auf ihm liegt und seine linke oder rechte Seite frei ist. Ein Stein mit Nachbarn auf beiden Seiten wartet, bis eine Seite frei wird.",
     "tut_step_full": "Die Ablage fasst 4 Steine. Füllt sie sich ohne Paar, ist die Runde verloren - such also erst nach Zwillingen.",
     "tut_step_bonus": "Auch Blumen und Jahreszeiten passen nur zu einem identischen Stein: gleiches Bild, gleiche Farbe.",
     "tut_ready": "Du bist bereit! Hängst du fest? Nutze Tipp, Zurück oder Mischen - ein paar hast du zum Start, mehr gibt es für Münzen.",

@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- **Left/right rule (owner request):** a tile with neighbours on both its left and right sides
+  can no longer be picked. This is the standard Mahjong Solitaire rule: a tile is free when
+  nothing lies on top of it and its left or right side is open. Every level and daily board was
+  already validated with this rule, so all stay clearable. The blocked-tile message and the
+  tutorial explain it in every language.
+- **No board shake on combos:** a combo of 4+ no longer jolts the whole board (the other tiles
+  shook, only on some matches).
+- **Score checks:** undoing a match now also takes back its best combo (the win screen could
+  show a combo that was undone, also after resuming a saved board). The combo window and its
+  bar now pause while the game is paused or a dialog is open. A new test plays random boards
+  with undo, full trays, second chances, shuffles and resumes and checks that the score always
+  equals the points of the matches still made.
+
+## 0.1.5 (build 6), 2026-10-20
+
 - **Match sound:** a pair now plays the owner's `01_Match_Pop_Success_RECOMMENDED.wav` (copied
   unchanged as `sfx/match_pop.wav`), the same for every match.
 

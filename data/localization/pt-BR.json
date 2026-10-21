@@ -98,7 +98,7 @@
       "other": "{count} peças restantes"
     },
     "undo_nothing": "Ainda não há nada para desfazer",
-    "tile_blocked_help": "Essa peça está coberta. Você pode tocar em qualquer peça que não tenha nada por cima.",
+    "tile_blocked_help": "Essa peça está bloqueada. Você pode escolher uma peça quando não há nada por cima e o lado esquerdo ou direito dela está livre.",
     "hint_unverified": "Aqui está um par que combina. Não deu tempo de verificar as jogadas seguintes.",
     "hint_dead": "Nenhum par aqui ainda consegue limpar o tabuleiro. Tente Desfazer ou Embaralhar, ou volte ao último ponto com solução.",
     "stuck_banner": "Este tabuleiro não pode mais ser concluído daqui. Desfaça, embaralhe ou volte para continuar.",
@@ -243,7 +243,7 @@
     "tut_title": "Como jogar",
     "tut_progress": "Passo {step} de {total}",
     "tut_step_tray": "Toque em uma peça para enviá-la à bandeja. Duas peças iguais na bandeja explodem! Experimente as peças que estão brilhando.",
-    "tut_step_stack": "Você pode tocar em qualquer peça que não tenha nada por cima. As de baixo esperam até as de cima saírem.",
+    "tut_step_stack": "Você pode escolher uma peça quando não há nada por cima e o lado esquerdo ou direito dela está livre. Uma peça com vizinhas dos dois lados espera até um lado ficar livre.",
     "tut_step_full": "A bandeja comporta 4 peças. Se ela encher sem um par, a rodada está perdida: procure gêmeas antes de tocar.",
     "tut_step_bonus": "Flores e Estações só combinam com uma peça idêntica: mesmo desenho, mesma cor.",
     "tut_ready": "Tudo pronto! Travou? Use Dica, Desfazer ou Embaralhar - você começa com alguns e ganha moedas para mais.",

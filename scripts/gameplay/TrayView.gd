@@ -602,6 +602,15 @@ func show_combo(combo: int, window_s: float) -> void:
 	_bar_tw.tween_callback(func() -> void: _bar_bg.visible = false)
 
 
+func set_combo_paused(paused: bool) -> void:
+	## The combo window stops while the game is paused, so the bar stops draining too.
+	if _bar_tw and _bar_tw.is_valid():
+		if paused:
+			_bar_tw.pause()
+		else:
+			_bar_tw.play()
+
+
 func set_danger(on: bool) -> void:
 	## One slot left: the last empty well pulses red.
 	if _danger_tw and _danger_tw.is_valid():

@@ -3,8 +3,8 @@ extends RefCounted
 ## Shuffle / Rescue: rearranges the faces of the tiles still ON THE BOARD so the board plus
 ## the tray is provably clearable again. Tiles already in the tray keep their faces.
 ##
-## Guarantee: a random legal pick order of the board tiles is built first (with the
-## "uncovered" rule there always is one). The first picks get the twins of the tray tiles, so
+## Guarantee: a random legal pick order of the board tiles is built first (there always is
+## one: the leftmost tile of the highest layer is always free). The first picks get the twins of the tray tiles, so
 ## each clears a tray slot; the rest get matching pairs on consecutive picks, so the tray never
 ## holds more than one tile. The order is then independently replayed with TraySolver.
 ##

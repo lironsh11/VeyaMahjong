@@ -20,11 +20,23 @@ func test_row_left_right_blocking() -> void:
 	check(s.clone().side_blocking, "clone keeps the rule")
 
 
-func test_tray_rule_ignores_sides() -> void:
+func test_play_uses_standard_side_rule() -> void:
+	# Owner request 2026-10-20: the standard rule, a tile blocked on both sides can't be picked.
+	var faces := ["circle_1", "circle_2", "circle_1", "circle_2"]
+	var L := level_from_rows(["XXX", "...", "X.."], [], faces)
+	var g := GameSession.start(L)
+	check(g.state.side_blocking, "play uses the standard rule")
+	check_eq(g.tap(1).r, GameSession.Tap.BLOCKED, "middle tile blocked on both sides")
+	check(not g.state.is_removed(1), "blocked tap changes nothing")
+	check_eq(g.tap(0).r, GameSession.Tap.TO_TRAY, "left end is free")
+	check_eq(g.tap(1).r, GameSession.Tap.TO_TRAY, "middle tile free once its left side opened")
+
+
+func test_top_cover_only_rule_for_tools() -> void:
 	var L := level_from_rows(["XXX"])
 	var s := L.build_state()
-	check(not s.side_blocking, "play uses the uncovered rule")
-	check(s.is_free(0) and s.is_free(1) and s.is_free(2), "every uncovered tile is free, neighbours or not")
+	s.side_blocking = false
+	check(s.is_free(0) and s.is_free(1) and s.is_free(2), "top-cover-only rule ignores neighbours")
 
 
 func test_single_side_open_is_enough() -> void:
@@ -137,7 +149,7 @@ func test_tap_flow_and_invalid_picks() -> void:
 
 func test_tray_slots_and_fail() -> void:
 	var faces := ["circle_1", "circle_2", "circle_3", "circle_4", "circle_4", "circle_3", "circle_2", "circle_1"]
-	var L := level_from_rows(["XXXXXXXX"], [], faces)
+	var L := level_from_rows(["X.X.X.X.X.X.X.X"], [], faces)
 	var g := GameSession.start(L)
 	for i in 3:
 		check_eq(g.tap(i).r, GameSession.Tap.TO_TRAY, "unmatched tile %d fills slot" % i)

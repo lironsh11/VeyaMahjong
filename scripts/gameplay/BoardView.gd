@@ -266,15 +266,6 @@ func clear_hint() -> void:
 			tv.set_hint(false, false)
 
 
-func shake(strength: float) -> void:
-	## A short jolt for big combos (none under Reduced Motion or Low graphics).
-	if not AccessibilityService.effects_on() or _layer == null:
-		return
-	var tw := _layer.create_tween()
-	for d in [Vector2(-1, 0.6), Vector2(1, -0.6), Vector2(-0.6, -0.3), Vector2(0.4, 0.3), Vector2.ZERO]:
-		tw.tween_property(_layer, "position", d * strength, 0.03)
-
-
 func play_blocked(i: int) -> void:
 	tiles[i].play_blocked(_anim())
 

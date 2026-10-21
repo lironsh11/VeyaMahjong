@@ -465,8 +465,7 @@ func _confirm_restart() -> void:
 
 func _on_matched(_tile: int, _partner: int, combo: int, _points: int) -> void:
 	tray.show_combo(combo, BoardController.COMBO_WINDOW_MS / 1000.0)
-	if combo >= 4:
-		board.shake(3.0 + mini(combo, 8))
+	# No board jolt on big combos (owner request 2026-10-20: the other tiles shaking felt bad).
 	if not AccessibilityService.reduced_motion() and _hud_score:
 		var tw := _hud_score.create_tween()
 		tw.tween_property(_hud_score, "scale", Vector2(1.18, 1.18), 0.08)

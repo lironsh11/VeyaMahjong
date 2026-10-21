@@ -4,8 +4,8 @@ extends TestCase
 
 
 func _row8() -> LevelDefinition:
-	# c1 c2 c3 c4 c4 c3 c2 c1 on one row: all free under the tray rule.
-	return level_from_rows(["XXXXXXXX"], [], ["circle_1", "circle_2", "circle_3", "circle_4", "circle_4", "circle_3", "circle_2", "circle_1"])
+	# c1 c2 c3 c4 c4 c3 c2 c1 on one row, a gap between tiles: all free (no side neighbours).
+	return level_from_rows(["X.X.X.X.X.X.X.X"], [], ["circle_1", "circle_2", "circle_3", "circle_4", "circle_4", "circle_3", "circle_2", "circle_1"])
 
 
 func test_undo_plain_and_matching_picks() -> void:
@@ -72,10 +72,86 @@ func test_score_follows_undo() -> void:
 	check_eq(int(g.stats.best_combo), 3)
 	g.undo()
 	check_eq(g.score, 0, "undoing a match takes its points back")
+	check_eq(int(g.stats.best_combo), 0, "undoing a match takes its best combo back")
+
+
+func test_best_combo_survives_save_and_undo() -> void:
+	var g := GameSession.start(_row8())
+	g.tap(3)
+	g.tap(4)
+	g.award(Scoring.points_for(1), 1)
+	g.tap(2)
+	g.tap(5)
+	g.award(Scoring.points_for(2), 2)
+	check_eq(int(g.stats.best_combo), 2)
+	var g2 := GameSession.restore(_row8(), JSON.parse_string(JSON.stringify(g.to_dict())))
+	check(g2 != null, "restored")
+	if g2 == null:
+		return
+	g2.undo()
+	check_eq(int(g2.stats.best_combo), 1, "undo after a resume restores the earlier best combo")
+	check_eq(g2.score, Scoring.points_for(1))
+
+
+func _sum_pts(g: GameSession) -> int:
+	var n := 0
+	for e in g.history:
+		if e.t == "p":
+			n += int(e.pts)
+	return n
+
+
+func test_score_always_matches_the_matches() -> void:
+	# Random play with combos, undos, full trays, second chances, shuffles and save/resume:
+	# the score is always exactly the sum of the points of the matches still made.
+	for id in [5, 27, 64, 133]:
+		var L := LevelDefinition.from_dict(_pack_level(id))
+		var rng := SeededRng.new(77 + id)
+		var g := GameSession.start(L)
+		var combo := 0
+		var ok := true
+		for step in 400:
+			if g.completed:
+				break
+			var roll := rng.rand_int(0, 99)
+			if g.failed:
+				if roll < 50:
+					g.undo()
+				else:
+					g.send_back(3)
+				combo = 0
+			elif roll < 8 and g.can_undo():
+				g.undo()
+				combo = 0
+			elif roll < 10:
+				g.shuffle()
+				combo = 0
+			elif roll < 13:
+				var d: Variant = JSON.parse_string(JSON.stringify(g.to_dict()))
+				g = GameSession.restore(L, d)
+				if g == null:
+					ok = check(false, "level %d restores" % id)
+					break
+				combo = 0
+			else:
+				var free := g.state.free_tiles()
+				var r := g.tap(free[rng.rand_int(0, free.size() - 1)])
+				if r.r == GameSession.Tap.MATCHED:
+					combo = combo + 1 if rng.rand_int(0, 2) > 0 else 1
+					g.award(Scoring.points_for(combo), combo)
+			if g.score != _sum_pts(g) or g.score < 0:
+				ok = check(false, "level %d step %d: score %d but matches sum to %d" % [id, step, g.score, _sum_pts(g)])
+				break
+		if not ok or g.completed:
+			continue
+		while g.can_undo():
+			g.undo()
+		check_eq(g.score, 0, "level %d: undoing everything returns the score to 0" % id)
+		check_eq(int(g.stats.best_combo), 0, "level %d: and the best combo to 0" % id)
 
 
 func test_v2_roundtrip_with_tray() -> void:
-	var L := level_from_rows(["XXXXXXXXXX"], [], ["circle_1", "circle_2", "circle_3", "circle_4", "circle_5", "circle_5", "circle_4", "circle_3", "circle_2", "circle_1"])
+	var L := level_from_rows(["X.X.X.X.X.X.X.X.X.X"], [], ["circle_1", "circle_2", "circle_3", "circle_4", "circle_5", "circle_5", "circle_4", "circle_3", "circle_2", "circle_1"])
 	var g := GameSession.start(L)
 	g.tap(4)
 	g.tap(5)

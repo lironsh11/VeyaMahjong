@@ -98,7 +98,7 @@
       "other": "{count} tuiles restantes"
     },
     "undo_nothing": "Rien à annuler pour l'instant",
-    "tile_blocked_help": "Cette tuile est recouverte. Vous pouvez toucher toute tuile qui n'a rien au-dessus.",
+    "tile_blocked_help": "Cette tuile est bloquée. Vous pouvez choisir une tuile si rien n'est posé dessus et que son côté gauche ou droit est libre.",
     "hint_unverified": "Voici une paire identique. Il n'y a pas eu le temps de vérifier les coups suivants.",
     "hint_dead": "Plus aucune paire ici ne permet de finir le plateau. Essayez Annuler ou Mélanger, ou revenez au dernier point résoluble.",
     "stuck_banner": "Ce plateau ne peut plus être terminé à partir d’ici. Annulez, mélangez ou revenez en arrière pour continuer.",
@@ -243,7 +243,7 @@
     "tut_title": "Comment jouer",
     "tut_progress": "Étape {step} sur {total}",
     "tut_step_tray": "Touchez une tuile pour l'envoyer sur le plateau. Deux tuiles identiques sur le plateau éclatent ! Essayez les tuiles qui brillent.",
-    "tut_step_stack": "Vous pouvez toucher toute tuile qui n'a rien au-dessus. Celles du dessous attendent que les tuiles du dessus soient parties.",
+    "tut_step_stack": "Vous pouvez choisir une tuile si rien n'est posé dessus et que son côté gauche ou droit est libre. Une tuile entourée des deux côtés attend qu'un côté se libère.",
     "tut_step_full": "Le plateau contient 4 tuiles. S'il se remplit sans paire, la manche est perdue : cherchez les jumelles avant de toucher.",
     "tut_step_bonus": "Les Fleurs et les Saisons ne s’associent qu’à une tuile identique : même dessin, même couleur.",
     "tut_ready": "Vous êtes prêt ! Bloqué ? Utilisez Indice, Annuler ou Mélanger - vous en avez quelques-uns au départ, et les pièces en donnent d’autres.",

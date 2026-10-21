@@ -16,8 +16,8 @@ built with **Godot 4.7** (GDScript, GL Compatibility renderer) from the supplied
 
 ## What's in the game
 
-- Tile-match Mahjong with a 4-slot tray: tap any tile with nothing on top and it flies into the
-  tray; two identical tiles burst (every tile, Flowers and Seasons included, matches only an
+- Tile-match Mahjong with a 4-slot tray: tap a free tile (nothing on top, and its left or right
+  side open, the standard Mahjong Solitaire rule) and it flies into the tray; two identical tiles burst (every tile, Flowers and Seasons included, matches only an
   identical tile). Four unmatched tiles in the tray lose the board, with a second chance
   ("send 3 tiles back", first one free), Undo or Try again. Combos, score, juicy bursts.
 - 150 verified levels in 3 worlds, solver-backed Hint, Undo and a solvable Shuffle as boosters
