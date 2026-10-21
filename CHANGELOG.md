@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.1.8 (build 9), 2026-10-21
+
+- Closed-testing build of the 0.1.7 game: levels 151-300 in three new worlds, and tile backs
+  earned by finishing them.
+
 ## 0.1.7 (build 8), 2026-10-21
 
 - **150 new levels (151-300) in three new worlds (owner request):** Jade Bamboo Valley
