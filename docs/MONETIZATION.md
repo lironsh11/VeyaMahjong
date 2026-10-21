@@ -16,7 +16,7 @@ coin packs and a starter bundle are sold.
   ERR-1401 for new Meta instances; these six were added in the LevelPlay dashboard.
 - Consent: the game's own dialog, Europe/UK only (see Consent). No Google UMP, no AdMob app id.
 - Purchases: catalogue and consumable flow done. Play one-time products are active and their
-  ids are in `products.json`. Closed testing is on 0.1.5 (version code 6), which includes the
+  ids are in `products.json`. Closed testing is on 0.1.7 (version code 8), which includes the
   billing permission. Not device-tested yet. App Store products are Ready to Submit and their
   ids are in `products.json`; StoreKit still needs the Paid Apps agreement, then a new iOS build.
 
@@ -26,7 +26,7 @@ coin packs and a starter bundle are sold.
 |---|---|
 | Start pack (new players) | 300 coins, 3 Hints, 3 Shuffles, 5 Undos (`start_v1`) |
 | Welcome pack (players from before the economy) | 500 coins, 5 / 5 / 10 (`welcome_existing_v1`) + one-time explanation on Home |
-| First clear of a level | 20 coins (1-50), 30 (51-100), 40 (101-150); replays 0 |
+| First clear of a level | 20 coins (1-50), 30 (51-100), 40 (101-150), 50 (151-200), 60 (201-250), 70 (251-300); replays 0 |
 | World complete | 250 |
 | Daily puzzle / daily tasks | 50 / 75 |
 | Prices | Hint 120 (5 for 480) · Shuffle 150 (5 for 600) · Undo 60 (5 for 240) · Extra Slot 200 (5 for 800) |
@@ -185,7 +185,7 @@ empty until the owner creates the products (empty = hidden). Prices come only fr
 - **Android:** `GooglePlayBillingProvider` uses godot-google-play-billing **3.3.0, installed**
   (`addons/GodotGooglePlayBilling/`, enabled in `project.godot`), with `consume()`.
   - Gradle builds carry Billing Library 9.1.0 and the BILLING permission. 0.1.2 (version code 3)
-    unlocked product creation. Closed testing is now 0.1.5 (version code 6).
+    unlocked product creation. Closed testing is now 0.1.7 (version code 8).
   - `google_play_id` in `products.json` matches the active Play product ids. Prices come from
     the store: Remove Ads $3.99, Tile Theme Bundle $2.99, coin packs $1.99 / $4.99 / $9.99,
     Starter Bundle $4.99.
