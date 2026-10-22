@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.10 (build 11), 2026-10-22
+
 - **Real layered boards (owner request 2026-10-22):** boards no longer look like a flat grid.
   The geometry, the content and the renderer changed together:
   - **Stacked projection** (`BoardFit`, new `BoardProjection`): every tile shows its face plus a
