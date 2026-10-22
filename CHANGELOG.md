@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.1.9 (build 10), 2026-10-22
+
+- **Boards grow with the journey (owner request):** later levels no longer fall back to small
+  boards (level 24 had 26 tiles). `LevelCatalog.min_tiles` sets a floor rising from 24 tiles at
+  level 4 to 60 at 50, 64-112 over 51-150 and 112-128 over 151-300; all three builds apply it
+  (`levels-4-50-v5`, `levels-51-150-v9`, `levels-151-300-v2`) and `test_levels` enforces it.
+  Every level from 4 to 300 is a new board; progress is kept by level number.
+
 ## 0.1.8 (build 9), 2026-10-21
 
 - Closed-testing build of the 0.1.7 game: levels 151-300 in three new worlds, and tile backs
