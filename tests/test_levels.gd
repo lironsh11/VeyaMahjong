@@ -1,6 +1,6 @@
 extends TestCase
 ## Content validation for the shipped journey:
-##   1-3 supplied pack levels (unchanged), 4-50, 51-150 and 151-300 generated dense boards,
+##   1-3 supplied pack levels (unchanged), 4-50, 51-150 and 151-300 generated layered boards,
 ##   each range ordered by measured difficulty, with a tile floor that rises with the level.
 
 const MAX_SCORE_STEP := 5.0
@@ -54,14 +54,35 @@ func test_every_pair_is_identical() -> void:
 			check(counts[f] % 2 == 0, "level %d face %s appears %d times" % [d.id, f, counts[f]])
 
 
-func test_levels_after_3_use_dense_layouts() -> void:
-	# Since 2026-10-19 every level after the 3 pack levels is a dense, screen-filling board.
+func test_levels_after_3_use_layered_templates() -> void:
+	# Since 2026-10-22 every level after the 3 pack levels is a layered LayoutTemplates structure:
+	# at least two layers (three from 51, four from 151), real half-tile offsets, and the journey
+	# mixes many families rather than one shape. Aligned tiers (a ziggurat) are a legitimate layout,
+	# but nearly every board staggers somewhere.
 	var merged := _merged()
+	var families := {}
+	var staggered := 0
 	for i in range(3, merged.size()):
 		var d: Dictionary = merged[i]
-		check(str(d.get("layout_id", "")).begins_with("dense:"), "level %d uses a dense layout" % d.id)
+		var lid := str(d.get("layout_id", ""))
+		check(lid.begins_with("tpl:%s:" % LayoutTemplates.VERSION), "level %d uses a layered template (%s)" % [d.id, lid])
+		var fam := lid.get_slice(":", 2)
+		check(LayoutTemplates.FAMILIES.has(fam), "level %d family %s" % [d.id, fam])
+		families[fam] = int(families.get(fam, 0)) + 1
+		var pos := LevelDefinition.from_dict(d).positions()
+		var min_layers := 2 if int(d.id) <= 50 else (3 if int(d.id) <= 150 else 4)
+		check(LayoutTemplates.layer_count(pos) >= min_layers, "level %d has %d layers" % [d.id, LayoutTemplates.layer_count(pos)])
+		var half := 0
+		for p in pos:
+			if p.x % 2 != 0 or p.y % 2 != 0:
+				half += 1
+		if half > 0:
+			staggered += 1
 		if int(d.id) <= 50:
 			check_eq(str(d.world), "aurora_garden")
+	check(families.size() >= 6, "levels use %d template families: %s" % [families.size(), families])
+	check(staggered >= (merged.size() - 3) * 0.9, "%d of %d boards have half-tile offsets" % [staggered, merged.size() - 3])
+	print("  template families: ", families)
 
 
 func test_boards_fill_the_screen() -> void:

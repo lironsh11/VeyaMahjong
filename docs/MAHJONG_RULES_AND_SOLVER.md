@@ -8,7 +8,9 @@ game, on worker threads and in the headless tests/tools.
 | Class | Role |
 |---|---|
 | `TileModel` | Stable instance id, logical position `(gx, gy, z)` and face. Never holds sprite/visual data. |
-| `BoardGeometry` | Immutable relationships computed once per layout: who covers whom, left/right neighbours, Zobrist keys. Shared read-only between state clones and threads. |
+| `BoardGeometry` | Immutable relationships computed once per layout: who covers whom, left/right neighbours, Zobrist keys, the back-to-front draw order. Shared read-only between state clones and threads. |
+| `BoardFit` / `BoardProjection` | The stacked projection: where each tile's face, sides and sprite are drawn for a tile width, board bounds and fitting, touch hit-testing. Pure, so tools and tests use the game's exact numbers. |
+| `LayoutTemplates` | Layered structures (pyramid, turtle, bridge, cross, ...) for generated levels and daily boards. |
 | `BoardState` | Mutable: current faces, removed set, incremental blocker counters, remaining count per match key. |
 | `LevelDefinition` | Validated, typed level (pack or generated), including its witness solution and generator metadata (`generator_version`, `seed`). |
 | `GameSession` | A board being played: the tray, history (picks, shuffles, send-backs), score, stats, solvable checkpoint, save/restore. |
@@ -89,10 +91,14 @@ tap is O(1), and `available_pairs()` is O(n).
 
 ### Input to rules mapping
 
-`BoardView.pick()` hit-tests against each tile's *body* rectangle (the sprite minus its
-transparent padding and drop shadow), from the topmost drawn tile down, so the tile under the
-finger is the visually topmost one. If a tap lands in a gap, the nearest tile whose body,
-enlarged by 10%, contains the point is chosen. The board always lays out LTR, including in Hebrew.
+`BoardView.pick()` → `BoardProjection.pick()` hit-tests against each tile's *solid* (its top
+face plus its right and bottom sides; never the drop shadow or the art's transparent padding),
+walking the tiles front to back in draw order, so the tile under the finger is the one drawn on
+top there and a covered tile is never selected through a tile above it. A tap on the visible
+part of a covered tile picks that tile, which the rules then refuse (blocked feedback); the view
+never redirects a tap to a different tile. If a tap lands in a gap, the nearest tile whose
+solid, enlarged by 10%, contains the point is chosen. The board always lays out LTR, including
+in Hebrew.
 
 ## Tray solver (`TraySolver`)
 
@@ -154,9 +160,10 @@ order is biased toward far-apart partners to avoid trivial adjacent twins.
 - **Determinism:** `SeededRng` (xorshift64* seeded by SplitMix64; FNV-1a for string seeds) is
   pinned in code, so seeds reproduce across engine versions. Unit tests check the first outputs
   and the FNV constants.
-- **Versioning:** `BoardGenerator.VERSION = "gen-1"`, `LayoutGenerator.VERSION = "layout-1"` and
-  `DailyGenerator.VERSION = "daily-4"` (dense boards, `LayoutGenerator.DENSE_VERSION = "dense-1"`) are folded into every seed. Changing an algorithm requires
-  bumping its version, so already-played boards never change silently.
+- **Versioning:** `BoardGenerator.VERSION = "gen-1"`, `LayoutGenerator.VERSION = "layout-1"`,
+  `LayoutTemplates.VERSION = "tpl-1"` and `DailyGenerator.VERSION = "daily-5"` (layered template
+  boards) are folded into every seed or layout id. Changing an algorithm requires bumping its
+  version, so already-played boards never change silently.
 - Physical layout difficulty (geometry) is separate from tile order (seeded face assignment).
 - If a geometry cannot be cleared at all (for example two tiles stacked with nothing else), the
   generator returns an error rather than an unsolvable board.
@@ -212,9 +219,9 @@ themselves. Real Mahjong Solitaire distributes faces randomly.
 | Levels | Content | Built by |
 |---|---|---|
 | 1-3 | Supplied pack levels, unchanged (gentle follow-ups to the tutorial) | — |
-| 4-50 | The pack's own 47 shapes, each used once, with **re-scattered faces**; ordered by composite score | `tools/build_early_levels.gd` (`levels-4-50-v1`): 24 validated variants per shape (pairing spread 0.6/0.3/0.0), one chosen per shape to spread from level 3's difficulty upward |
-| 151-300 | Generated dense boards, harder through traps (96-144 tiles, 4-6 layers, less ground, twins far apart), continuing from level 150 | `tools/build_levels.gd -- --range=151-300` (`levels-151-300-v1`): 3,000 candidates → 2,222 validated → 150 selected; dead-end target p98, score target p99, score weight 0.6 (the dead-end rate is already 0.88 at level 150). See `docs/reports/levels_151_300.md` |
-| 51-150 | Generated boards (procedural shapes + pack shapes with new faces, each pack shape at most once) | `tools/build_levels.gd` (`levels-51-150-v5`): 2,400 candidates → 959 validated → 100 selected |
+| 4-50 | Layered template boards (all ten `LayoutTemplates` families, 2-3 layers, 30-70 tiles); ordered by composite score | `tools/build_early_levels.gd` (`levels-4-50-v6`): 1,200 candidates → 570 validated, 47 chosen to spread from level 3's difficulty upward (pairing spread 0.6/0.3/0.0). Earlier builds: the pack's own shapes (v1-v3), dense grids (v4-v5) |
+| 51-150 | Layered template boards (pyramid, brick, ridge, terraces, frame, bridge, ziggurat, twin; 3-5 layers, 68-144 tiles) | `tools/build_levels.gd` (`levels-51-150-v10`): 2,400 candidates → 1,470 validated → 100 selected; dead-end 0.28 → 0.94. See `docs/reports/levels_051_150.md` |
+| 151-300 | Layered template boards, harder through traps (116-144 tiles, 4-5 layers, twins far apart), continuing from level 150 | `tools/build_levels.gd -- --range=151-300` (`levels-151-300-v3`): 3,600 candidates → 2,101 validated → 150 selected; dead-end 0.93 → 1.00, score 96 → 104; dead-end target p98, score target p99, score weight 0.6. See `docs/reports/levels_151_300.md` |
 
 Selection for 51-150 ramps **two axes together** from where level 50 ends: the random-play
 dead-end rate (what a player feels as "getting stuck") is the primary axis, and the composite
@@ -258,36 +265,98 @@ honesty, generator determinism and batch validity, procedural layout support, sh
 invariants and impossible geometry, session save/restore and tamper rejection, rewinding to
 the checkpoint, and all 150 pack levels.
 
-## Screen fit (boards that fill the screen)
+## Board geometry and rendering (layered boards, since 2026-10-22)
 
-Owner request (2026-10-19): boards must use the phone screen as fully as possible, in width
-AND height, with big tiles.
+Owner request (2026-10-22): boards must read as real Mahjong Solitaire stacks, like a classic
+layered layout, not a flat grid. The fix is in the geometry, the content and the renderer, not
+in cosmetic offsets.
 
-`BoardFit` is pure and shared by the game, the tools and the tests:
-- **`REFERENCE_AREA` (528x921):** the frozen content target. It is the board area in tray play
-  on a 540x1200 canvas (20:9) with no banner during play.
-- **`PLAY_AREA`:** the measured area in the current UI.
-- **`STEP_Y = 0.82`:** below the 0.905 body height, so rows overlap (3D slab look).
+### Data model
 
-**Dense layouts.** `LayoutGenerator.generate_dense(rng, tiles, cols, layers)`:
-- `rows_to_fill` picks the rows that make a 5- or 6-column board exactly as tall as the area
-  allows at the tile size its width gives.
-- The mirror-symmetric base layer always reaches the outer columns and the first and last rows,
-  so even a small board spans the whole grid.
-- Upper layers sit only where they are fully supported (`_fully_supported`, quarter-footprint
-  test). A layer may be shifted by half a tile in x and/or y (the brick look).
+Every tile has a stable index/id (`TileModel.id`), a face (its type), logical integer
+coordinates `gx`, `gy` in **half-tile units** (two units = one tile pitch, so half-tile offsets
+are exact integers), a layer `z`, a removed flag and its blocking state (`BoardState`: covering
+count and left/right neighbour counts, updated incrementally). Screen positions are never stored:
+`BoardProjection` derives them from the logical geometry for the current tile width.
 
-**Gates.** Levels 4-300 (`tools/build_early_levels.gd`, `tools/build_levels.gd`) and the daily
-(`daily-4`) accept a board only if it covers ≥ 88% of the area's width and height with tiles
-≥ 84 px.
-- `test_boards_fill_the_screen` and `test_daily_boards_fill_the_screen` enforce this at
-  `PLAY_AREA`.
-- Levels 1-3 keep the supplied pack orientation (their witness depends on it); their tiles are
-  already 91-112 px.
+### Projection (`BoardFit`, `BoardProjection`)
 
-| Levels | Columns | Tile px (REFERENCE_AREA) | Fill (width / height) |
-|---|---|---|---|
-| 1-3 (pack) | 4-6 | 91-112 | not gated |
-| 4-50 | 5-6 | 92-112 | 0.99-1.00 / 0.92-1.00 |
-| 51-150 | 5-6 | ≥ 84 (see `docs/reports/levels_051_150.md`) | ≥ 0.88 / ≥ 0.88 |
-| 151-300 | 5-6 | ≥ 84 (see `docs/reports/levels_151_300.md`) | ≥ 0.88 / ≥ 0.88 |
+The board is drawn as a stack seen from above and slightly to the front-right:
+- **Face and sides.** Each tile shows its top face (`BoardFit.FACE`, 0.915 × 1.025 tile widths)
+  plus a bottom side (the thickness band painted in the tile art, 0.135) and a right side
+  (0.05, drawn by `TileView` as two tinted copies of the tile: an ivory lip and the jade back).
+  Sides are darker than the face.
+- **Lift.** A tile on layer z is drawn `z × LIFT` up-left, with `LIFT == SIDE`. A tile resting on
+  another shows the lower tile's sides beneath its own; a tile half a tile off its supports
+  visibly straddles them.
+- **Pitch.** Same-layer neighbours sit one face apart plus a hairline gap (`GAP`, 0.02), so a
+  layer reads as one floor and the row behind shows a sliver of its lip.
+- **Shadows.** A raised tile drops a soft contact shadow past its right and bottom sides onto the
+  tiles below it. Lower layers are shaded slightly darker (6% per layer, at most 16%).
+- **Draw order** (`BoardGeometry.draw_order`): layer by layer, lowest first; within a layer by
+  `gx + gy`, so a right or lower neighbour is drawn over the side it hides. Because `LIFT ==
+  SIDE`, a higher tile never reaches onto a lower tile in front of it; it can hide at most a
+  lift's strip (about 11% of the face per layer of height difference) of a tile directly behind
+  it, as in a real stack. `z_index` is used only to raise a hinted tile.
+- **Bounds and fit.** `BoardFit.bounds` is the union of every tile's face and sides (including
+  each layer's lift) plus room for shadows. The whole board is scaled uniformly to the play area
+  and centred; tiles never stretch. Bounds come from the layout, not the remaining tiles, so the
+  board does not move as tiles leave.
+
+### Debug view
+
+Debug builds only: `--board-debug` (or `BoardView.debug_overlay = true`) outlines every face
+and labels it with its state and layer: green `F` free, amber `S` both sides blocked, red `C`
+covered. Release builds never create it.
+
+## Layout templates (`LayoutTemplates`, "tpl-1")
+
+Levels 4-300 and daily boards (`daily-5`) are built in three deterministic steps:
+
+1. **Ground** on a 5- or 6-column grid with the rows that fill the play area
+   (`BoardFit.rows_to_fill`), shaped by the family.
+2. **Layers**, each derived from the one below by an explicit rule:
+   - `stagger`: half a tile across and down, each tile on the corner of four;
+   - `stagger_x` / `stagger_y`: half a tile one way, each tile straddling two;
+   - `chain`: stagger where four meet, else half a tile along thin runs;
+   - `shrink`: aligned, only over tiles with neighbours all round;
+   - `same`: aligned, straight on top (towers, walls).
+
+   A tile is placed only where it rests on the layer below (all four quarters; two for a
+   bridge deck) and overlaps nothing on its own layer. Shifts alternate direction, so tiers stay
+   centred, and every rule keeps the board mirror-symmetric.
+3. **Carve** to the wanted tile count: mirror pairs of uncovered tiles are removed, from the top
+   (`top`: lower, flatter) or from the outside in (`edge`: eroded terraces). A tile something
+   rests on, or the last tile on an edge of the board, is never removed.
+
+| Family | Ground | Layers |
+|---|---|---|
+| `pyramid` | full grid | staggered pyramid: every tier on the corners of the one below |
+| `ziggurat` | full grid | aligned tiers, each a ring smaller, with a staggered cap |
+| `turtle` | body, head and tail on the centre line, flippers half a row off the body | the shell straight on the body, then staggered tiers to a cap |
+| `bridge` | two piers and a centre channel | decks resting half on a pier, staggered pier tops |
+| `cross` | two crossing bars | `chain` tiers along the bars, highest at the centre |
+| `twin` | full grid | two staggered pyramids, upper and lower half |
+| `frame` | a ring around an open courtyard | `chain`, then walls |
+| `brick` | full grid | alternately straddling pairs sideways and lengthways |
+| `terraces` | full grid | staggered tiers, each two tiles high |
+| `ridge` | full grid | straddling pairs sideways, rising to a roof ridge |
+
+`LayoutTemplates.pick` chooses a family and height whose full structure holds the wanted tiles
+without carving away more than about half of it, and rejects boards that end up lower than the
+range's minimum (2 layers in 4-50, 3 in 51-150, 4 in 151-300). Faces are then assigned by
+reverse play (`BoardGenerator`), so every board is solvable by construction, and validated as
+before.
+
+**Screen fit gates.** Levels 4-300 and the daily accept a board only if it covers ≥ 88% of the
+play area's width and height with tiles ≥ 84 px (`REFERENCE_AREA` = `PLAY_AREA` = 528 × 893,
+the board area in tray play on a 540 × 1200 canvas). A 6-column board gets 93 px tiles, a
+5-column one 105-112 px. On a 16:9 phone (about 240 px shorter) the same board scales down
+uniformly. Levels 1-3 keep the supplied pack layouts (flat, single layer; their witness depends
+on them).
+
+`tests/test_board_layout.gd` covers half-offset cover of two and four tiles, partial overlap,
+side blocking, exposure after removal, lift == side, draw order and depth (no tile drawn over one
+physically in front of it, checked on shipped boards), touch priority (pure and through the
+node), board centring, the debug overlay default, every family's structure, the 32-tile
+three-layer example, carving, undo, shuffle and hints on layered boards.

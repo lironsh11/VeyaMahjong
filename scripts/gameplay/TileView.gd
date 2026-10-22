@@ -2,20 +2,52 @@ class_name TileView
 extends Control
 ## Visual for one tile slot. Purely presentational: it never receives input itself
 ## (BoardView hit-tests logically) and never changes rules state.
+##
+## The tile itself (contact shadow, right side, face) is ONE canvas item, `body`, that draws its
+## parts with per-part colours. With a TextureRect per part, each part's own self_modulate broke
+## the Compatibility renderer's batching (about four draw calls per tile, ~520 on a 136-tile
+## board); drawn this way a whole board batches into a couple of draw calls. The overlays below
+## stay TextureRects: they are hidden except on the few tiles being hinted, dimmed or matched.
 
-## Cast shadow of a raised tile (layer > 0) on the tiles below it, in tile widths. It makes the
-## layers read at a glance; same-layer neighbours are drawn later and simply cover it.
-const DEPTH_SHADOW_OFFSET := Vector2(0.075, 0.065)
-const DEPTH_SHADOW_COLOR := Color(0.04, 0.12, 0.08, 0.5)
+## Contact shadow of a raised tile (layer > 0) on the tiles below it, in tile widths: a dark copy
+## of the tile peeking out past its right and bottom sides. It makes the layers read at a glance;
+## same-layer neighbours are drawn later and simply cover it.
+const DEPTH_SHADOW_OFFSET := Vector2(BoardFit.SIDE.x + 0.035, 0.06)
+const DEPTH_SHADOW_COLOR := Color(0.03, 0.10, 0.07, 0.42)
+## The right side (BoardFit.SIDE.x; the art paints only the bottom side): two tinted copies of the
+## tile under its face, shifted right, show an ivory lip and the jade back like the bottom band.
+## The tints turn the art's tan rim into the band's colours, a little darker than the face.
+const SIDE_LIP_SHARE := 0.4
+const SIDE_LIP_TINT := Color(0.88, 0.86, 0.80)
+const SIDE_BACK_TINT := Color(0.06, 0.48, 0.55)
 ## Brightness of a tile per layer below the board's top layer.
-const LAYER_SHADE_STEP := 0.07
-const LAYER_SHADE_MIN := 0.82
+const LAYER_SHADE_STEP := 0.06
+const LAYER_SHADE_MIN := 0.84
 ## One tile's flip from its back to its face when a board is dealt.
 const DEAL_FLIP_S := 0.22
 
+
+class TileBody extends Control:
+	## Shadow, right side and face of one tile, drawn in one item (see the class doc above).
+	var tex: Texture2D
+	var face_color := Color.WHITE
+	var side_shade := Color.WHITE
+	var shadow_on := false
+
+	func _draw() -> void:
+		if tex == null:
+			return
+		var r := Rect2(Vector2.ZERO, size)
+		var w := size.x
+		if shadow_on:
+			draw_texture_rect(tex, Rect2(DEPTH_SHADOW_OFFSET * w, r.size), false, DEPTH_SHADOW_COLOR)
+		draw_texture_rect(tex, Rect2(Vector2(BoardFit.SIDE.x * w, 0.0), r.size), false, SIDE_BACK_TINT * side_shade)
+		draw_texture_rect(tex, Rect2(Vector2(BoardFit.SIDE.x * SIDE_LIP_SHARE * w, 0.0), r.size), false, SIDE_LIP_TINT * side_shade)
+		draw_texture_rect(tex, r, false, face_color)
+
+
 var index: int = -1
-var shadow: TextureRect      ## first child, so it sits under this tile's face
-var face_rect: TextureRect
+var body: TileBody           ## first child: the tile under every overlay
 var ring: TextureRect        ## "selected" overlay
 var hint_ring: TextureRect   ## "hint" overlay
 var blocked_ov: TextureRect  ## covered tiles when "highlight free tiles" is on
@@ -38,13 +70,12 @@ func setup(p_index: int, tex: Texture2D, sprite_size: Vector2, hi_res: bool) -> 
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	size = sprite_size
 	pivot_offset = sprite_size * 0.5
-	shadow = _layer()
-	shadow.texture = tex
-	shadow.self_modulate = DEPTH_SHADOW_COLOR
-	shadow.visible = false
-	face_rect = _layer()
-	face_rect.texture = tex
-	# Overlays share the face's slot geometry, so they simply cover the whole tile.
+	body = TileBody.new()
+	add_child(body)  # attach BEFORE positioning (RTL locales would otherwise mirror the offset)
+	body.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body.tex = tex
+	# Overlays share the tile's slot geometry, so they simply cover the whole tile.
 	blocked_ov = _layer()
 	pressed_ov = _layer()
 	match_ov = _layer()
@@ -60,8 +91,7 @@ func _layer() -> TextureRect:
 	r.stretch_mode = TextureRect.STRETCH_SCALE
 	r.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if face_rect != null:
-		r.visible = false
+	r.visible = false
 	return r
 
 
@@ -74,17 +104,13 @@ func set_overlay_res(hi_res: bool) -> void:
 
 
 func set_texture(tex: Texture2D) -> void:
-	face_rect.texture = tex
-	shadow.texture = tex
+	body.tex = tex
+	body.queue_redraw()
 
 
 func set_depth_shadow(on: bool) -> void:
-	shadow.visible = on
-	var d := DEPTH_SHADOW_OFFSET * size.x
-	shadow.offset_left = d.x
-	shadow.offset_top = d.y
-	shadow.offset_right = d.x
-	shadow.offset_bottom = d.y
+	body.shadow_on = on
+	body.queue_redraw()
 
 
 func set_dimmed(on: bool, high_contrast: bool) -> void:
@@ -96,14 +122,17 @@ func set_dimmed(on: bool, high_contrast: bool) -> void:
 func _apply_tint() -> void:
 	## The pack's selected/hint rings are thin at phone tile sizes, so the face also takes a
 	## light tint (gold = selected, jade = hint). High contrast darkens blocked faces too.
+	var c := _layer_shade
 	if ring.visible:
-		face_rect.self_modulate = Color(1.0, 0.94, 0.78)
+		c = Color(1.0, 0.94, 0.78)
 	elif hint_ring.visible:
-		face_rect.self_modulate = Color(0.82, 1.0, 0.94)
+		c = Color(0.82, 1.0, 0.94)
 	elif blocked_ov.visible and _high_contrast:
-		face_rect.self_modulate = Color(0.72, 0.74, 0.78) * _layer_shade
-	else:
-		face_rect.self_modulate = _layer_shade
+		c = Color(0.72, 0.74, 0.78) * _layer_shade
+	if c != body.face_color or _layer_shade != body.side_shade:
+		body.face_color = c
+		body.side_shade = _layer_shade
+		body.queue_redraw()
 
 
 func set_layer_depth(below_top: int) -> void:
@@ -255,8 +284,8 @@ func play_blocked(animate: bool) -> void:
 			_tw.tween_property(self, "position:x", base_pos.x + dx, 0.035)
 	else:
 		# Reduced motion: brief static tint instead of a shake.
-		face_rect.modulate = Color(1.0, 0.75, 0.75)
+		body.modulate = Color(1.0, 0.75, 0.75)
 		_tw.tween_interval(0.25)
 	_tw.tween_callback(func() -> void:
-		face_rect.modulate = Color.WHITE
+		body.modulate = Color.WHITE
 		pressed_ov.visible = false)

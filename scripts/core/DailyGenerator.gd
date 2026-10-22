@@ -7,7 +7,9 @@ extends RefCounted
 ## were already generated: changing the algorithm requires bumping VERSION, and saved
 ## completions are keyed by date, not by board contents.
 
-const VERSION := "daily-4"  ## daily-4: dense boards filling the screen (daily-3: portrait pack/proc)
+const VERSION := "daily-5"  ## daily-5: layered template boards (daily-4: dense grids; daily-3: portrait pack/proc)
+## Medium, readable structures for a daily board (LayoutTemplates).
+const FAMILIES: PackedStringArray = ["pyramid", "turtle", "bridge", "twin", "ziggurat", "brick"]
 const MIN_FIT_TILE := 84.0
 const MIN_FILL := 0.88
 const WORLDS := ["aurora_garden", "pearl_coast", "crystal_nocturne"]
@@ -44,15 +46,16 @@ static func build(date: String) -> LevelDefinition:
 	var gen := BoardGenerator.new()
 	var world: String = WORLDS[absi(SeededRng.hash_string(date)) % WORLDS.size()]
 	var fallback: LevelDefinition = null
-	for attempt in 8:
-		# A medium board that fills the play area both ways (see LayoutGenerator.generate_dense).
+	for attempt in 12:
+		# A medium layered board that fills the play area both ways (LayoutTemplates).
 		var cols := 6 if rng.rand_float() < 0.75 else 5
-		var layers := rng.rand_int(2, 4)
-		var layout_id := "dense:%s" % LayoutGenerator.DENSE_VERSION
-		var positions := LayoutGenerator.generate_dense(rng, rng.rand_int(56, 96), cols, layers, {"offset_prob": 0.4})
-		if positions.size() < 16:
+		var layers := rng.rand_int(3, 4)
+		var family: String = FAMILIES[rng.rand_int(0, FAMILIES.size() - 1)]
+		var layout_id := "tpl:%s:%s" % [LayoutTemplates.VERSION, family]
+		var target := 2 * rng.rand_int(28, 48)
+		var positions := LayoutTemplates.generate(rng, family, target, cols, layers, LayoutTemplates.MODES[rng.rand_int(0, 1)])
+		if positions.size() < 16 or LayoutTemplates.layer_count(positions) < 3:
 			continue
-		positions = BoardFit.best_orientation(positions)
 		var L := gen.generate_level(positions, "%s|%d" % [seed_text, attempt], {
 			"key": "daily:" + date, "world": world, "layout_id": layout_id, "difficulty_band": "daily",
 		})
@@ -65,4 +68,11 @@ static func build(date: String) -> LevelDefinition:
 			return L
 		if fallback == null:
 			fallback = L
+	if fallback == null:
+		# Never reached in the tested range; a staggered pyramid always has room for 64 tiles.
+		var pos := LayoutTemplates.generate(rng, "pyramid", 64, 6, 4, "edge")
+		fallback = gen.generate_level(pos, "%s|fallback" % seed_text, {
+			"key": "daily:" + date, "world": world, "layout_id": "tpl:%s:pyramid" % LayoutTemplates.VERSION, "difficulty_band": "daily",
+		})
+		fallback.seed_text = seed_text
 	return fallback

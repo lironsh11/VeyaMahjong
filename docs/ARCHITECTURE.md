@@ -9,9 +9,11 @@ when something changes, which saves battery in a turn-based game.
 ```
 scripts/core/        Pure rules & content (no nodes; thread-safe on cloned data)
   MahjongRules  TileModel  BoardGeometry  BoardState  LevelDefinition
-  BoardSolver   BoardGenerator  LayoutGenerator  ShuffleRescue  DailyGenerator
+  BoardSolver   BoardGenerator  LayoutGenerator  LayoutTemplates  ShuffleRescue  DailyGenerator
+  BoardFit  BoardProjection   (stacked projection: face/sides/lift, draw order, hit-test)
   BoardValidator  DifficultyAnalyzer  GameSession  SeededRng
-scripts/gameplay/    BoardView (render + hit-test), TileView, BoardController (session<->view, async)
+scripts/gameplay/    BoardView (render + hit-test via BoardProjection), TileView (face, sides, contact shadow),
+                     BoardController (session<->view, async)
 scripts/services/    Autoload singletons (below)
   ads/ iap/          Provider interfaces, QA mocks, Google Play Billing adapter
 scripts/ui/          Screen base class, UIKit builders, ModalDialog
@@ -49,7 +51,7 @@ tools/               Headless validators, script checker, asset usage report
 ## Event flow: one tap
 
 ```
-touch -> BoardView._gui_input -> pick(point) [topmost body rect]
+touch -> BoardView._gui_input -> pick(point) [front-most tile solid: face + sides, BoardProjection]
       -> BoardController._on_tap(i) -> GameSession.tap(i)       (rules; board + tray updated now)
          BLOCKED   -> view shake/tint, invalid sfx, gentle one-time explanation toast
          TO_TRAY   -> BoardView.lift(i); TrayView.fly_in (arc into its slot, land squash)
@@ -98,5 +100,9 @@ dropped if the board changed in the meantime (generation counter).
 ## Debug-only tooling (never active in release builds)
 
 - `--tour=<dir> [--locale=xx] [--save-dir=user://x]`: visits every screen and saves PNGs.
+  `--levels=1,7,50` captures only those boards; `--layouts=family:cols:layers:tiles[:mode[:seed]],...`
+  renders LayoutTemplates boards on their own.
+- `--board-debug`: labels every board tile with its layer and state (free / side-blocked /
+  covered) and outlines its face.
 - `--perf-log` or `user://perf_log.flag`: prints FPS, frame time, draws, nodes and memory every 2 s.
 - `--save-dir=`: isolates save data for tests and tours.

@@ -1,20 +1,20 @@
 extends SceneTree
-## Builds levels 4-50 (world 1) from dense, screen-filling boards.
+## Builds levels 4-50 (world 1) from layered template boards.
 ##   godot --headless --path . -s res://tools/build_early_levels.gd [-- --candidates=600]
 ##
-## v4 (owner request 2026-10-19): every board fills the phone's play area in BOTH directions
-## (LayoutGenerator.generate_dense, 5-6 columns, the rows that fit the screen, 1-4 layers), so
-## tiles are drawn big (about 90-112 px on a 20:9 phone) instead of narrow pack shapes.
-## Levels 1-3 stay exactly as supplied as gentle follow-ups to the tutorial.
+## v6 (2026-10-22): every board is a real layered structure (LayoutTemplates: pyramid, turtle,
+## bridge, cross, frame, ...) two to three layers high with half-tile offsets between layers,
+## still filling the phone's play area in BOTH directions with big tiles (v4/v5 were flat-looking
+## dense grids). Levels 1-3 stay exactly as supplied as gentle follow-ups to the tutorial.
 ##
-## Each candidate: dense layout -> faces by reverse play (BoardGenerator) -> BoardValidator
+## Each candidate: template layout -> faces by reverse play (BoardGenerator) -> BoardValidator
 ## (witness replay + independent solve; tray witness too) -> DifficultyAnalyzer. The 47 chosen
 ## boards spread their measured scores evenly from level 3 up to TARGET_TOP, then are ordered by
 ## score. A board whose tile count is below LevelCatalog.min_tiles for the level its score would
 ## put it at never enters the pool, so boards grow along the world. Deterministic: re-running
 ## reproduces the same file.
 
-const BUILD_ID := "levels-4-50-v5"  ## v5: tile floor rising with the level (v4: dense boards that fill the screen)
+const BUILD_ID := "levels-4-50-v6"  ## v6: layered template boards (v5: tile floor; v4: dense boards that fill the screen)
 const OUT_PATH := "res://data/levels/levels_004_050_regenerated.json"
 const REPORT_PATH := "res://docs/reports/levels_004_050.md"
 const FIRST_ID := 4
@@ -40,22 +40,25 @@ func _initialize() -> void:
 	var hi: float = TARGET_TOP
 	var gen := BoardGenerator.new()
 	var pool: Array = []
-	var stats := {"tried": 0, "fit_rejected": 0, "invalid": 0, "below_floor": 0}
+	var caps := {}
+	var stats := {"tried": 0, "no_template": 0, "fit_rejected": 0, "invalid": 0, "below_floor": 0}
 	for k in n_candidates:
 		stats.tried += 1
 		var rng := SeededRng.new(SeededRng.hash_string("%s|cand|%d" % [BUILD_ID, k]))
-		# Small, gentle boards first (5 columns, few layers), up to 6-column 3-4 layer boards.
-		var cols := 5 if rng.rand_float() < 0.6 else 6
-		var layers := rng.rand_int(1, 3 if cols == 5 else 4)
-		var target := rng.rand_int(20, 40) if layers == 1 else rng.rand_int(28, 30 + layers * 22)
-		var positions := LayoutGenerator.generate_dense(rng, target, cols, layers, {"offset_prob": 0.3 + rng.rand_float() * 0.4})
-		positions = BoardFit.best_orientation(positions)
+		# Small, gentle boards first (5 columns, 2-3 layers), up to 6-column 3-4 layer boards.
+		var cols := 5 if rng.rand_float() < 0.55 else 6
+		var target := 2 * rng.rand_int(12, 36)
+		var t := LayoutTemplates.pick(rng, target, cols, 2, 3 if cols == 5 or target < 48 else 4, caps)
+		if t.is_empty():
+			stats.no_template += 1
+			continue
+		var positions: Array = t.positions
 		if not _fills_screen(positions):
 			stats.fit_rejected += 1
 			continue
 		gen.spread_bias = [0.6, 0.3, 0.0][k % 3]
 		var L := gen.generate_level(positions, "%s|board|%d" % [BUILD_ID, k], {
-			"layout_id": "dense:early:%d" % k, "key": "early:%d" % k, "world": "aurora_garden"})
+			"layout_id": "tpl:%s:%s:%d" % [LayoutTemplates.VERSION, t.family, k], "key": "early:%d" % k, "world": "aurora_garden"})
 		if not L.is_valid():
 			stats.invalid += 1
 			continue
@@ -109,11 +112,11 @@ func _initialize() -> void:
 
 	var out: Array = []
 	var md := PackedStringArray()
-	md.append("# Levels 4-50 (dense screen-filling boards, ordered by measured difficulty)")
+	md.append("# Levels 4-50 (layered template boards, ordered by measured difficulty)")
 	md.append("")
 	md.append("Built by `tools/build_early_levels.gd` (`%s`, deterministic, %d candidates, pairing spread 0.6/0.3/0.0). Levels 1-3 are the supplied pack levels, unchanged." % [BUILD_ID, n_candidates])
 	md.append("")
-	md.append("- Range: level 3 score %.1f -> level 51 score %.1f. Pool %d; rejected for screen fit %d; invalid %d; below the tile floor for their score %d." % [lo, hi, pool.size(), stats.fit_rejected, stats.invalid, stats.below_floor])
+	md.append("- Range: level 3 score %.1f -> level 51 score %.1f. Pool %d; no template for the size %d; rejected for screen fit %d; invalid %d; below the tile floor for their score %d." % [lo, hi, pool.size(), stats.no_template, stats.fit_rejected, stats.invalid, stats.below_floor])
 	md.append("- Tile floor (`LevelCatalog.min_tiles`): %d tiles at level %d rising to %d at level %d." % [LevelCatalog.min_tiles(FIRST_ID), FIRST_ID, LevelCatalog.min_tiles(LAST_ID), LAST_ID])
 	md.append("- Every board fills >= %d%% of the play area's width and height with tiles >= %d px (`BoardFit.REFERENCE_AREA`), and its witness is replayed legally AND independently solved." % [int(MIN_FILL * 100), int(MIN_FIT_TILE)])
 	md.append("")

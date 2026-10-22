@@ -17,6 +17,7 @@ Targets from the brief are listed as *targets*, not achievements.
 | Frame rate during play | steady **30 FPS** (= Low cap) | 16 shuffle/hint animation cycles on a 20-tile board, perf log every 2 s | 30 FPS low-end | Met on emulator |
 | Main-thread process time per frame | 0.1–3.3 ms | same session | — | Large headroom |
 | Draw calls | 29–33 | Home and gameplay | small | OK |
+| Draw calls, layered board (2026-10-22) | **21** for the whole frame | desktop, 136-tile 4-layer board (faces, right sides, contact shadows), perf log | small | OK. Each tile draws its shadow, sides and face as one canvas item (`TileView.TileBody`) with per-part colours, so the board batches; one TextureRect per part with its own `self_modulate` measured ~520 |
 | Node count | 84 (Home) / 147 (gameplay, 20 tiles) | | | Flat during the session (no leak) |
 | Object count | ~2,070, flat across 16 cycles | | no growth | No leak seen |
 | Engine static memory | 56.7–59.6 MB | `OS.get_static_memory_usage` | | |

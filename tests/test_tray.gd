@@ -382,27 +382,3 @@ func test_snapshot_rejected_on_new_geometry() -> void:
 	var moved := level_from_rows(["XXXX", "XXXX"], [], ["circle_1", "circle_2", "circle_3", "circle_4", "circle_4", "circle_3", "circle_2", "circle_1"])
 	check_eq(moved.key, L.key, "same key (same tile count)")
 	check(GameSession.restore(moved, d) == null, "different positions rejected")
-
-
-func test_dense_layouts_fill_and_stand() -> void:
-	# LayoutGenerator.generate_dense: deterministic, symmetric, every upper tile fully supported,
-	# and the board fills the play area both ways.
-	for s in 12:
-		var cols := 5 + s % 2
-		var layers := 1 + s % 5
-		var a := LayoutGenerator.generate_dense(SeededRng.new(900 + s), 40 + s * 8, cols, layers)
-		var b := LayoutGenerator.generate_dense(SeededRng.new(900 + s), 40 + s * 8, cols, layers)
-		check(a == b, "deterministic")
-		check_eq(a.size() % 2, 0, "even tile count")
-		var geo := BoardGeometry.from_positions(a)
-		check(geo.errors.is_empty(), "no overlapping tiles")
-		var by_layer := {}
-		for p in a:
-			if not by_layer.has(p.z):
-				by_layer[p.z] = {}
-			by_layer[p.z][Vector2i(p.x, p.y)] = true
-		for p in a:
-			if p.z > 0:
-				check(LayoutGenerator._fully_supported(Vector2i(p.x, p.y), by_layer[p.z - 1]), "tile at %s rests on the layer below" % str(p))
-		var fr := LayoutGenerator.fill_ratio(a, BoardFit.PLAY_AREA)
-		check(fr.x >= 0.88 and fr.y >= 0.88, "fills the screen (%.2f x %.2f)" % [fr.x, fr.y])

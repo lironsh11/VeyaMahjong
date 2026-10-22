@@ -11,9 +11,10 @@ extends SceneTree
 ## under a player.
 ##
 ## Pipeline:
-##   1. Candidate geometries: dense, screen-filling layouts (LayoutGenerator.generate_dense:
-##      5-6 columns, the rows that fill the play area, several layers, half-shifted layers), kept
-##      only if they cover >= MIN_FILL of the play area's width AND height with big tiles.
+##   1. Candidate geometries: layered template structures (LayoutTemplates.pick: pyramid, brick,
+##      terraces, ridge, twin, bridge, turtle, frame..., 5-6 columns, the rows that fill the play
+##      area, several layers with half-tile offsets), kept only if they cover >= MIN_FILL of the
+##      play area's width AND height with big tiles.
 ##   2. Faces by reverse play (BoardGenerator), then BoardValidator (witness replay + independent
 ##      solve). Anything not proven solvable is discarded.
 ##   3. DifficultyAnalyzer metrics.
@@ -29,28 +30,28 @@ extends SceneTree
 ## Writes a report to docs/reports/levels_<first>_<last>.md.
 ##
 ## 151-300 keeps the same tile size and screen fill; it gets harder through traps: more layers,
-## less ground, twins placed far apart, and a higher score weight because the dead-end rate is
-## already near its ceiling at level 150.
+## twins placed far apart, and a higher score weight because the dead-end rate is already near
+## its ceiling at level 150.
 
 const RANGES := {
 	"51-150": {
-		"build_id": "levels-51-150-v9",  ## v9: tile floor rising with the level (v8: dense boards filling the screen both ways)
+		"build_id": "levels-51-150-v10",  ## v10: layered template boards (v9: tile floor; v8: dense boards filling the screen)
 		"out": "res://data/levels/levels_051_150_generated.json",
 		"prev": "res://data/levels/levels_004_050_regenerated.json",
 		"report": "res://docs/reports/levels_051_150.md",
 		"first": 51, "count": 100, "candidates": 2400,
 		"min_tiles": 64, "max_tiles": 144, "layers": [3, 5],
-		"base_share": [0.4, 0.25], "spread": [0.6, 0.3, 0.0],
+		"spread": [0.6, 0.3, 0.0],
 		"dead_q": 0.92, "score_q": 0.97, "score_weight": 0.35,
 	},
 	"151-300": {
-		"build_id": "levels-151-300-v2",  ## v2: tile floor rising with the level
+		"build_id": "levels-151-300-v3",  ## v3: layered template boards (v2: tile floor rising with the level)
 		"out": "res://data/levels/levels_151_300_generated.json",
 		"prev": "res://data/levels/levels_051_150_generated.json",
 		"report": "res://docs/reports/levels_151_300.md",
 		"first": 151, "count": 150, "candidates": 3600,
-		"min_tiles": 112, "max_tiles": 144, "layers": [4, 6],
-		"base_share": [0.3, 0.25], "spread": [0.6, 0.6, 0.3],
+		"min_tiles": 112, "max_tiles": 144, "layers": [4, 5],
+		"spread": [0.6, 0.6, 0.3],
 		"dead_q": 0.98, "score_q": 0.99, "score_weight": 0.6,
 	},
 }
@@ -93,20 +94,23 @@ func _initialize() -> void:
 
 	var gen := BoardGenerator.new()
 	var pool: Array = []
-	var stats := {"tried": 0, "size_rejected": 0, "gen_rejected": 0, "invalid": 0, "below_floor": 0}
+	var caps := {}
+	var stats := {"tried": 0, "no_template": 0, "size_rejected": 0, "gen_rejected": 0, "invalid": 0, "below_floor": 0}
 	for k in n_candidates:
 		stats.tried += 1
 		var rng := SeededRng.new(SeededRng.hash_string("%s|cand|%d" % [build_id, k]))
-		# Mostly 6 columns (the most tiles at ~90 px); some 5-column boards stay in the mix.
+		# Mostly 6 columns (the most tiles at ~93 px); some 5-column boards stay in the mix.
 		var cols := 6 if rng.rand_float() < 0.8 else 5
-		var layers := rng.rand_int(cfg.layers[0], cfg.layers[1])
-		var params := {"offset_prob": 0.25 + rng.rand_float() * 0.5, "base_share": cfg.base_share[0] + rng.rand_float() * cfg.base_share[1]}
-		var positions := LayoutGenerator.generate_dense(rng, rng.rand_int(cfg.min_tiles, cfg.max_tiles), cols, layers, params)
-		var layout_id := "dense:%s:%d" % [LayoutGenerator.DENSE_VERSION, k]
-		positions = BoardFit.best_orientation(positions)
+		var target := 2 * rng.rand_int(int(cfg.min_tiles) >> 1, int(cfg.max_tiles) >> 1)
+		var t := LayoutTemplates.pick(rng, target, cols, cfg.layers[0], cfg.layers[1], caps)
+		if t.is_empty():
+			stats.no_template += 1
+			continue
+		var positions: Array = t.positions
+		var layout_id := "tpl:%s:%s:%d" % [LayoutTemplates.VERSION, t.family, k]
 		# Mix pairing styles (far-apart -> nearer partners).
 		gen.spread_bias = cfg.spread[k % 3]
-		if positions.size() < cfg.min_tiles or positions.size() > cfg.max_tiles or not _fits_screen(positions):
+		if not _fits_screen(positions):
 			stats.size_rejected += 1
 			continue
 		var seed_text := "%s|board|%d" % [build_id, k]
@@ -184,9 +188,9 @@ func _initialize() -> void:
 	var md := PackedStringArray()
 	md.append("# Levels %d-%d (generated, ordered by measured difficulty)" % [first_id, last_id])
 	md.append("")
-	md.append("Built by `tools/build_levels.gd --range=%s` (`%s`, deterministic). Levels 1-3 are supplied pack levels; 4-50 are dense boards too (`docs/reports/levels_004_050.md`). Every board fills >= 88%% of the play area both ways with tiles >= 84 px." % [range_key, build_id])
+	md.append("Built by `tools/build_levels.gd --range=%s` (`%s`, deterministic). Levels 1-3 are supplied pack levels; 4-50 are layered template boards too (`docs/reports/levels_004_050.md`). Every board is a layered LayoutTemplates structure and fills >= 88%% of the play area both ways with tiles >= 84 px." % [range_key, build_id])
 	md.append("")
-	md.append("- Candidates tried: %d (%d-%d tiles, %d-%d layers); rejected for size/readability: %d; geometry not clearable: %d; failed validation: %d; below the tile floor for their progression: %d; pool: %d." % [stats.tried, cfg.min_tiles, cfg.max_tiles, cfg.layers[0], cfg.layers[1], stats.size_rejected, stats.gen_rejected, stats.invalid, stats.below_floor, pool.size()])
+	md.append("- Candidates tried: %d (%d-%d tiles, %d-%d layers); no template for the size: %d; rejected for size/readability: %d; geometry not clearable: %d; failed validation: %d; below the tile floor for their progression: %d; pool: %d." % [stats.tried, cfg.min_tiles, cfg.max_tiles, cfg.layers[0], cfg.layers[1], stats.no_template, stats.size_rejected, stats.gen_rejected, stats.invalid, stats.below_floor, pool.size()])
 	md.append("- Tile floor (`LevelCatalog.min_tiles`): %d tiles at level %d rising to %d at level %d." % [LevelCatalog.min_tiles(first_id), first_id, LevelCatalog.min_tiles(last_id), last_id])
 	md.append("- Start = mean of levels %d-%d: dead-end rate **%.2f**, score **%.1f**. Targets ramp to dead-end %.2f (pool p%d) and score %.1f (pool p%d)." % [first_id - 5, first_id - 1, dead_start, score_start, dead_top, int(round(cfg.dead_q * 100)), score_top, int(round(cfg.score_q * 100))])
 	md.append("- Order: progression = (normalised dead-end rate + %.2f x normalised score) / %.2f, ascending." % [score_weight, 1.0 + score_weight])

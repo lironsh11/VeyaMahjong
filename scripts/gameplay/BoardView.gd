@@ -1,31 +1,35 @@
 class_name BoardView
 extends Control
-## Renders a BoardState and turns touches into tile indices.
+## Renders a BoardState as a layered stack and turns touches into tile indices.
 ##
-## Hit-testing is logical, not per-sprite: tiles are tested from the topmost drawn tile
-## downwards against each tile's BODY rectangle (sprite minus transparent padding and drop
-## shadow), so the selected tile is always the visually topmost one under the finger. If a
-## touch lands in a gap, the nearest tile whose slightly enlarged body contains the point is
-## used (forgiving hit areas for large fingers).
+## Geometry comes from BoardProjection (BoardFit's stacked projection): each layer is lifted
+## up-left by one tile thickness, tiles are drawn in BoardGeometry.draw_order() (lower layers
+## first), and TileView adds the right side and a contact shadow under raised tiles.
+##
+## Hit-testing is logical, not per-sprite: tiles are tested front to back against each tile's
+## solid (face + sides, never the shadow or transparent padding), so the tile picked is always
+## the one drawn on top under the finger. If a touch lands in a gap, the nearest tile whose
+## slightly enlarged solid contains the point is used (forgiving hit areas for large fingers).
 ##
 ## The board never mirrors in RTL: Mahjong layouts, symbols and coordinates are
 ## direction-neutral, so this control forces LTR.
+##
+## Debug builds only: `--board-debug` (or BoardView.debug_overlay = true) labels every tile with
+## its layer and state (F free, S both sides blocked, C covered) and outlines its face.
 
 signal tile_tapped(index: int)
 
 ## Fractions of the tile slot (LiShi v2 atlas cells are 96x123 / 192x246: tile body plus soft
 ## shadow; tools/import_lishi_v2.gd fits every face onto this body).
-const BODY := Rect2(0.04, 0.025, 0.915, 0.905)
-const STEP_X := BoardFit.STEP_X
-const STEP_Y := BoardFit.STEP_Y
-const LAYER_DX := BoardFit.LAYER_DX
-const LAYER_DY := BoardFit.LAYER_DY
+const BODY := BoardFit.BODY
 const ASPECT := BoardFit.ASPECT
 const MAX_TILE_W := BoardFit.MAX_TILE_W
 const LARGE_TILE_MIN_W := 66.0
 const TAP_SLOP := 14.0
 const HIT_GROW := 0.10
 const DEAL_WAVE_S := 0.35  ## the last tile starts flipping this long after the first
+
+static var debug_overlay: bool = false
 
 var state: BoardState
 var theme_id: String = "classic"
@@ -34,9 +38,11 @@ var highlight_free: bool = false
 var high_contrast: bool = false
 var tiles: Array[TileView] = []
 var tile_w: float = 64.0
+var proj: BoardProjection
 var _order: PackedInt32Array
 var _layer: Control
 var _fx: Control
+var _debug: Control
 var _pan: Vector2 = Vector2.ZERO
 var _content_size: Vector2 = Vector2.ZERO
 var _deal_back: Texture2D  ## set by play_deal() until the tiles exist to flip
@@ -73,6 +79,11 @@ func setup(p_state: BoardState, p_theme: String) -> void:
 	_fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_fx.layout_direction = Control.LAYOUT_DIRECTION_LTR
 	add_child(_fx)
+	_debug = null
+	if OS.is_debug_build() and (debug_overlay or OS.get_cmdline_user_args().has("--board-debug")):
+		_debug = DebugOverlay.new()
+		_debug.board = self
+		add_child(_debug)
 	_order = state.geo.draw_order()
 	tiles.resize(state.size())
 	for i in _order:
@@ -95,7 +106,7 @@ func play_deal(back_tex: Texture2D, hold: bool = false) -> void:
 		return
 	_deal_back = back_tex
 	_deal_held = hold
-	if not tiles.is_empty() and tiles[0] != null and tiles[0].face_rect != null:
+	if not tiles.is_empty() and tiles[0] != null and tiles[0].body != null:
 		_start_deal()
 
 
@@ -135,18 +146,15 @@ func _relayout() -> void:
 	if state == null or tiles.is_empty() or size.x <= 0.0:
 		return
 	var geo := state.geo
-	var units := BoardFit.board_units(geo)
-	var w_units := units.x
-	var h_units := units.y
 	tile_w = BoardFit.fit_tile_width(geo, size)
 	_can_pan = false
 	if large_tiles and tile_w < LARGE_TILE_MIN_W:
 		tile_w = LARGE_TILE_MIN_W
 		_can_pan = true
 	var tile_h := tile_w * ASPECT
-	_content_size = Vector2(w_units * tile_w, h_units * tile_w)
+	_content_size = BoardFit.board_units(geo) * tile_w
 	_clamp_pan()
-	var origin := (size - _content_size) * 0.5 + _pan
+	proj = BoardProjection.centered(geo, size, tile_w, _pan)
 	# Texture resolution: since tiles fill the screen (~90-112 logical px, 2-3x on a phone) the
 	# 96 px atlas is always upscaled and looks pixelated, so the 192 px atlas is used whenever a
 	# tile is drawn bigger than 48 physical px (i.e. always in play). Mipmaps keep the downscale
@@ -154,13 +162,13 @@ func _relayout() -> void:
 	# cause of blurry/pixelated tiles on 4-core phones).
 	var phys_w := tile_w * _physical_scale()
 	var want_hi := phys_w > 48.0
-	var retexture := want_hi != _hi_res or tiles[0] == null or tiles[0].face_rect == null
+	var retexture := want_hi != _hi_res or tiles[0] == null or tiles[0].body == null
 	_hi_res = want_hi
 	var sprite := Vector2(tile_w, tile_h)
 	for i in tiles.size():
 		var tv := tiles[i]
-		var pos := tile_pos(i, origin, sprite)
-		if tv.face_rect == null:
+		var pos := proj.sprite_rect(i).position
+		if tv.body == null:
 			tv.setup(i, _tex(i), sprite, _hi_res)
 		else:
 			tv.size = sprite
@@ -182,45 +190,25 @@ func _relayout() -> void:
 		_start_deal()
 
 
-func tile_pos(i: int, origin: Vector2, sprite: Vector2) -> Vector2:
-	var geo := state.geo
-	var x := (geo.gx[i] - geo.min_gx) / 2.0 * STEP_X + (geo.max_z - geo.gz[i]) * absf(LAYER_DX)
-	var y := ((geo.gy[i] - geo.min_gy) / 2.0 * STEP_Y + (geo.max_z - geo.gz[i]) * absf(LAYER_DY)) * ASPECT
-	return origin + Vector2(x * sprite.x, y * sprite.x)
-
-
 func _tex(i: int) -> Texture2D:
 	return ContentService.tile_texture(theme_id, state.faces[i], _hi_res)
 
 
 func body_rect(i: int, grow: float = 0.0) -> Rect2:
-	var tv := tiles[i]
-	var sprite := tv.size
-	var r := Rect2(tv.base_pos + BODY.position * sprite, BODY.size * sprite)
+	## Tile i's solid on screen (face + sides, board-local px): what a touch can hit.
+	var r := proj.solid_rect(i)
 	return r.grow(r.size.x * grow)
 
 
+func face_rect(i: int) -> Rect2:
+	return proj.face_rect(i)
+
+
 func pick(point: Vector2) -> int:
-	## Topmost tile whose body contains the point; else nearest within a forgiving margin.
-	for k in range(_order.size() - 1, -1, -1):
-		var i := _order[k]
-		if state.is_removed(i):
-			continue
-		if body_rect(i).has_point(point):
-			return i
-	var best := -1
-	var best_d := INF
-	for k in range(_order.size() - 1, -1, -1):
-		var i := _order[k]
-		if state.is_removed(i):
-			continue
-		var r := body_rect(i, HIT_GROW)
-		if r.has_point(point):
-			var d := r.get_center().distance_squared_to(point)
-			if d < best_d - 0.01:
-				best_d = d
-				best = i
-	return best
+	## Topmost tile whose solid contains the point; else nearest within a forgiving margin.
+	if proj == null:
+		return -1
+	return proj.pick(point, state.removed, HIT_GROW)
 
 
 func _clamp_pan() -> void:
@@ -265,9 +253,11 @@ func _emit_tap(p: Vector2) -> void:
 func refresh_free() -> void:
 	for i in tiles.size():
 		var tv := tiles[i]
-		if tv == null or tv.face_rect == null:
+		if tv == null or tv.body == null:
 			continue
 		tv.set_dimmed(highlight_free and not state.is_removed(i) and not state.is_free(i), high_contrast)
+	if _debug != null:
+		_debug.queue_redraw()
 
 
 func tile_global_rect(i: int) -> Rect2:
@@ -361,3 +351,46 @@ func _spawn_fx(effect: String, center: Vector2, px: float) -> void:
 	tw.tween_method(func(f: float) -> void:
 		tr.texture = frames[clampi(int(f), 0, frames.size() - 1)], 0.0, float(frames.size()), frames.size() / 20.0)
 	tw.tween_callback(tr.queue_free)
+
+
+class DebugOverlay extends Control:
+	## Debug builds only (see the class doc): each remaining tile's layer and state, drawn above
+	## the board. Green F = free, amber S = both sides blocked, red C = covered.
+	var board: BoardView
+
+	func _ready() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+	func _draw() -> void:
+		if board == null or board.proj == null or board.state == null:
+			return
+		var st := board.state
+		var font := ThemeDB.fallback_font
+		var fs := maxi(10, int(board.tile_w * 0.2))
+		for i in board.proj.order:
+			if st.is_removed(i):
+				continue
+			var col := Color(0.1, 0.75, 0.3)
+			var tag := "F"
+			if st.is_covered(i):
+				col = Color(0.9, 0.15, 0.15)
+				tag = "C"
+			elif not st.is_free(i):
+				col = Color(0.95, 0.65, 0.1)
+				tag = "S"
+			var r := board.proj.face_rect(i)
+			# Tag the visible part only: skip a label a higher-drawn tile hides.
+			var at := r.position + Vector2(4.0, fs + 2.0)
+			var hidden := false
+			for k in range(board.proj.rank[i] + 1, board.proj.order.size()):
+				var j := board.proj.order[k]
+				if not st.is_removed(j) and board.proj.solid_rect(j).has_point(at - Vector2(0.0, fs * 0.5)):
+					hidden = true
+					break
+			if hidden:
+				continue
+			draw_rect(r.grow(-2.0), col, false, 2.0)
+			var label := "%s%d" % [tag, st.geo.gz[i]]
+			draw_rect(Rect2(at - Vector2(2.0, fs), Vector2(fs * 1.4, fs + 4.0)), Color(0, 0, 0, 0.65))
+			draw_string(font, at, label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)

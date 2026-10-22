@@ -23,8 +23,9 @@ built with **Godot 4.7** (GDScript, GL Compatibility renderer) from the supplied
 - 300 verified levels in 6 worlds, solver-backed Hint, Undo and a solvable Shuffle as boosters
   (coins + inventory, docs/MONETIZATION.md) with free fallbacks (rewind to the last solvable
   point, a free rescue shuffle, the first continue, restart). Levels 1-3 are the supplied pack;
-  4-50 keep the pack shapes with re-scattered tiles, and 51-300 are generated (151-300 get harder
-  through traps: more layers, twins far apart, same tile size). All are
+  4-300 are generated layered structures (pyramid, turtle, bridge, cross, terraces...) with
+  real half-tile offsets between layers, drawn as 3D-looking stacks (151-300 get harder through
+  traps: more layers, twins far apart, same tile size). All are
   validated (and proven clearable with the tray) and ordered by measured difficulty. No timers,
   lives or energy.
 - LiShi Bloom: Lights from new levels unlock 60 discoveries in illustrated worlds.
@@ -63,6 +64,10 @@ node tools/asset_usage_report.js
 Debug-build visual QA (saves a PNG of every screen; `--locale=` and `--set=key=value` are optional):
 ```bash
 godot --path . --resolution 540x960 -- --tour=C:/tmp/shots --save-dir=user://tour --locale=he
+```
+Board layout check (debug builds; `--board-debug` tags every tile with its layer and free / side-blocked / covered state):
+```bash
+godot --path . --resolution 540x1200 -- --tour=C:/tmp/boards --save-dir=user://tour --levels=4,60,200 --board-debug
 ```
 
 ## Build

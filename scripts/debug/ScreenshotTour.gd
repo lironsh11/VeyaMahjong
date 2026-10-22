@@ -57,6 +57,33 @@ func _unmatched_free(scr: Node) -> int:
 	return free[0]
 
 
+func _layout_shot(spec: String) -> void:
+	var f := spec.split(":")
+	var rng := SeededRng.new(int(f[5]) if f.size() > 5 else 1)
+	var pos := LayoutTemplates.generate(rng, f[0], int(f[3]), int(f[1]), int(f[2]), f[4] if f.size() > 4 else "top")
+	if pos.is_empty():
+		print("TOUR layout %s: cannot build" % spec)
+		return
+	var L := BoardGenerator.new().generate_level(pos, "tour|" + spec)
+	var top := CanvasLayer.new()
+	top.layer = 200
+	get_tree().root.add_child(top)
+	var bg := ColorRect.new()
+	bg.color = Color(0.13, 0.33, 0.27)
+	top.add_child(bg)
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var board := BoardView.new()
+	bg.add_child(board)
+	board.size = BoardFit.PLAY_AREA
+	board.position = (get_viewport().get_visible_rect().size - board.size) * 0.5
+	board.setup(L.build_state(), ProgressionService.equipped_theme())
+	await _wait(0.4)
+	await _shot("layout_" + spec.replace(":", "_"))
+	print("TOUR layout %s: %d tiles, %d layers, tile_w %.1f" % [spec, pos.size(), LayoutTemplates.layer_count(pos), board.tile_w])
+	top.queue_free()
+	await _wait(0.1)
+
+
 func _go(screen: String, params: Dictionary = {}) -> void:
 	Router.go(screen, params, false)
 	await _wait(0.9)
@@ -64,16 +91,47 @@ func _go(screen: String, params: Dictionary = {}) -> void:
 
 func _run() -> void:
 	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--layouts="):
+			# Template check: --layouts=family:cols:layers:tiles[:mode[:seed]],... renders each
+			# LayoutTemplates board alone in the play area (add --board-debug for layer/state tags).
+			await _wait(1.0)
+			for m in get_tree().root.find_children("*", "ModalDialog", true, false):
+				m.close("denied")  # first-run consent
+			for spec in a.trim_prefix("--layouts=").split(","):
+				await _layout_shot(spec)
+			get_tree().quit()
+			return
 		if a.begins_with("--levels="):
 			# Board-only mode: capture specific levels and quit.
 			await _wait(1.5)
 			GameState.data.tutorial_done = true
+			var picks := 0
+			for b in OS.get_cmdline_user_args():
+				if b.begins_with("--picks="):
+					picks = int(b.trim_prefix("--picks="))  # then play this many picks and shoot again
 			for id in a.trim_prefix("--levels=").split(","):
 				await _go("gameplay", {"mode": "level", "level": int(id), "restart": true})
 				await _close_modals(Router.current_screen(), "play")  # the board, not the start dialog
 				await _shot("level_%03d" % int(id))
 				var bv: BoardView = Router.current_screen().board
 				print("BOARD level=%d area=%s tile_w=%.1f" % [int(id), bv.size, bv.tile_w])
+				if picks > 0:
+					var scr: Node = Router.current_screen()
+					var top: int = scr.session.state.geo.max_z
+					for n in picks:
+						# Highest free tile first, so the shot shows lower tiles uncovered.
+						var st: BoardState = scr.session.state
+						var best := -1
+						for i in st.free_tiles():
+							if best < 0 or st.geo.gz[i] > st.geo.gz[best]:
+								best = i
+						if best < 0 or scr.session.failed:
+							break
+						scr.controller._on_tap(best)
+						await _wait(0.5)
+					await _wait(0.8)
+					await _shot("level_%03d_after_%d_picks" % [int(id), picks])
+					print("BOARD level=%d after %d picks: top layer %d, %d tiles left" % [int(id), picks, top, scr.session.state.remaining])
 			get_tree().quit()
 			return
 		if a == "--bloom-all":

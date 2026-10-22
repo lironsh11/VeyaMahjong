@@ -30,8 +30,10 @@ func test_frames_align_with_tiles_in_rtl() -> void:
 		var hint_center := tv.hint_ring.get_global_rect().get_center()
 		check(tile_rect.has_point(ring_center), "tile %d selection frame inside its tile" % i)
 		check(tile_rect.has_point(hint_center), "tile %d hint frame inside its tile" % i)
-		var body_center := board.get_global_transform() * board.body_rect(i).get_center()
-		check(ring_center.distance_to(body_center) < 3.0, "tile %d frame centred on body (off by %.1f px)" % [i, ring_center.distance_to(body_center)])
+		check(Rect2(Vector2.ZERO, board.size).encloses(board.body_rect(i)), "tile %d drawn inside the board" % i)
+		var sprite_center := board.get_global_transform() * board.proj.sprite_rect(i).get_center()
+		check(ring_center.distance_to(sprite_center) < 1.0, "tile %d frame centred on its tile (off by %.1f px)" % [i, ring_center.distance_to(sprite_center)])
+		check(board.body_rect(i).has_point(board.get_global_transform().affine_inverse() * ring_center), "tile %d frame centre on its body" % i)
 	parent.queue_free()
 	LocalizationService.set_locale("en")
 
@@ -78,8 +80,8 @@ func test_booster_badge_mirrors_in_rtl() -> void:
 
 
 func test_row_overlap_tap_picks_the_front_tile() -> void:
-	# Rows overlap (BoardFit.STEP_Y < body height): a tap in the band where the lower row covers
-	# the row above must pick the lower (front, drawn later) tile.
+	# The next row's face covers this row's bottom side (the thickness band): a tap in that band
+	# must pick the lower (front, drawn later) tile.
 	var root: Window = (Engine.get_main_loop() as SceneTree).root
 	var board := BoardView.new()
 	root.add_child(board)
@@ -132,25 +134,6 @@ func test_deal_flip_shows_the_back_and_never_sticks() -> void:
 	check(board.tiles[0]._back_rect == null, "reduced motion: no deal flip")
 	board.queue_free()
 	GameState.data.settings["reduced_motion"] = prev_rm
-
-
-func test_higher_tile_does_not_look_like_it_covers_the_row_above() -> void:
-	# Owner's case (2026-10-20): a free tile, and one row below it a second-layer tile resting on
-	# two tiles. The second-layer tile may overlap it only as much as any lower row does.
-	var board := _board_for([Vector3i(0, 0, 0), Vector3i(-1, 2, 0), Vector3i(1, 2, 0), Vector3i(0, 2, 1)])
-	check(board.state.is_free(0), "the upper tile is free")
-	var into_upper := board.body_rect(0).end.y - board.body_rect(3).position.y
-	check(into_upper <= board.body_rect(0).end.y - board.body_rect(1).position.y + 0.5, "the higher tile reaches no further into the row above than a plain lower row")
-	board.queue_free()
-	# Mirror case: a second-layer tile a row ABOVE a free tile is drawn behind it (lower row in
-	# front), so it never paints over that free tile's top edge.
-	board = _board_for([Vector3i(-1, 0, 0), Vector3i(1, 0, 0), Vector3i(0, 0, 1), Vector3i(0, 2, 0)])
-	check(board.state.is_free(3), "the lower tile is free")
-	var order := board.state.geo.draw_order()
-	check(order.find(3) > order.find(2), "the free lower tile is drawn in front of the higher tile above it")
-	var mid := Vector2(board.body_rect(3).get_center().x, board.body_rect(3).position.y + 2.0)
-	check_eq(board.pick(mid), 3, "its top edge picks it, not the higher tile")
-	board.queue_free()
 
 
 func test_draw_order_keeps_covered_tiles_behind() -> void:

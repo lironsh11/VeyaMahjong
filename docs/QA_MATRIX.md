@@ -42,6 +42,7 @@ Environment: Godot 4.7.stable, Windows 11, 2026-10-18.
 | 18 | IAP: cancel, pending, restore, unverified, refund/revocation | `test_iap_*`, `test_local_reset_keeps_store_restorable` (QA mock) | **PASS (mock)**; Play/App Store sandbox **BLOCKED** (no plugin, products or accounts) |
 | 19 | Layout: small, long, tablet, foldable | Desktop 540×960 (16:9), 540×1200 (20:9), 720×960 (4:3); emulator 1080×2400 | **PASS** for those; small (<5") phones, foldables and notch insets on hardware **NOT TESTED** |
 | 20 | Repeated sessions, thermal, budgets | Emulator perf log (no object growth across 16 cycles) | **PARTIAL.** 20-minute thermal runs on hardware **NOT TESTED** |
+| 21 | Layered boards (2026-10-22): half-tile offsets, partial overlap, blocking, depth order, touch priority, templates | `test_board_layout` (20 tests: cover of two/four tiles, partial overlap, side blocking, exposure after removal, lift == side, no tile drawn over one in front of it on shipped boards, topmost pick pure and through the node, board centred, debug overlay off by default, every family supported/symmetric/screen-filling, the 32-tile 3-layer example, carving, undo/shuffle/hint), `test_levels_after_3_use_layered_templates`, validator 300/300 + 60 dailies; desktop captures at 540×1200, 540×1170, 540×960, 720×960 and in Hebrew in `docs/screenshots/layered_boards/` (before/after, debug overlay, uncovering after picks) | **PASS (desktop)**; Android/iOS hardware **NOT TESTED** |
 
 ## Device matrix
 

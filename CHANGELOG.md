@@ -2,6 +2,42 @@
 
 ## Unreleased
 
+- **Real layered boards (owner request 2026-10-22):** boards no longer look like a flat grid.
+  The geometry, the content and the renderer changed together:
+  - **Stacked projection** (`BoardFit`, new `BoardProjection`): every tile shows its face plus a
+    bottom side (the art's thickness band) and a right side (new, a darker ivory lip and jade
+    back). Each layer up is drawn one tile thickness up-left, so a tile resting on others shows
+    their sides beneath it and a half-offset tile visibly straddles two or four tiles. Same-layer
+    tiles sit one face apart with a hairline gap. Raised tiles drop a soft contact shadow; lower
+    layers are shaded slightly darker (6% per layer, was 7%).
+  - **Draw order** is layer by layer, lowest first (then `gx + gy`), so a higher tile is never
+    drawn behind a lower one and a neighbour always covers the side it hides. Tested on shipped
+    boards: no tile is drawn over one physically in front of it.
+  - **Touch**: a tap picks the front-most tile whose face or sides contain it (never a shadow
+    or transparent padding, never a lower tile through a higher one). Blocking is unchanged:
+    nothing on top and the left or right side open.
+  - **Layout templates** (new `LayoutTemplates`, "tpl-1"): ten structure families (pyramid,
+    ziggurat, turtle, bridge, cross, twin, frame, brick, terraces, ridge) built from a ground
+    shape and explicit per-layer rules with half-tile offsets, every upper tile resting on the
+    layer below, mirror-symmetric, then carved to the level's tile count. They replace the dense
+    grids of `LayoutGenerator.generate_dense` (removed).
+  - **Levels 4-300 rebuilt** from templates (`levels-4-50-v6`, `levels-51-150-v10`,
+    `levels-151-300-v3`): 2-3 layers in world 1, 3-5 later, 4-5 from 151. Same tile counts
+    floor, screen-fill and tile-size gates, validation (witness + solver, tray witness) and
+    difficulty ordering. Daily boards are templates too (`daily-5`). Progress is kept by level
+    number; a board saved mid-game on an old layout starts fresh (layout fingerprint).
+  - **Performance:** each tile's shadow, sides and face are one drawn canvas item, so a whole
+    board batches: 21 draw calls for a full frame with a 136-tile board (separate TextureRects
+    measured ~520), and about 30% fewer nodes.
+  - Debug builds: `--board-debug` tags every tile with its layer and free / side-blocked /
+    covered state; the screenshot tour gains `--layouts=` (template boards) and `--picks=N`.
+  - New `tests/test_board_layout.gd` (20 tests); board tests updated for the new projection.
+    Full suite: 165 passed. Validator: 300/300 levels, 60/60 daily boards. Smallest tile across
+    levels 4-300 is 91 px, least screen fill 93%.
+  - Before/after captures of the running game (several phone sizes, Hebrew, debug overlay) in
+    `docs/screenshots/layered_boards/`.
+  - Levels 1-3 (the supplied pack's flat boards) and the tutorial boards are unchanged.
+
 ## 0.1.9 (build 10), 2026-10-22
 
 - **Boards grow with the journey (owner request):** later levels no longer fall back to small

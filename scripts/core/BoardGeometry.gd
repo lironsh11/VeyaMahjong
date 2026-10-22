@@ -113,15 +113,19 @@ func height_half_units() -> int:
 
 
 func draw_order() -> PackedInt32Array:
-	## Back-to-front. A tile is always drawn after every tile it covers; otherwise the lower row
-	## is in front (the slab look), even across layers: a higher tile a full row above a lower
-	## one doesn't cover it, so it must not be drawn over its top edge.
-	## Key gy + 2*gz (half units): a covering pair has |dy| <= 1 and dz >= 1, so the top tile's
-	## key is always larger; equal keys are tiles a full row apart, ordered by row.
+	## Back-to-front for the stacked projection (BoardFit): layer by layer, lowest first, so a
+	## tile is always drawn after every tile it covers. Within a layer a tile shows its right and
+	## bottom sides, and the neighbour touching that side must cover it: a right neighbour has
+	## dx = 2, |dy| < 2 and a lower one dy = 2, |dx| < 2, so both have a larger gx + gy and are
+	## drawn later. A higher tile never reaches onto a lower tile it does not cover (LIFT == SIDE),
+	## so drawing whole layers in order never puts a tile in front of one that is physically in
+	## front of it.
 	var idx: Array = range(count)
 	idx.sort_custom(func(a: int, b: int) -> bool:
-		var ka := gy[a] + 2 * gz[a]
-		var kb := gy[b] + 2 * gz[b]
+		if gz[a] != gz[b]:
+			return gz[a] < gz[b]
+		var ka := gx[a] + gy[a]
+		var kb := gx[b] + gy[b]
 		if ka != kb:
 			return ka < kb
 		if gy[a] != gy[b]:
