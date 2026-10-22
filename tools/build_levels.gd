@@ -23,32 +23,33 @@ extends SceneTree
 ##      Trickiness is the primary axis: ramping the composite score alone let small-but-tricky
 ##      boards follow big-but-forgiving ones and made trickiness jump at the world boundary.
 ##   5. Ordered by the combined progression value (stored as metrics.progression).
+##   Tile floor: a board below LevelCatalog.min_tiles for the level its progression would put it
+##   at never enters the selection, so boards grow along the journey instead of a small-but-
+##   tricky board landing late.
 ## Writes a report to docs/reports/levels_<first>_<last>.md.
 ##
 ## 151-300 keeps the same tile size and screen fill; it gets harder through traps: more layers,
 ## less ground, twins placed far apart, and a higher score weight because the dead-end rate is
 ## already near its ceiling at level 150.
 
-## Note: 51-150 was built before the left/right rule (0.1.6). Rerunning it today reselects 14 of
-## its 100 boards (other pool candidates now measure differently); the shipped file stays as built.
 const RANGES := {
 	"51-150": {
-		"build_id": "levels-51-150-v8",  ## v8: dense boards filling the screen both ways (v7: portrait)
+		"build_id": "levels-51-150-v9",  ## v9: tile floor rising with the level (v8: dense boards filling the screen both ways)
 		"out": "res://data/levels/levels_051_150_generated.json",
 		"prev": "res://data/levels/levels_004_050_regenerated.json",
 		"report": "res://docs/reports/levels_051_150.md",
 		"first": 51, "count": 100, "candidates": 2400,
-		"min_tiles": 56, "max_tiles": 144, "layers": [3, 5],
+		"min_tiles": 64, "max_tiles": 144, "layers": [3, 5],
 		"base_share": [0.4, 0.25], "spread": [0.6, 0.3, 0.0],
 		"dead_q": 0.92, "score_q": 0.97, "score_weight": 0.35,
 	},
 	"151-300": {
-		"build_id": "levels-151-300-v1",
+		"build_id": "levels-151-300-v2",  ## v2: tile floor rising with the level
 		"out": "res://data/levels/levels_151_300_generated.json",
 		"prev": "res://data/levels/levels_051_150_generated.json",
 		"report": "res://docs/reports/levels_151_300.md",
-		"first": 151, "count": 150, "candidates": 3000,
-		"min_tiles": 96, "max_tiles": 144, "layers": [4, 6],
+		"first": 151, "count": 150, "candidates": 3600,
+		"min_tiles": 112, "max_tiles": 144, "layers": [4, 6],
 		"base_share": [0.3, 0.25], "spread": [0.6, 0.6, 0.3],
 		"dead_q": 0.98, "score_q": 0.99, "score_weight": 0.6,
 	},
@@ -92,7 +93,7 @@ func _initialize() -> void:
 
 	var gen := BoardGenerator.new()
 	var pool: Array = []
-	var stats := {"tried": 0, "size_rejected": 0, "gen_rejected": 0, "invalid": 0}
+	var stats := {"tried": 0, "size_rejected": 0, "gen_rejected": 0, "invalid": 0, "below_floor": 0}
 	for k in n_candidates:
 		stats.tried += 1
 		var rng := SeededRng.new(SeededRng.hash_string("%s|cand|%d" % [build_id, k]))
@@ -133,6 +134,15 @@ func _initialize() -> void:
 	var score_span := maxf(1.0, score_top - score_start)
 	var progression := func(an: Dictionary) -> float:
 		return ((float(an.dead_end_rate) - dead_start) / dead_span + score_weight * (float(an.score) - score_start) / score_span) / (1.0 + score_weight)
+	# Tile floor: progression ~ the share of the range a board lands at, so it sets the minimum size.
+	var sized: Array = []
+	for c in pool:
+		var u := clampf(progression.call(c.an), 0.0, 1.0)
+		if int(c.an.tiles) >= LevelCatalog.min_tiles(first_id + u * (count - 1)):
+			sized.append(c)
+		else:
+			stats.below_floor += 1
+	pool = sized
 	var chosen: Array = []
 	var used := {}
 	var layout_uses := {}
@@ -161,6 +171,12 @@ func _initialize() -> void:
 		push_error("only %d boards selected" % chosen.size())
 		quit(1)
 		return
+	for i in count:
+		var floor_tiles := LevelCatalog.min_tiles(first_id + i) - LevelCatalog.TILE_FLOOR_SLACK
+		if int(chosen[i].an.tiles) < floor_tiles:
+			push_error("level %d has %d tiles, floor %d" % [first_id + i, chosen[i].an.tiles, floor_tiles])
+			quit(1)
+			return
 
 	# --- output ------------------------------------------------------------------------
 	var worlds: Array = JSON.parse_string(FileAccess.get_file_as_string(WORLDS_PATH))
@@ -170,7 +186,8 @@ func _initialize() -> void:
 	md.append("")
 	md.append("Built by `tools/build_levels.gd --range=%s` (`%s`, deterministic). Levels 1-3 are supplied pack levels; 4-50 are dense boards too (`docs/reports/levels_004_050.md`). Every board fills >= 88%% of the play area both ways with tiles >= 84 px." % [range_key, build_id])
 	md.append("")
-	md.append("- Candidates tried: %d (%d-%d tiles, %d-%d layers); rejected for size/readability: %d; geometry not clearable: %d; failed validation: %d; validated pool: %d." % [stats.tried, cfg.min_tiles, cfg.max_tiles, cfg.layers[0], cfg.layers[1], stats.size_rejected, stats.gen_rejected, stats.invalid, pool.size()])
+	md.append("- Candidates tried: %d (%d-%d tiles, %d-%d layers); rejected for size/readability: %d; geometry not clearable: %d; failed validation: %d; below the tile floor for their progression: %d; pool: %d." % [stats.tried, cfg.min_tiles, cfg.max_tiles, cfg.layers[0], cfg.layers[1], stats.size_rejected, stats.gen_rejected, stats.invalid, stats.below_floor, pool.size()])
+	md.append("- Tile floor (`LevelCatalog.min_tiles`): %d tiles at level %d rising to %d at level %d." % [LevelCatalog.min_tiles(first_id), first_id, LevelCatalog.min_tiles(last_id), last_id])
 	md.append("- Start = mean of levels %d-%d: dead-end rate **%.2f**, score **%.1f**. Targets ramp to dead-end %.2f (pool p%d) and score %.1f (pool p%d)." % [first_id - 5, first_id - 1, dead_start, score_start, dead_top, int(round(cfg.dead_q * 100)), score_top, int(round(cfg.score_q * 100))])
 	md.append("- Order: progression = (normalised dead-end rate + %.2f x normalised score) / %.2f, ascending." % [score_weight, 1.0 + score_weight])
 	md.append("- Every board: witness replayed legally AND independently solved by the engine solver.")

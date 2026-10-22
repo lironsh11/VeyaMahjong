@@ -3,10 +3,8 @@ extends RefCounted
 ## Single source of truth for the shipped journey:
 ##   levels 1-3    : supplied pack levels (gentle follow-ups to the tutorial), same geometry and
 ##                   witness; bonus pairs made identical for the identical-tiles-only rule
-##   levels 4-50   : the pack's own shapes with re-scattered faces, ordered by measured
-##                   difficulty (data/levels/levels_004_050_regenerated.json,
-##                   tools/build_early_levels.gd). The pack placed ~74% of tiles directly
-##                   opposite their identical twin, so boards largely solved themselves.
+##   levels 4-50   : dense, screen-filling generated boards ordered by measured difficulty
+##                   (data/levels/levels_004_050_regenerated.json, tools/build_early_levels.gd)
 ##   levels 51-150 : generated, validated boards ordered by measured difficulty
 ##                   (data/levels/levels_051_150_generated.json, tools/build_levels.gd)
 ##   levels 151-300: the same pipeline, harder through traps, continuing from level 150
@@ -23,6 +21,24 @@ const PACK_LEVELS_KEPT := 3
 const EARLY_LAST := 50
 const PACK_TOTAL := 150
 const TOTAL := 300
+## Owner rule (2026-10-22): boards grow with the journey; a later level never drops back to a
+## small board. Piecewise-linear [level, tiles]; levels 1-3 (pack) have no floor.
+const TILE_FLOOR := [[4, 24], [50, 60], [51, 64], [150, 112], [151, 112], [300, 128]]
+## Builds order boards by their own difficulty, which can move a board a few places from the
+## slot its floor was checked for; this much below the floor is tolerated.
+const TILE_FLOOR_SLACK := 4
+
+
+static func min_tiles(level_id: float) -> int:
+	## The fewest tiles a board at this level may have (0 before level 4).
+	if level_id < TILE_FLOOR[0][0]:
+		return 0
+	for i in range(1, TILE_FLOOR.size()):
+		var a: Array = TILE_FLOOR[i - 1]
+		var b: Array = TILE_FLOOR[i]
+		if level_id <= b[0]:
+			return int(round(lerpf(a[1], b[1], (level_id - a[0]) / float(b[0] - a[0]))))
+	return TILE_FLOOR.back()[1]
 
 
 static func _load_range(path: String, first_id: int, last_id: int) -> Array:

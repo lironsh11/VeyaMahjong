@@ -1,7 +1,7 @@
 extends TestCase
 ## Content validation for the shipped journey:
-##   1-3 supplied pack levels (unchanged), 4-50 pack shapes with re-scattered faces,
-##   51-150 and 151-300 generated boards. 4-150 and 151-300 are ordered by measured difficulty.
+##   1-3 supplied pack levels (unchanged), 4-50, 51-150 and 151-300 generated dense boards,
+##   each range ordered by measured difficulty, with a tile floor that rises with the level.
 
 const MAX_SCORE_STEP := 5.0
 const MAX_TRICKINESS_STEP := 0.08   ## moving-average (window 7) dead-end rate change per level
@@ -143,10 +143,24 @@ func test_generated_levels_metadata() -> void:
 		check(typeof(d.get("metrics")) == TYPE_DICTIONARY, "level %d metrics" % d.id)
 		var tc := int(d.tile_count)
 		check(tc % 2 == 0 and tc <= 144, "level %d tile count %d" % [d.id, tc])
-		if i >= 50:
-			check(tc >= 56, "level %d at least 56 tiles" % d.id)
-		if i >= 150:
-			check(tc >= 96, "level %d at least 96 tiles" % d.id)
+		var floor_tiles := LevelCatalog.min_tiles(int(d.id)) - LevelCatalog.TILE_FLOOR_SLACK
+		check(tc >= floor_tiles, "level %d has %d tiles, floor %d" % [d.id, tc, floor_tiles])
+
+
+func test_tile_count_grows_with_level() -> void:
+	# Owner request 2026-10-22: later levels must not fall back to small boards. Each world's
+	# average board is bigger than the previous world's.
+	var merged := _merged()
+	var prev := 0.0
+	for w in ContentService.worlds:
+		var a := maxi(int(w.levels[0]), 4)
+		var b := int(w.levels[1])
+		var t := 0.0
+		for i in range(a - 1, b):
+			t += float(merged[i].tile_count)
+		var avg := t / float(b - a + 1)
+		check(avg > prev, "world %s averages %.1f tiles, previous %.1f" % [w.id, avg, prev])
+		prev = avg
 
 
 func test_levels_4_50_ordered_and_smooth() -> void:

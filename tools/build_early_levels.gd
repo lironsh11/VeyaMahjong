@@ -10,9 +10,11 @@ extends SceneTree
 ## Each candidate: dense layout -> faces by reverse play (BoardGenerator) -> BoardValidator
 ## (witness replay + independent solve; tray witness too) -> DifficultyAnalyzer. The 47 chosen
 ## boards spread their measured scores evenly from level 3 up to TARGET_TOP, then are ordered by
-## score. Deterministic: re-running reproduces the same file.
+## score. A board whose tile count is below LevelCatalog.min_tiles for the level its score would
+## put it at never enters the pool, so boards grow along the world. Deterministic: re-running
+## reproduces the same file.
 
-const BUILD_ID := "levels-4-50-v4"  ## v4: dense boards that fill the screen (v3: pack shapes)
+const BUILD_ID := "levels-4-50-v5"  ## v5: tile floor rising with the level (v4: dense boards that fill the screen)
 const OUT_PATH := "res://data/levels/levels_004_050_regenerated.json"
 const REPORT_PATH := "res://docs/reports/levels_004_050.md"
 const FIRST_ID := 4
@@ -25,7 +27,7 @@ const MIN_FILL := 0.88       ## share of the play area's width AND height the bo
 
 func _initialize() -> void:
 	await process_frame
-	var n_candidates := 600
+	var n_candidates := 1200
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--candidates="):
 			n_candidates = int(a.trim_prefix("--candidates="))
@@ -38,7 +40,7 @@ func _initialize() -> void:
 	var hi: float = TARGET_TOP
 	var gen := BoardGenerator.new()
 	var pool: Array = []
-	var stats := {"tried": 0, "fit_rejected": 0, "invalid": 0}
+	var stats := {"tried": 0, "fit_rejected": 0, "invalid": 0, "below_floor": 0}
 	for k in n_candidates:
 		stats.tried += 1
 		var rng := SeededRng.new(SeededRng.hash_string("%s|cand|%d" % [BUILD_ID, k]))
@@ -65,8 +67,18 @@ func _initialize() -> void:
 		if k % 100 == 0:
 			print("candidate %d / %d, pool %d" % [k, n_candidates, pool.size()])
 
-	# Pick boards so the set spreads evenly over [lo, hi].
+	# Tile floor: the level a board's score would land it at sets its minimum size.
 	var count := LAST_ID - FIRST_ID + 1
+	var sized: Array = []
+	for c in pool:
+		var u := clampf((float(c.an.score) - (lo + 1.0)) / ((hi - 0.5) - (lo + 1.0)), 0.0, 1.0)
+		if int(c.an.tiles) >= LevelCatalog.min_tiles(FIRST_ID + u * (count - 1)):
+			sized.append(c)
+		else:
+			stats.below_floor += 1
+	pool = sized
+
+	# Pick boards so the set spreads evenly over [lo, hi].
 	var chosen: Array = []
 	var used := {}
 	for i in count:
@@ -88,6 +100,12 @@ func _initialize() -> void:
 		used[best.k] = true
 		chosen.append(best)
 	chosen.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.an.score < b.an.score)
+	for i in chosen.size():
+		var floor_tiles := LevelCatalog.min_tiles(FIRST_ID + i) - LevelCatalog.TILE_FLOOR_SLACK
+		if int(chosen[i].an.tiles) < floor_tiles:
+			push_error("level %d has %d tiles, floor %d" % [FIRST_ID + i, chosen[i].an.tiles, floor_tiles])
+			quit(1)
+			return
 
 	var out: Array = []
 	var md := PackedStringArray()
@@ -95,7 +113,8 @@ func _initialize() -> void:
 	md.append("")
 	md.append("Built by `tools/build_early_levels.gd` (`%s`, deterministic, %d candidates, pairing spread 0.6/0.3/0.0). Levels 1-3 are the supplied pack levels, unchanged." % [BUILD_ID, n_candidates])
 	md.append("")
-	md.append("- Range: level 3 score %.1f -> level 51 score %.1f. Pool %d; rejected for screen fit %d; invalid %d." % [lo, hi, pool.size(), stats.fit_rejected, stats.invalid])
+	md.append("- Range: level 3 score %.1f -> level 51 score %.1f. Pool %d; rejected for screen fit %d; invalid %d; below the tile floor for their score %d." % [lo, hi, pool.size(), stats.fit_rejected, stats.invalid, stats.below_floor])
+	md.append("- Tile floor (`LevelCatalog.min_tiles`): %d tiles at level %d rising to %d at level %d." % [LevelCatalog.min_tiles(FIRST_ID), FIRST_ID, LevelCatalog.min_tiles(LAST_ID), LAST_ID])
 	md.append("- Every board fills >= %d%% of the play area's width and height with tiles >= %d px (`BoardFit.REFERENCE_AREA`), and its witness is replayed legally AND independently solved." % [int(MIN_FILL * 100), int(MIN_FIT_TILE)])
 	md.append("")
 	md.append("| Level | Layout | Tiles | Layers | Tile px | Fill w/h | Dead-end rate | Mirrored twins | Score |")
