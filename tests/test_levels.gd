@@ -1,7 +1,8 @@
 extends TestCase
-## Content validation for the shipped journey:
-##   1-3 supplied pack levels (unchanged), 4-50, 51-150 and 151-300 generated layered boards,
-##   each range ordered by measured difficulty, with a tile floor that rises with the level.
+## Content validation for the shipped journey (LevelCatalog): 6 worlds x 100 levels. Each world
+## holds its 1.0 levels (1-3 supplied pack levels, the rest generated layered boards), then the 50
+## levels 1.1.0 added, each build ordered by measured difficulty, with a tile floor that rises
+## along the journey.
 
 const MAX_SCORE_STEP := 5.0
 const MAX_TRICKINESS_STEP := 0.08   ## moving-average (window 7) dead-end rate change per level
@@ -56,7 +57,8 @@ func test_every_pair_is_identical() -> void:
 
 func test_levels_after_3_use_layered_templates() -> void:
 	# Since 2026-10-22 every level after the 3 pack levels is a layered LayoutTemplates structure:
-	# at least two layers (three from 51, four from 151), real half-tile offsets, and the journey
+	# at least two layers (three from 1.0 level 51, four from 1.0 level 151, LevelCatalog
+	# .legacy_position), real half-tile offsets, and the journey
 	# mixes many families rather than one shape. Aligned tiers (a ziggurat) are a legitimate layout,
 	# but nearly every board staggers somewhere.
 	var merged := _merged()
@@ -70,7 +72,8 @@ func test_levels_after_3_use_layered_templates() -> void:
 		check(LayoutTemplates.FAMILIES.has(fam), "level %d family %s" % [d.id, fam])
 		families[fam] = int(families.get(fam, 0)) + 1
 		var pos := LevelDefinition.from_dict(d).positions()
-		var min_layers := 2 if int(d.id) <= 50 else (3 if int(d.id) <= 150 else 4)
+		var lp := LevelCatalog.legacy_position(int(d.id))
+		var min_layers := 2 if lp < 51.0 else (3 if lp < 151.0 else 4)
 		check(LayoutTemplates.layer_count(pos) >= min_layers, "level %d has %d layers" % [d.id, LayoutTemplates.layer_count(pos)])
 		var half := 0
 		for p in pos:
@@ -78,7 +81,7 @@ func test_levels_after_3_use_layered_templates() -> void:
 				half += 1
 		if half > 0:
 			staggered += 1
-		if int(d.id) <= 50:
+		if int(d.id) <= LevelCatalog.PER_WORLD:
 			check_eq(str(d.world), "aurora_garden")
 	check(families.size() >= 6, "levels use %d template families: %s" % [families.size(), families])
 	check(staggered >= (merged.size() - 3) * 0.9, "%d of %d boards have half-tile offsets" % [staggered, merged.size() - 3])
@@ -198,19 +201,72 @@ func test_levels_4_50_ordered_and_smooth() -> void:
 
 
 func test_generated_ranges_ordered() -> void:
-	# 51-150 and 151-300 are separate builds, each ordered by its own progression value.
+	# Each build is ordered by its own progression value: 1.0 levels 51-150 and 151-300 (now the
+	# first halves of worlds 2-6) and every world's second half.
 	var merged := _merged()
-	for r in [[50, 150], [150, merged.size()]]:
-		var prev := -INF
-		for i in range(r[0], r[1]):
-			var p := float(merged[i].metrics.progression)
-			check(p >= prev, "level %d progression not below previous" % merged[i].id)
-			prev = p
+	for w in range(1, LevelCatalog.WORLDS + 1):
+		var base := (w - 1) * LevelCatalog.PER_WORLD
+		var halves := [[base + LevelCatalog.LEGACY_PER_WORLD, base + LevelCatalog.PER_WORLD]]
+		if w > 1:
+			halves.append([base, base + LevelCatalog.LEGACY_PER_WORLD])
+		for r in halves:
+			var prev := -INF
+			for i in range(r[0], r[1]):
+				var p := float(merged[i].metrics.progression)
+				check(p >= prev, "level %d progression not below previous" % merged[i].id)
+				prev = p
+
+
+func test_second_halves_continue_each_world() -> void:
+	# 1.1.0: a world's levels 51-100 start about where its level 50 ends and finish harder, so the
+	# next world opens with a short breather (a sawtooth), never with a jump.
+	var merged := _merged()
+	var avg := func(a: int, b: int, key: String) -> float:
+		var t := 0.0
+		for i in range(a - 1, b):
+			t += float(merged[i].metrics[key])
+		return t / float(b - a + 1)
+	for w in range(1, LevelCatalog.WORLDS + 1):
+		var base := (w - 1) * LevelCatalog.PER_WORLD
+		var end_first: float = avg.call(base + 46, base + 50, "score")
+		var start_second: float = avg.call(base + 51, base + 55, "score")
+		var end_second: float = avg.call(base + 91, base + 100, "score")
+		check(start_second >= end_first - 4.0, "world %d: levels 51-55 (%.1f) close to 46-50 (%.1f)" % [w, start_second, end_first])
+		check(end_second >= end_first, "world %d: levels 91-100 (%.1f) not easier than 46-50 (%.1f)" % [w, end_second, end_first])
+		if w < LevelCatalog.WORLDS:
+			var next_start: float = avg.call(base + 101, base + 105, "score")
+			check(next_start <= end_second + 2.0, "world %d opens (%.1f) no harder than world %d ends (%.1f)" % [w + 1, next_start, w, end_second])
+		for i in range(base + LevelCatalog.LEGACY_PER_WORLD, base + LevelCatalog.PER_WORLD):
+			check(merged[i].metrics.has("skill_fail_rate"), "level %d stores the skilled fail rate" % (i + 1))
+
+
+func test_shipped_world_files_match_sources() -> void:
+	# The game reads data/levels/world_N.json; tools/build_catalog.gd writes them from the source
+	# files. Every 1.0 board keeps its order under its new number (LevelCatalog.new_id).
+	var errs := PackedStringArray()
+	var built := LevelCatalog.assemble(errs)
+	check(errs.is_empty(), "sources load: %s" % [errs])
+	var shipped := _merged()
+	check_eq(built.size(), shipped.size(), "same level count")
+	var differ := 0
+	for i in mini(built.size(), shipped.size()):
+		# Through JSON once, as the shipped file was (new ids are ints until then).
+		if JSON.stringify(JSON.parse_string(JSON.stringify(built[i]))) != JSON.stringify(shipped[i]):
+			differ += 1
+			if differ <= 3:
+				fail("level %d differs from its source: run tools/build_catalog.gd" % (i + 1))
+	check_eq(differ, 0, "levels differing from their sources")
+	var legacy := LevelCatalog.load_legacy()
+	check_eq(legacy.size(), LevelCatalog.LEGACY_TOTAL, "1.0 levels")
+	for o in [1, 4, 50, 51, 100, 101, 150, 151, 200, 201, 250, 251, 300]:
+		var n := LevelCatalog.new_id(o)
+		check_eq(LevelCatalog.world_of(n), (o - 1) / LevelCatalog.LEGACY_PER_WORLD + 1, "1.0 level %d stays in its world" % o)
+		check(JSON.stringify(legacy[o - 1].tiles) == JSON.stringify(shipped[n - 1].tiles), "1.0 level %d is level %d with the same tiles" % [o, n])
 
 
 func test_trickiness_has_no_cliff() -> void:
-	# What players feel as getting stuck must ramp smoothly across 4-300, incl. the 50/51 and
-	# 150/151 boundaries.
+	# What players feel as getting stuck must change smoothly across the whole journey, incl. the
+	# joins between a world's halves and the breather at each world's start.
 	var merged := _merged()
 	var dr: Array = []
 	for i in range(3, merged.size()):
@@ -235,7 +291,7 @@ func test_worlds_get_progressively_harder() -> void:
 			t += float(merged[i].metrics[key])
 		return t / float(b - a + 1)
 	# Aurora Garden is compared from level 21 (its first levels are the gentle introduction).
-	var ranges := [[21, 50]]
+	var ranges := [[21, LevelCatalog.PER_WORLD]]
 	for w in ContentService.worlds.slice(1):
 		ranges.append([int(w.levels[0]), int(w.levels[1])])
 	for key in ["dead_end_rate", "score"]:
@@ -247,17 +303,20 @@ func test_worlds_get_progressively_harder() -> void:
 
 func test_stored_metrics_reproduce() -> void:
 	var merged := _merged()
-	for id in [4, 30, 51, 120, 150, 151, 220, 300]:
+	for id in [4, 30, 75, 101, 160, 220, 250, 290, 301, 399, 420, 480, 550, 600]:
 		var d: Dictionary = merged[id - 1]
 		var L := LevelDefinition.from_dict(d, str(d.analysis_key))
 		var an := DifficultyAnalyzer.analyze(L, 32, 11)
 		check(is_equal_approx(float(an.score), float(d.metrics.score)), "level %d score reproduces (%.1f vs %.1f)" % [id, an.score, d.metrics.score])
 		check(is_equal_approx(float(an.dead_end_rate), float(d.metrics.dead_end_rate)), "level %d dead-end rate reproduces" % id)
+		if d.metrics.has("skill_fail_rate"):
+			var sk := DifficultyAnalyzer.skilled_fail_rate(L, 32)
+			check(is_equal_approx(snappedf(sk, 0.0001), float(d.metrics.skill_fail_rate)), "level %d skilled fail rate reproduces (%.4f vs %.4f)" % [id, sk, d.metrics.skill_fail_rate])
 
 
-func test_pack_fallback_stays_valid_under_identical_rule() -> void:
-	# If a generated file were missing, LevelCatalog falls back to pack boards normalised to
-	# identical pairs; those must still be legal.
+func test_pack_levels_stay_valid_under_identical_rule() -> void:
+	# Levels 1-3 are pack boards normalised to identical pairs (LevelCatalog.identical_pairs); the
+	# whole pack must stay legal under that rule.
 	var pack: Array = JSON.parse_string(FileAccess.get_file_as_string(LevelCatalog.PACK_PATH))
 	check_eq(pack.size(), 150)
 	for d in pack:

@@ -22,10 +22,15 @@ func _initialize() -> void:
 	var fail_count := 0
 
 	# --- pack levels -------------------------------------------------------------------
-	# Shipped journey: pack 1-3, 4-50 and generated 51-150 + 151-300 (LevelCatalog).
-	var raw: Array = LevelCatalog.load_merged()
+	# Shipped journey: 6 worlds x 100 levels from data/levels/world_N.json (LevelCatalog).
+	var load_errs := PackedStringArray()
+	var raw: Array = LevelCatalog.load_merged(load_errs)
+	if raw.size() != LevelCatalog.TOTAL:
+		fail_count += 1
+		md.append("**FAIL: %d of %d levels loaded: %s**" % [raw.size(), LevelCatalog.TOTAL, ", ".join(load_errs)])
+		md.append("")
 	var diff_rows: Array = []
-	md.append("## Shipped levels (1-3 supplied pack, 4-50 tools/build_early_levels.gd, 51-300 tools/build_levels.gd)")
+	md.append("## Shipped levels (100 per world: each world's 1.0 levels, then the 50 added in 1.1.0; see LevelCatalog)")
 	md.append("")
 	md.append("| Level | World | Tiles | Layers | Opening pairs | Dead-end rate (random play) | Solver nodes | Stored band | Measured band | Status |")
 	md.append("|---|---|---|---|---|---|---|---|---|---|")
@@ -51,7 +56,13 @@ func _initialize() -> void:
 	md.append("")
 	md.append("| Range | Avg tiles | Avg layers | Avg dead-end rate | Avg score |")
 	md.append("|---|---|---|---|---|")
-	for r in [[1, 5], [6, 20], [21, 50], [51, 100], [101, 150], [151, 200], [201, 250], [251, 300]]:
+	var ranges: Array = [[1, 5], [6, 20], [21, 50]]
+	for w in LevelCatalog.WORLDS:
+		var base := w * LevelCatalog.PER_WORLD
+		if w > 0:
+			ranges.append([base + 1, base + LevelCatalog.LEGACY_PER_WORLD])
+		ranges.append([base + LevelCatalog.LEGACY_PER_WORLD + 1, base + LevelCatalog.PER_WORLD])
+	for r in ranges:
 		var n := 0
 		var st := 0.0
 		var sl := 0.0

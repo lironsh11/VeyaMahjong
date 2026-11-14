@@ -161,7 +161,7 @@ func test_resume_slots_are_independent() -> void:
 	check_eq(str(GameState.active_session().get("key", "")), "level:7")
 
 
-func test_migration_to_v5_keeps_the_level_in_progress() -> void:
+func test_migration_from_v4_keeps_the_level_in_progress() -> void:
 	var v4 := GameState.defaults()
 	v4.schema_version = 4
 	v4.erase("duet")
@@ -169,7 +169,7 @@ func test_migration_to_v5_keeps_the_level_in_progress() -> void:
 	v4.erase("duet_session")
 	v4.active_session = {"mode": "level", "key": "level:9", "level_id": 9, "session": {}}
 	var m := GameState.migrate(v4)
-	check_eq(int(m.schema_version), 5)
+	check_eq(int(m.schema_version), int(GameState.defaults().schema_version))
 	check_eq(str(m.active_session.key), "level:9")
 	check(typeof(m.duet) == TYPE_DICTIONARY and (m.duet.players as Array).size() == 2, "duet section added")
 	check(typeof(m.studio) == TYPE_DICTIONARY and (m.studio.boards as Array).is_empty(), "studio section added")

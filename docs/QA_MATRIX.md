@@ -11,9 +11,11 @@ Environment: Godot 4.7.stable, Windows 11, 2026-10-18.
 
 | Command | Result |
 |---|---|
-| `godot --headless --path . -s res://tests/run_tests.gd -- --save-dir=user://test_run` | **75 passed, 0 failed** (~19 s) |
+| `godot --headless --path . -s res://tests/run_tests.gd -- --save-dir=user://test_run` | **200 passed, 0 failed** (2026-11-14, 1.1.0; ~12 min, most of it solving all 600 levels in `test_levels` and `test_tray`) |
 | `godot --headless --path . -s res://tools/validate_content.gd -- --generated=300` | **PASS:** shipped 150/150, generated 300/300, daily 60/60 |
-| `godot --headless --path . -s res://tools/build_levels.gd` | Deterministic rebuild of levels 51-150 (report: docs/reports/levels_051_150.md) |
+| `godot --headless --path . -s res://tools/build_levels.gd` | Deterministic rebuild of 1.0 levels 51-150 (report: docs/reports/levels_051_150.md) |
+| `godot --headless --path . -s res://tools/build_levels.gd -- --range=w1` … `w6` | Deterministic build of each world's levels 51-100 (1.1.0; reports: docs/reports/levels_w<N>_051_100.md) |
+| `godot --headless --path . -s res://tools/build_catalog.gd` | Writes the shipped data/levels/world_1..6.json; `test_shipped_world_files_match_sources` checks they match |
 | `godot --headless --path . -s res://tools/build_early_levels.gd` | Deterministic re-scatter of levels 4-50 (report: docs/reports/levels_004_050.md) |
 | `godot --headless --path . -s res://tools/check_scripts.gd` | **PASS:** all scripts compile |
 | `node tools/asset_usage_report.js` | Generates ASSET_USAGE_REPORT.md; 0 missing bound assets |
@@ -22,7 +24,7 @@ Environment: Godot 4.7.stable, Windows 11, 2026-10-18.
 
 | # | Area | How | Status |
 |---|---|---|---|
-| 1 | All 150 levels have legal step-by-step solutions | `test_levels` + validator (witness replay and independent solve); levels 4-150 also checked for pack-geometry preservation (4-50), no mirrored-twin pattern, monotonic order, a smooth trickiness ramp across the 50/51 boundary, and reproducible metrics; screenshots of the largest/deepest/half-offset boards in `docs/screenshots/levels/` | **PASS** |
+| 1 | All 600 levels (1.1.0) have legal step-by-step solutions | `test_levels` + validator (witness replay and independent solve); levels 4-150 also checked for pack-geometry preservation (4-50), no mirrored-twin pattern, monotonic order, a smooth trickiness ramp across the 50/51 boundary, and reproducible metrics; screenshots of the largest/deepest/half-offset boards in `docs/screenshots/levels/` | **PASS** |
 | 2 | Matching: identical tiles only, incl. Flowers/Seasons (owner rule) | `test_matching_semantics`, `test_flower_season_pairs_in_play` (different flowers rejected), `test_every_pair_is_identical` (all 150 boards) | **PASS** |
 | 3 | Free-tile geometry: left/right/covered/stacked/partial overlap | `test_row_left_right_blocking`, `test_top_cover_blocks`, `test_partial_overlap_half_units`, `test_half_row_offset_side_blocking`, `test_cover_released_after_removal` | **PASS** |
 | 4 | Selection state, duplicate taps, removals | `test_tap_flow_and_invalid_picks`, `test_mismatch_moves_selection`; emulator blocked-tap toast | **PASS** |

@@ -37,14 +37,17 @@ func _ready() -> void:
 
 static func defaults() -> Dictionary:
 	return {
-		"schema_version": 5,
+		"schema_version": 6,
 		"settings_rev": SETTINGS_REV,
 		"created_unix": int(Time.get_unix_time_from_system()),
 		"tutorial_done": false,
 		"first_open_logged": false,
-		"progress": {"completed": {}, "light_sources": []},
+		# `open`: levels unlocked although the level before them isn't completed (a 1.0 player who
+		# had reached a world keeps it open). `level_ids`: 2 = 1.1.0 numbering (100 per world).
+		"progress": {"completed": {}, "light_sources": [], "open": [], "level_ids": 2, "new_levels_notice": false},
 		"bloom": {"seen": []},
-		"cosmetics": {"equipped_theme": "classic", "seen_themes": ["classic"], "equipped_back": ""},
+		# `granted`: themes and tile backs earned under the 1.0 unlock levels (kept for good).
+		"cosmetics": {"equipped_theme": "classic", "seen_themes": ["classic"], "equipped_back": "", "granted": []},
 		"entitlements": {},
 		"processed_transactions": [],
 		"ads": {"reward_grants": [], "rewarded_day": "", "rewarded_count": 0, "rewarded_counts": {},
@@ -114,6 +117,10 @@ static func migrate(payload: Dictionary) -> Dictionary:
 	if v < 5:
 		# Play Together and Board Studio: new sections and resume slots only (filled from defaults).
 		v = 5
+	if v < 6:
+		# 1.1.0: every world grew from 50 to 100 levels, so every saved level id moves.
+		migrate_level_ids(payload)
+		v = 6
 	payload["schema_version"] = v
 	# One-time settings revisions (no schema change: settings are free-form).
 	var settings: Variant = payload.get("settings")
@@ -124,6 +131,87 @@ static func migrate(payload: Dictionary) -> Dictionary:
 	payload["settings_rev"] = SETTINGS_REV
 	_deep_fill(payload, defaults())
 	return payload
+
+
+## The 1.0 unlock levels of the cosmetics whose unlock level moved in 1.1.0 (frozen: a save
+## earned these under the 1.0 numbering). Themes by theme id, tile backs by world id.
+const LEGACY_UNLOCK_LEVELS := {
+	"ocean": 50, "nocturne": 100,
+	"jade_bamboo_valley": 200, "sunset_lotus_palace": 250, "frostlight_village": 300,
+}
+
+
+static func migrate_level_ids(payload: Dictionary) -> void:
+	## One-time move of every level id in a 1.0 save to the 1.1.0 numbering (LevelCatalog.new_id:
+	## 1.0 level 50(w-1)+k is now 100(w-1)+k). New collections are built instead of renaming in
+	## place, so "level:51" -> "level:101" can never collide with the old "level:101". Runs once:
+	## the schema version, and progress.level_ids = 2 as a second guard.
+	var prog: Variant = payload.get("progress")
+	if typeof(prog) != TYPE_DICTIONARY:
+		return
+	if int(prog.get("level_ids", 1)) >= 2:
+		return
+	var old_done := {}
+	if typeof(prog.get("completed")) == TYPE_DICTIONARY:
+		var moved := {}
+		for k in prog.completed:
+			if not str(k).is_valid_int():
+				continue
+			old_done[int(k)] = true
+			moved[str(LevelCatalog.new_id(int(k)))] = prog.completed[k]
+		prog.completed = moved
+	if typeof(prog.get("light_sources")) == TYPE_ARRAY:
+		prog.light_sources = (prog.light_sources as Array).map(func(s: Variant) -> String: return moved_level_key(str(s)))
+	# A 1.0 player who finished a world had the next world open; it stays open although the
+	# world's 50 new levels come before it now.
+	var opened: Array = []
+	for w in range(2, LevelCatalog.WORLDS + 1):
+		if old_done.has((w - 1) * LevelCatalog.LEGACY_PER_WORLD):
+			opened.append((w - 1) * LevelCatalog.PER_WORLD + 1)
+	prog["open"] = opened
+	prog["level_ids"] = 2
+	prog["new_levels_notice"] = not old_done.is_empty()
+	# Themes and tile backs earned under their 1.0 unlock levels stay earned.
+	var cos: Variant = payload.get("cosmetics")
+	if typeof(cos) == TYPE_DICTIONARY:
+		var granted: Array = cos.get("granted", []) if typeof(cos.get("granted")) == TYPE_ARRAY else []
+		for id in LEGACY_UNLOCK_LEVELS:
+			if old_done.has(int(LEGACY_UNLOCK_LEVELS[id])) and not granted.has(id):
+				granted.append(id)
+		cos["granted"] = granted
+	# Coin and ad grants per level ("level:N", "ad:win_double:level:N"): a moved level keeps its
+	# paid-once record, and the new level that took its old number can pay out.
+	var econ: Variant = payload.get("economy")
+	if typeof(econ) == TYPE_DICTIONARY and typeof(econ.get("ledger")) == TYPE_DICTIONARY:
+		var ledger := {}
+		for k in econ.ledger:
+			ledger[moved_level_key(str(k))] = econ.ledger[k]
+		econ.ledger = ledger
+	var ads: Variant = payload.get("ads")
+	if typeof(ads) == TYPE_DICTIONARY and typeof(ads.get("reward_grants")) == TYPE_ARRAY:
+		ads.reward_grants = (ads.reward_grants as Array).map(func(s: Variant) -> String: return moved_level_key(str(s)))
+	var streak: Variant = payload.get("streak")
+	if typeof(streak) == TYPE_DICTIONARY and int(streak.get("attempt", 0)) > 0:
+		streak.attempt = LevelCatalog.new_id(int(streak.attempt))
+	# A level board in progress resumes on its new number (same board, same tiles).
+	var act: Variant = payload.get("active_session")
+	if typeof(act) == TYPE_DICTIONARY and str(act.get("mode", "")) == "level" and int(act.get("level_id", 0)) > 0:
+		var id := LevelCatalog.new_id(int(act.level_id))
+		act.level_id = id
+		act.key = moved_level_key(str(act.get("key", "")))
+		if typeof(act.get("session")) == TYPE_DICTIONARY:
+			act.session.level_key = moved_level_key(str(act.session.get("level_key", "")))
+
+
+static func moved_level_key(key: String) -> String:
+	## "level:N" (also inside grant ids such as "ad:win_double:level:N") with N in 1.1.0 numbering.
+	var at := key.rfind("level:")
+	if at < 0:
+		return key
+	var tail := key.substr(at + 6)
+	if not tail.is_valid_int():
+		return key
+	return key.substr(0, at + 6) + str(LevelCatalog.new_id(int(tail)))
 
 
 func load_game() -> void:
@@ -193,12 +281,27 @@ func highest_completed() -> int:
 
 func is_level_unlocked(id: int) -> bool:
 	## Linear journey: a level opens when the previous one is completed. Completed levels
-	## always stay replayable.
-	return id == 1 or is_level_completed(id) or is_level_completed(id - 1)
+	## always stay replayable; progress.open holds the world starts a 1.0 save had reached.
+	return id == 1 or is_level_completed(id) or is_level_completed(id - 1) or is_level_opened(id)
+
+
+func is_level_opened(id: int) -> bool:
+	var opened: Variant = data.progress.get("open", [])
+	if typeof(opened) != TYPE_ARRAY:
+		return false
+	for x in opened:
+		if int(x) == id:  # JSON brings ints back as floats
+			return true
+	return false
 
 
 func next_level(max_level: int) -> int:
-	## First not-yet-completed unlocked level, or the last level if all are done.
+	## The level after the furthest one completed, so a 1.0 player continues where they were
+	## rather than at the levels 1.1.0 added to earlier worlds (those wait on the world map).
+	## Once the last level is done: the first level still open, or the last level.
+	var hi := highest_completed()
+	if hi < max_level:
+		return hi + 1
 	for id in range(1, max_level + 1):
 		if not is_level_completed(id):
 			return id

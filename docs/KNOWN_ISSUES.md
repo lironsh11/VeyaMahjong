@@ -10,6 +10,12 @@
    Any rebuild after release must bump the tool's `BUILD_ID`, because in-progress saves on
    changed boards are discarded (completions are kept). Rerunning 51-150 today would reselect 14
    boards (it was built before the left/right rule), so it stays as shipped.
+   Since 1.1.0 each world has 100 levels (`LevelCatalog`): its 50 1.0 levels, then 50 new ones
+   that start at the world's level-50 difficulty and end a little harder, so the first levels of
+   the next world are a breather. From world 3 on, random play is stuck on almost every board, so
+   those worlds ramp on the careful-player measure (`DifficultyAnalyzer.skilled_fail_rate`) and the
+   score. Like the other metrics it is a model, not a player: playtest the end of each world.
+   Level numbers must never move again after 1.1.0 without a save migration like schema 6.
 2. Difficulty bands are stored per level but not displayed.
 3. Bloom: 60 discovery slots across 6 worlds; some sprites (pond, rocks, butterfly, grass
    patch) appear in two worlds. Positions were tuned on 16:9-20:9 screens only.

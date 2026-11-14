@@ -65,7 +65,8 @@ func complete_level(id: int, stats: Dictionary) -> Dictionary:
 	result["backs"] = unlocked_back_ids().filter(func(b: String) -> bool: return not before_backs.has(b))
 	result.merge(_record_streak_win(id, first, stats), true)
 	var w := ContentService.world_for_level(id)
-	if first and not w.is_empty() and id == int(w.levels[1]):
+	# (A 1.0 player already had the next world open: no second "world unlocked" moment.)
+	if first and not w.is_empty() and id == int(w.levels[1]) and not GameState.is_level_completed(id + 1) and not GameState.is_level_opened(id + 1):
 		var nw := ContentService.world_for_level(id + 1)
 		if not nw.is_empty() and nw.id != w.id:
 			result["world_unlocked"] = nw.id
@@ -251,8 +252,14 @@ func is_theme_unlocked(theme_id: String) -> bool:
 		"lights":
 			return lights() >= int(u.value)
 		"level":
-			return GameState.is_level_completed(int(u.value))
+			return GameState.is_level_completed(int(u.value)) or is_granted(theme_id)
 	return false
+
+
+func is_granted(cosmetic_id: String) -> bool:
+	## Earned under the 1.0 unlock levels (GameState.migrate_level_ids); kept for good.
+	var g: Variant = GameState.data.cosmetics.get("granted", [])
+	return typeof(g) == TYPE_ARRAY and (g as Array).has(cosmetic_id)
 
 
 func unlocked_theme_ids() -> Array:
@@ -294,7 +301,7 @@ func equip_theme(theme_id: String) -> bool:
 func is_back_unlocked(back_id: String) -> bool:
 	if not ContentService.has_tile_back(back_id):
 		return false
-	return GameState.is_level_completed(ContentService.world_range(back_id).y)
+	return GameState.is_level_completed(ContentService.world_range(back_id).y) or is_granted(back_id)
 
 
 func unlocked_back_ids() -> Array:

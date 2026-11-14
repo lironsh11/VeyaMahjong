@@ -39,6 +39,70 @@ static func tray_fail_rate(level: LevelDefinition, playouts: int = 40, seed_valu
 	return float(fails) / float(maxi(1, playouts))
 
 
+static func skilled_fail_rate(level: LevelDefinition, playouts: int = 32, seed_value: int = 13, capacity: int = TrayRules.CAPACITY, slip: float = 0.15) -> float:
+	## Tray-play pressure for a careful player: share of playouts in which the tray fills.
+	## The random-play rates (dead_end_rate, tray_fail_rate) reach 1.0 by about level 230 and
+	## level 50, so they can't order hard boards; this one keeps rising through the last world.
+	## Policy, in order: a tile that clears a tray slot; one tile of a free identical pair; else
+	## the tile whose removal frees the most neighbours (extra weight when a freed tile matches
+	## it or a tray tile). With probability `slip` a single pick is random (a human misread).
+	## Stored as metrics.skill_fail_rate on the levels added in 1.1.0 (tools/build_levels.gd).
+	var base := level.build_state()
+	var geo := base.geo
+	var rng := SeededRng.new(seed_value ^ SeededRng.hash_string(level.key))
+	var fails := 0
+	for p in playouts:
+		var s := base.clone()
+		var tray := PackedInt32Array()
+		while s.remaining > 0:
+			var free := s.free_tiles()
+			if free.is_empty():
+				fails += 1
+				break
+			var pick := -1
+			for i in free:
+				if TrayRules.partner_slot(tray, s.keys, i) >= 0:
+					pick = i
+					break
+			if pick < 0:
+				var seen := {}
+				var paired := PackedInt32Array()
+				for i in free:
+					if seen.has(s.keys[i]):
+						paired.append(i)
+					seen[s.keys[i]] = true
+				if not paired.is_empty():
+					pick = paired[rng.rand_int(0, paired.size() - 1)]
+			if pick < 0:
+				if rng.rand_float() < slip:
+					pick = free[rng.rand_int(0, free.size() - 1)]
+				else:
+					var best := -1.0
+					for i in free:
+						s.take(i)
+						var v := rng.rand_float() * 0.5
+						for near in [geo.below[i], geo.left[i], geo.right[i]]:
+							for t in near:
+								if s.is_free(t):
+									v += 1.0
+									if s.keys[t] == s.keys[i] or TrayRules.partner_slot(tray, s.keys, t) >= 0:
+										v += 2.0
+						s.put_back(i)
+						if v > best:
+							best = v
+							pick = i
+			s.take(pick)
+			var slot := TrayRules.partner_slot(tray, s.keys, pick)
+			if slot >= 0:
+				tray.remove_at(slot)
+			else:
+				tray.append(pick)
+				if tray.size() >= capacity:
+					fails += 1
+					break
+	return float(fails) / float(maxi(1, playouts))
+
+
 static func analyze(level: LevelDefinition, playouts: int = 24, seed_value: int = 7) -> Dictionary:
 	var geo := level.build_geometry()
 	var state := level.build_state(geo)

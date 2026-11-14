@@ -138,7 +138,7 @@ func test_deal_flip_shows_the_back_and_never_sticks() -> void:
 
 func test_draw_order_keeps_covered_tiles_behind() -> void:
 	# Every tile is drawn after every tile it covers, on real shipped boards.
-	for id in [1, 13, 40, 150, 151, 300]:
+	for id in [1, 13, 40, 75, 150, 301, 551, 600]:
 		var geo := ContentService.get_level(id).build_state().geo
 		var order := geo.draw_order()
 		var at := PackedInt32Array()

@@ -16,7 +16,10 @@ extends Node
 signal recovered_from_backup(source: String)
 
 const FORMAT := "veya-save"
-const SCHEMA_VERSION := 2  ## must equal GameState.defaults().schema_version (decode copies it into the payload)
+## The envelope records the payload's own schema_version (GameState.defaults().schema_version when
+## written). Until 1.0.0 the envelope always said 2 and decode() copied that over the payload's
+## real version, so GameState.migrate() re-ran the v<3 and v<4 steps on every launch (the win
+## streak reset and a level in progress was dropped). decode() now keeps the payload's version.
 
 var save_dir: String = "user://save"
 var file_name: String = "veya_save.json"
@@ -42,7 +45,7 @@ func _ensure_dir() -> void:
 func encode(payload: Dictionary) -> String:
 	var body := JSON.stringify(payload)
 	return JSON.stringify({
-		"format": FORMAT, "schema_version": SCHEMA_VERSION,
+		"format": FORMAT, "schema_version": int(payload.get("schema_version", 0)),
 		"sha256": body.sha256_text(), "payload": body,
 	})
 
@@ -60,7 +63,8 @@ func decode(text: String) -> Variant:
 	var payload: Variant = JSON.parse_string(body)
 	if typeof(payload) != TYPE_DICTIONARY:
 		return null
-	payload["schema_version"] = int(env.get("schema_version", 0))
+	if not (payload as Dictionary).has("schema_version"):
+		payload["schema_version"] = int(env.get("schema_version", 0))  # very old payloads only
 	return payload
 
 

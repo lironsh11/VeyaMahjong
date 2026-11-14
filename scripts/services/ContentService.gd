@@ -31,7 +31,10 @@ const SCREEN_BACKGROUNDS := {"daily": "aurora_garden_journey", "settings": "auro
 ## Icon names the game uses that the pack names differently.
 const ICON_ALIASES := {"calendar_check": "check", "sparkle": "star", "volume_off": "muted", "extra_slot": "plus"}
 
-var level_dicts: Array = []
+## Parsed world files (world index -> level dicts), at most KEEP_WORLDS at a time.
+var _world_levels: Dictionary = {}
+var _world_order: Array = []
+var _level_total: int = 0
 var worlds: Array = []
 var bloom: Dictionary = {}
 var cosmetics: Dictionary = {}
@@ -53,9 +56,19 @@ func load_content() -> void:
 	if typeof(rules) != TYPE_DICTIONARY or not MahjongRules.configure_from_rules_json(rules):
 		load_errors.append("tile_match_rules.json invalid; using built-in defaults")
 		MahjongRules.configure(MahjongRules.DEFAULT_GROUPS)
-	# Levels 1-50 from the pack, 51-150 generated and difficulty-ordered (see LevelCatalog).
-	level_dicts = LevelCatalog.load_merged(load_errors)
-	if level_dicts.is_empty():
+	# 600 levels in 6 worlds, one catalog file per world (see LevelCatalog). A world's file is
+	# parsed when one of its levels is first needed: all 600 levels as parsed data hold about
+	# 70 MB, and a session usually touches one or two worlds.
+	_world_levels.clear()
+	_world_order.clear()
+	_level_cache.clear()
+	_level_total = 0
+	for wi in range(1, LevelCatalog.WORLDS + 1):
+		if not FileAccess.file_exists(LevelCatalog.WORLD_PATH % wi):
+			load_errors.append("world %d levels missing; the journey ends at level %d" % [wi, _level_total])
+			break
+		_level_total = wi * LevelCatalog.PER_WORLD
+	if _level_total == 0:
 		load_errors.append("levels file missing or invalid")
 	var w: Variant = _read_json(WORLDS_PATH)
 	worlds = w if typeof(w) == TYPE_ARRAY else []
@@ -73,22 +86,50 @@ func _read_json(p: String) -> Variant:
 
 # --- levels -------------------------------------------------------------------------
 
+const KEEP_WORLDS := 2
+
+
 func level_count() -> int:
-	return level_dicts.size()
+	return _level_total
 
 
 func get_level(id: int) -> LevelDefinition:
 	## Returns null for unknown/invalid levels; invalid ones are logged, never played.
 	if _level_cache.has(id):
 		return _level_cache[id]
-	if id < 1 or id > level_dicts.size():
+	if id < 1 or id > _level_total:
 		return null
-	var L := LevelDefinition.from_dict(level_dicts[id - 1])
+	var dicts := _world_dicts(LevelCatalog.world_of(id))
+	if dicts.is_empty():
+		return null
+	var L := LevelDefinition.from_dict(dicts[(id - 1) % LevelCatalog.PER_WORLD])
 	if not L.is_valid() or L.id != id:
 		push_error("Level %d rejected: %s" % [id, L.errors])
 		return null
 	_level_cache[id] = L
 	return L
+
+
+func _world_dicts(w: int) -> Array:
+	## The level dicts of world w, parsed on first use; the least recently used world is dropped
+	## (with its cached levels) once more than KEEP_WORLDS are parsed. [] if the file is invalid.
+	if _world_levels.has(w):
+		_world_order.erase(w)
+		_world_order.append(w)
+		return _world_levels[w]
+	var dicts := LevelCatalog.load_world(w)
+	if dicts.is_empty():
+		push_error("world %d levels missing or invalid" % w)
+		return []
+	_world_levels[w] = dicts
+	_world_order.append(w)
+	while _world_order.size() > KEEP_WORLDS:
+		var old: int = _world_order.pop_front()
+		_world_levels.erase(old)
+		for lid in _level_cache.keys():
+			if LevelCatalog.world_of(int(lid)) == old:
+				_level_cache.erase(lid)
+	return dicts
 
 
 func world_for_level(id: int) -> Dictionary:

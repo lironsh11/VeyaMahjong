@@ -407,6 +407,8 @@
     "product_starter_bundle_desc": "Moedas: {coins} · Dicas: {hint} · Embaralhadas: {shuffle} · Desfazer: {undo} · Sem anúncios",
     "welcome_title": "Novidade: reforços!",
     "welcome_body": "Dica, Embaralhar e Desfazer agora são reforços que você consegue com moedas. Obrigado por jogar - aqui está um presente. Moedas: {coins} · Dicas: {hint} · Embaralhadas: {shuffle} · Desfazer: {undo}",
+    "new_levels_title": "300 níveis novos!",
+    "new_levels_body": "Cada mundo agora tem 100 níveis. Os números dos níveis mudaram para abrir espaço, e o seu progresso, suas estrelas e recompensas foram junto. Você continua de onde parou, e os níveis novos dos mundos que você já jogou esperam no mapa.",
     "tasks_reward": "+1 Luz de LiShi, moedas: +{count}",
     "privacy_choices": "Opções de privacidade",
     "consent_title": "Sua privacidade",

@@ -20,14 +20,15 @@ built with **Godot 4.7** (GDScript, GL Compatibility renderer) from the supplied
   side open, the standard Mahjong Solitaire rule) and it flies into the tray; two identical tiles burst (every tile, Flowers and Seasons included, matches only an
   identical tile). Four unmatched tiles in the tray lose the board, with a second chance
   ("send 3 tiles back", first one free), Undo or Try again. Combos, score, juicy bursts.
-- 300 verified levels in 6 worlds, solver-backed Hint, Undo and a solvable Shuffle as boosters
+- 600 verified levels in 6 worlds of 100, solver-backed Hint, Undo and a solvable Shuffle as boosters
   (coins + inventory, docs/MONETIZATION.md) with free fallbacks (rewind to the last solvable
   point, a free rescue shuffle, the first continue, restart). Levels 1-3 are the supplied pack;
-  4-300 are generated layered structures (pyramid, turtle, bridge, cross, terraces...) with
-  real half-tile offsets between layers, drawn as 3D-looking stacks (151-300 get harder through
-  traps: more layers, twins far apart, same tile size). All are
-  validated (and proven clearable with the tray) and ordered by measured difficulty. No timers,
-  lives or energy.
+  the rest are generated layered structures (pyramid, turtle, bridge, cross, terraces...) with
+  real half-tile offsets between layers, drawn as 3D-looking stacks (worlds 4-6 get harder
+  through traps: more layers, twins far apart, same tile size). Each world holds its 50 levels
+  from 1.0, then 50 added in 1.1.0 that continue from its level 50 and end a little harder
+  (`LevelCatalog`). All are validated (and proven clearable with the tray) and ordered by
+  measured difficulty. No timers, lives or energy.
 - **Play Together:** two players share one phone, one board and one tray, one tile per turn;
   finishing a partner's pair is a Team-up. Offline, no accounts, free helpers per board, and it
   never touches progression or the economy (`FreePlayScreen`, `DuetTurns`).
@@ -63,6 +64,13 @@ godot --headless --path . -s res://tools/build_levels.gd
 ```
 ```bash
 godot --headless --path . -s res://tools/build_levels.gd -- --range=151-300
+```
+The second half of world N (1.1.0), then the shipped per-world files:
+```bash
+godot --headless --path . -s res://tools/build_levels.gd -- --range=w1
+```
+```bash
+godot --headless --path . -s res://tools/build_catalog.gd
 ```
 ```bash
 node tools/asset_usage_report.js

@@ -395,6 +395,8 @@
     "product_starter_bundle_desc": "金幣：{coins}・提示：{hint}・洗牌：{shuffle}・復原：{undo}・不再有廣告",
     "welcome_title": "新功能：道具！",
     "welcome_body": "提示、洗牌和復原現在是用金幣取得的道具。謝謝你一直來玩，這是送你的禮物。金幣：{coins}・提示：{hint}・洗牌：{shuffle}・復原：{undo}",
+    "new_levels_title": "新增 300 個關卡！",
+    "new_levels_body": "現在每個世界都有 100 關。關卡編號因此有所調整，你的進度、星星和獎勵都已一起移過來。你可以從上次的地方繼續，已玩過的世界中的新關卡就在世界地圖上等你。",
     "tasks_reward": "LiShi之光 +1，金幣 +{count}",
     "privacy_choices": "隱私權選擇",
     "consent_title": "你的隱私",

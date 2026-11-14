@@ -779,13 +779,24 @@ func _open_win(result: Dictionary, stats: Dictionary) -> void:
 	m.closed.connect(_on_win_closed.bind(result, stats))
 
 
+func _next_level_id(first_time: bool) -> int:
+	## After a first win: the next level not completed yet. Since 1.1.0 a world's new levels
+	## come before boards a 1.0 player already finished under their old numbers, and those are
+	## skipped. A replay simply goes on to the next number.
+	if first_time:
+		for id in range(level.id + 1, ContentService.level_count() + 1):
+			if not GameState.is_level_completed(id):
+				return id
+	return mini(level.id + 1, ContentService.level_count())
+
+
 func _on_win_closed(r: String, result: Dictionary, stats: Dictionary) -> void:
 	match r:
 		"next":
 			# The continue callback lives on an autoload, so it is safe even if this screen is
 			# gone by the time the ad closes.
 			AdsService.show_interstitial("level_complete_continue", level.id,
-				Router.replace.bind("gameplay", {"mode": "level", "level": level.id + 1}))
+				Router.replace.bind("gameplay", {"mode": "level", "level": _next_level_id(bool(result.get("first_time", false)))}))
 		"daily":
 			Router.replace("daily")
 		"bloom":

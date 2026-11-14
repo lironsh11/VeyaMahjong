@@ -1,13 +1,13 @@
 {
   "_comment": "Caption bands for the store screenshots (ScreenshotTour --store). One line each, 3-6 words, in this order: 1 Play Together, 2 Board Studio editor, 3 solver-checked board + code, 4 tray play, 5 worlds map, 6 Bloom, 7 Daily, 8 accessibility. Real captures only: never describe something the shot doesn't show.",
-  "en": ["Play together on one phone", "Build your own board", "Proven winnable. Share the code.", "Tap free tiles into the tray", "300 levels in 6 worlds", "Watch your garden bloom", "A new puzzle every day", "Comfortable for every player"],
-  "he": ["משחקים בשניים על טלפון אחד", "בונים לוח משלכם", "מוכח שאפשר לפתור. משתפים בקוד.", "מעבירים אריחים פנויים למגש", "300 שלבים ב-6 עולמות", "הגן שלכם פורח", "פאזל חדש בכל יום", "נוח לכל שחקן"],
-  "ja": ["1台のスマホでふたりで遊ぶ", "自分だけの盤面を作ろう", "クリアできると証明済み。コードで共有", "空いている牌をトレイへ", "6つの世界に300レベル", "庭が花開いていく", "毎日新しいパズル", "だれでも遊びやすく"],
-  "ko": ["휴대폰 하나로 함께 플레이", "나만의 보드 만들기", "클리어 가능 검증 완료. 코드로 공유", "빈 패를 트레이로", "6개 세계, 300개 레벨", "정원이 피어나요", "매일 새로운 퍼즐", "누구나 편하게"],
-  "de": ["Zu zweit an einem Handy", "Bau dein eigenes Brett", "Garantiert lösbar. Code teilen.", "Freie Steine in die Ablage", "300 Level in 6 Welten", "Lass deinen Garten erblühen", "Jeden Tag ein neues Rätsel", "Angenehm für alle"],
-  "fr": ["Jouez à deux sur un téléphone", "Créez votre propre grille", "Faisable, c’est prouvé. Partagez le code.", "Tuiles libres vers le plateau", "300 niveaux, 6 mondes", "Votre jardin s’épanouit", "Un nouveau puzzle chaque jour", "Confortable pour tous"],
-  "es": ["Jueguen juntos en un teléfono", "Crea tu propio tablero", "Con solución garantizada. Comparte el código.", "Fichas libres a la bandeja", "300 niveles en 6 mundos", "Haz florecer tu jardín", "Un puzzle nuevo cada día", "Cómodo para todos"],
-  "pt-BR": ["Joguem juntos em um celular", "Crie seu próprio tabuleiro", "Solução garantida. Compartilhe o código.", "Peças livres para a bandeja", "300 níveis em 6 mundos", "Veja seu jardim florescer", "Um quebra-cabeça novo por dia", "Confortável para todos"],
-  "zh-Hant-TW": ["一支手機，兩人同樂", "打造你自己的牌陣", "保證可解，用代碼分享", "把可選的牌放進托盤", "6 個世界、300 個關卡", "看著花園綻放", "每天都有新謎題", "人人都能輕鬆玩"],
-  "ru": ["Играйте вдвоём на одном телефоне", "Создайте свой расклад", "Проходимость доказана. Делитесь кодом.", "Свободные фишки — в лоток", "300 уровней в 6 мирах", "Ваш сад расцветает", "Новая головоломка каждый день", "Удобно для всех"]
+  "en": ["Play together on one phone", "Build your own board", "Proven winnable. Share the code.", "Tap free tiles into the tray", "600 levels in 6 worlds", "Watch your garden bloom", "A new puzzle every day", "Comfortable for every player"],
+  "he": ["משחקים בשניים על טלפון אחד", "בונים לוח משלכם", "מוכח שאפשר לפתור. משתפים בקוד.", "מעבירים אריחים פנויים למגש", "600 שלבים ב-6 עולמות", "הגן שלכם פורח", "פאזל חדש בכל יום", "נוח לכל שחקן"],
+  "ja": ["1台のスマホでふたりで遊ぶ", "自分だけの盤面を作ろう", "クリアできると証明済み。コードで共有", "空いている牌をトレイへ", "6つの世界に600レベル", "庭が花開いていく", "毎日新しいパズル", "だれでも遊びやすく"],
+  "ko": ["휴대폰 하나로 함께 플레이", "나만의 보드 만들기", "클리어 가능 검증 완료. 코드로 공유", "빈 패를 트레이로", "6개 세계, 600개 레벨", "정원이 피어나요", "매일 새로운 퍼즐", "누구나 편하게"],
+  "de": ["Zu zweit an einem Handy", "Bau dein eigenes Brett", "Garantiert lösbar. Code teilen.", "Freie Steine in die Ablage", "600 Level in 6 Welten", "Lass deinen Garten erblühen", "Jeden Tag ein neues Rätsel", "Angenehm für alle"],
+  "fr": ["Jouez à deux sur un téléphone", "Créez votre propre grille", "Faisable, c’est prouvé. Partagez le code.", "Tuiles libres vers le plateau", "600 niveaux, 6 mondes", "Votre jardin s’épanouit", "Un nouveau puzzle chaque jour", "Confortable pour tous"],
+  "es": ["Jueguen juntos en un teléfono", "Crea tu propio tablero", "Con solución garantizada. Comparte el código.", "Fichas libres a la bandeja", "600 niveles en 6 mundos", "Haz florecer tu jardín", "Un puzzle nuevo cada día", "Cómodo para todos"],
+  "pt-BR": ["Joguem juntos em um celular", "Crie seu próprio tabuleiro", "Solução garantida. Compartilhe o código.", "Peças livres para a bandeja", "600 níveis em 6 mundos", "Veja seu jardim florescer", "Um quebra-cabeça novo por dia", "Confortável para todos"],
+  "zh-Hant-TW": ["一支手機，兩人同樂", "打造你自己的牌陣", "保證可解，用代碼分享", "把可選的牌放進托盤", "6 個世界、600 個關卡", "看著花園綻放", "每天都有新謎題", "人人都能輕鬆玩"],
+  "ru": ["Играйте вдвоём на одном телефоне", "Создайте свой расклад", "Проходимость доказана. Делитесь кодом.", "Свободные фишки — в лоток", "600 уровней в 6 мирах", "Ваш сад расцветает", "Новая головоломка каждый день", "Удобно для всех"]
 }

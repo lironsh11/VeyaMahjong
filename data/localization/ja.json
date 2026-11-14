@@ -395,6 +395,8 @@
     "product_starter_bundle_desc": "コイン：{coins}・ヒント：{hint}・シャッフル：{shuffle}・戻す：{undo}・広告なし",
     "welcome_title": "新機能：ブースター！",
     "welcome_body": "ヒント・シャッフル・戻すは、コインで手に入るブースターになりました。遊んでくれてありがとう。プレゼントです。コイン：{coins}・ヒント：{hint}・シャッフル：{shuffle}・戻す：{undo}",
+    "new_levels_title": "新しいレベルが300個！",
+    "new_levels_body": "どのワールドも100レベルになりました。そのためレベル番号が変わりましたが、進行状況・星・報酬はそのまま引き継がれています。続きはいつもの場所から。遊んだワールドの新しいレベルは、ワールドマップで待っています。",
     "tasks_reward": "LiShiの光 +1、コイン +{count}",
     "privacy_choices": "プライバシーの選択",
     "consent_title": "プライバシーについて",

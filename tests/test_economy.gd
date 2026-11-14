@@ -77,6 +77,8 @@ func test_first_clear_coins_world_bonus_and_replays() -> void:
 	var r3 := ProgressionService.complete_level(last, {"moves": 5, "hints": 0})
 	check_eq(int(r3.world_bonus), EconomyService.reward("world_complete"), "world bonus on the last level")
 	check(EconomyService.level_reward(120) > EconomyService.level_reward(10), "later worlds pay more")
+	check_eq(EconomyService.level_reward(75), EconomyService.level_reward(10), "a world's new levels pay like the rest of it")
+	check(EconomyService.level_reward(600) > 0, "the last level pays")
 
 
 func test_daily_and_tasks_coins_once_per_date() -> void:

@@ -128,35 +128,37 @@ func test_theme_unlocks_and_equip() -> void:
 
 func test_world_unlock_reported_once() -> void:
 	_reset()
-	for id in range(1, 50):
+	for id in range(1, 100):
 		GameState.data.progress.completed[str(id)] = {"t": 0}
-	var r := ProgressionService.complete_level(50, {})
+	check(not GameState.is_level_unlocked(101), "world 2 waits for level 100")
+	var r := ProgressionService.complete_level(100, {})
 	check_eq(r.world_unlocked, "pearl_coast")
-	check(GameState.is_level_unlocked(51))
-	check_eq(ProgressionService.complete_level(50, {}).world_unlocked, "", "not reported again")
+	check(GameState.is_level_unlocked(101))
+	check_eq(ProgressionService.complete_level(100, {}).world_unlocked, "", "not reported again")
 
 
-func test_level_150_opens_the_newer_worlds() -> void:
+func test_level_300_opens_the_newer_worlds() -> void:
 	_reset()
-	for id in range(1, 150):
+	for id in range(1, 300):
 		GameState.data.progress.completed[str(id)] = {"t": 0}
-	check_eq(ProgressionService.complete_level(150, {}).world_unlocked, "jade_bamboo_valley")
-	check(GameState.is_level_unlocked(151))
-	check(ContentService.get_level(151) != null and ContentService.get_level(300) != null, "levels 151-300 load")
-	check_eq(str(ContentService.world_for_level(300).id), "frostlight_village")
-	check(EconomyService.level_reward(300) > 0, "levels 151-300 pay first-clear coins")
+	check_eq(ProgressionService.complete_level(300, {}).world_unlocked, "jade_bamboo_valley")
+	check(GameState.is_level_unlocked(301))
+	check(ContentService.get_level(301) != null and ContentService.get_level(600) != null, "levels 301-600 load")
+	check(ContentService.get_level(601) == null, "no level 601")
+	check_eq(str(ContentService.world_for_level(600).id), "frostlight_village")
+	check(EconomyService.level_reward(600) > EconomyService.level_reward(500), "the last world pays the most first-clear coins")
 
 
 func test_tile_back_earned_by_finishing_its_world() -> void:
 	_reset()
 	check_eq(ProgressionService.equipped_back(), "", "no back by default")
 	check(not ProgressionService.equip_back("jade_bamboo_valley"), "locked back cannot be equipped")
-	for id in range(1, 200):
+	for id in range(1, 400):
 		GameState.data.progress.completed[str(id)] = {"t": 0}
-	var r := ProgressionService.complete_level(200, {})
+	var r := ProgressionService.complete_level(400, {})
 	check_eq(r.backs, ["jade_bamboo_valley"], "finishing Jade Bamboo Valley earns its back")
 	check_eq(r.world_unlocked, "sunset_lotus_palace")
-	check_eq(ProgressionService.complete_level(200, {}).backs, [], "not reported again")
+	check_eq(ProgressionService.complete_level(400, {}).backs, [], "not reported again")
 	check(not ProgressionService.is_back_unlocked("sunset_lotus_palace"))
 	check(ProgressionService.equip_back("jade_bamboo_valley"))
 	check(SaveService.write(GameState.data))
@@ -559,3 +561,162 @@ func test_consent_resolution_at_launch() -> void:
 	PrivacyService.resolve_ads_consent_region(true)
 	check_eq(PrivacyService.ads_consent(), "obtained")
 	_reset()
+
+
+# --- save versions (regression: 1.0.0 re-ran old migrations on every launch) ---------
+
+func test_streak_and_level_in_progress_survive_a_relaunch() -> void:
+	_reset()
+	GameState.data.streak = {"count": 4, "best": 6, "run": 3, "attempt": 12}
+	GameState.data.active_session = {"mode": "level", "key": "level:12", "level_id": 12, "session": {"v": 2}}
+	check(SaveService.write(GameState.data), "saved")
+	var res := SaveService.read()
+	var loaded := GameState.migrate(res.payload)
+	check_eq(int(loaded.schema_version), int(GameState.defaults().schema_version), "loaded at the current schema")
+	check_eq(int(loaded.streak.count), 4, "win streak kept")
+	check_eq(int(loaded.streak.run), 3, "streak run kept (gifts are keyed by it)")
+	check_eq(str(loaded.active_session.get("key", "")), "level:12", "level in progress kept")
+	# A second launch changes nothing either.
+	SaveService.write(loaded)
+	var again := GameState.migrate(SaveService.read().payload)
+	check_eq(int(again.streak.count), 4)
+	check_eq(str(again.active_session.get("key", "")), "level:12")
+
+
+func test_save_written_by_1_0_0_loads_at_its_real_version() -> void:
+	# 1.0.0 wrote envelope "schema_version": 2 around a schema-5 payload.
+	_reset()
+	var payload := GameState.defaults()
+	payload.schema_version = 5
+	payload.progress.erase("level_ids")
+	payload.streak = {"count": 5, "best": 5, "run": 2, "attempt": 0}
+	payload.active_session = {"mode": "level", "key": "level:7", "level_id": 7, "session": {"v": 2}}
+	var body := JSON.stringify(payload)
+	var old_text := JSON.stringify({"format": SaveService.FORMAT, "schema_version": 2, "sha256": body.sha256_text(), "payload": body})
+	var decoded: Dictionary = SaveService.decode(old_text)
+	check_eq(int(decoded.schema_version), int(payload.schema_version), "payload version wins over the old envelope")
+	var m := GameState.migrate(decoded)
+	check_eq(int(m.streak.count), 5, "no v<3 reset")
+	check_eq(str(m.active_session.get("key", "")), "level:7", "no v<4 drop")
+	# Envelopes now carry the payload's version.
+	var env: Dictionary = JSON.parse_string(SaveService.encode(m))
+	check_eq(int(env.schema_version), int(m.schema_version))
+
+
+# --- 1.1.0: 100 levels per world (schema 6) -----------------------------------------------
+
+func _save_from_1_0(done_through: int) -> Dictionary:
+	## A schema-5 save as 1.0 wrote it: 1.0 levels 1..done_through completed, with Lights, coins,
+	## a win-double grant, a streak, a level in progress and the themes earned on the way.
+	var p := GameState.defaults()
+	p.schema_version = 5
+	p.progress = {"completed": {}, "light_sources": ["daily:2026-10-18"]}
+	p.cosmetics = {"equipped_theme": "nocturne" if done_through >= 100 else "classic", "seen_themes": ["classic"], "equipped_back": "jade_bamboo_valley" if done_through >= 200 else ""}
+	for id in range(1, done_through + 1):
+		p.progress.completed[str(id)] = {"t": 0, "stars": 1 + id % 3, "best_score": id}
+		p.progress.light_sources.append("level:%d" % id)
+		p.economy.ledger["level:%d" % id] = 1
+	p.economy.ledger["ad:win_double:level:75"] = 1
+	p.economy.ledger["world:aurora_garden"] = 1
+	p.economy.ledger["welcome_existing_v1"] = 1
+	p.ads.reward_grants = ["ad:win_double:level:75", "ad:booster:3"]
+	p.streak = {"count": 4, "best": 6, "run": 2, "attempt": done_through + 1}
+	p.active_session = {"mode": "level", "key": "level:75", "level_id": 75, "session": {"v": 2, "level_key": "level:75"}}
+	return p
+
+
+func test_migration_moves_1_0_level_ids() -> void:
+	var m := GameState.migrate(_save_from_1_0(120))
+	check_eq(int(m.schema_version), 6)
+	check_eq(int(m.progress.level_ids), 2)
+	var done: Dictionary = m.progress.completed
+	check_eq(done.size(), 120, "every completed level kept")
+	for id in [1, 50, 101, 150, 201, 220]:
+		check(done.has(str(id)), "level %d completed" % id)
+	for id in [51, 75, 100, 151, 200, 221]:
+		check(not done.has(str(id)), "level %d is new or not reached" % id)
+	check_eq(int(done["125"].stars), 1 + 75 % 3, "stars move with the level")
+	check(m.progress.light_sources.has("level:125") and not m.progress.light_sources.has("level:75"), "Lights move")
+	check(m.progress.light_sources.has("daily:2026-10-18"), "other Lights untouched")
+	check_eq(m.progress.light_sources.size(), 121, "no Light lost or added")
+	check(m.economy.ledger.has("level:220") and not m.economy.ledger.has("level:75"), "first-clear coins move")
+	check(m.economy.ledger.has("ad:win_double:level:125"), "win-double grant moves")
+	check(m.economy.ledger.has("world:aurora_garden") and m.economy.ledger.has("welcome_existing_v1"), "other grants untouched")
+	check(m.ads.reward_grants.has("ad:win_double:level:125") and m.ads.reward_grants.has("ad:booster:3"), "ad grants move")
+	check_eq(int(m.streak.attempt), 221, "the attempt moves")
+	check_eq(int(m.streak.count), 4, "streak kept")
+	check_eq(int(m.active_session.level_id), 125)
+	check_eq(str(m.active_session.key), "level:125")
+	check_eq(str(m.active_session.session.level_key), "level:125")
+	check_eq(m.progress.open, [101, 201], "worlds a 1.0 player had reached stay open")
+	check(m.cosmetics.granted.has("ocean") and m.cosmetics.granted.has("nocturne"), "themes earned at 1.0 levels 50 and 100 kept")
+	check(not m.cosmetics.granted.has("jade_bamboo_valley"), "no back that was not earned")
+	check(bool(m.progress.new_levels_notice), "the player hears about the new levels once")
+	# Exactly once: a second migration (and a save/load) changes nothing.
+	var text := JSON.stringify(m)
+	check_eq(JSON.stringify(GameState.migrate(m.duplicate(true))), text, "migrating again changes nothing")
+	var reloaded := GameState.migrate(SaveService.decode(SaveService.encode(m)))
+	check_eq(int(reloaded.active_session.level_id), 125, "a relaunch keeps the new ids")
+	check_eq((reloaded.progress.completed as Dictionary).size(), 120)
+
+
+func test_migrated_player_continues_where_they_were() -> void:
+	_reset()
+	GameState.data = GameState.migrate(_save_from_1_0(120))
+	GameState.data.active_session = {}
+	check_eq(GameState.next_level(ContentService.level_count()), 221, "continues after 1.0 level 120")
+	check(GameState.is_level_unlocked(51) and GameState.is_level_unlocked(151), "each world's new levels are open")
+	check(not GameState.is_level_unlocked(52), "and played in order")
+	check(GameState.is_level_unlocked(101) and GameState.is_level_unlocked(221))
+	check(ProgressionService.is_theme_unlocked("nocturne"), "nocturne stays earned (now at level 200)")
+	check_eq(ProgressionService.equipped_theme(), "nocturne")
+	# A new level that took an old number pays its own Light and coins.
+	var lights0 := ProgressionService.lights()
+	var r := ProgressionService.complete_level(75, {"moves": 5, "hints": 0})
+	check(bool(r.first_time) and bool(r.light_awarded), "level 75 is new: a Light")
+	check_eq(ProgressionService.lights(), lights0 + 1)
+	check_eq(int(r.get("coins", 0)), EconomyService.level_reward(75), "and its first-clear coins")
+	# Finishing world 1 later does not announce world 2 again.
+	for id in range(51, 100):
+		GameState.data.progress.completed[str(id)] = {"t": 0}
+	check_eq(str(ProgressionService.complete_level(100, {}).get("world_unlocked", "")), "", "world 2 was already open")
+
+
+func test_migrated_player_keeps_world_and_back_from_1_0() -> void:
+	_reset()
+	# Finished 1.0 world 1 exactly: world 2 stays open although levels 51-100 are new.
+	GameState.data = GameState.migrate(_save_from_1_0(50))
+	check(GameState.is_level_unlocked(101), "world 2 still open")
+	check(GameState.is_level_unlocked(51), "and world 1's new levels")
+	check_eq(GameState.next_level(ContentService.level_count()), 51)
+	# Finished 1.0 world 4 (level 200): its tile back stays earned (the world now ends at 400).
+	GameState.data = GameState.migrate(_save_from_1_0(200))
+	check(ProgressionService.is_back_unlocked("jade_bamboo_valley"), "Jade Bamboo Valley back kept")
+	check_eq(ProgressionService.equipped_back(), "jade_bamboo_valley")
+	check(not ProgressionService.is_back_unlocked("sunset_lotus_palace"))
+	check(GameState.is_level_unlocked(301) and GameState.is_level_unlocked(351))
+	# A fresh player earns nocturne at level 200 now.
+	GameState.data = GameState.defaults()
+	for id in range(1, 151):
+		GameState.data.progress.completed[str(id)] = {"t": 0}
+	check(not ProgressionService.is_theme_unlocked("nocturne"))
+
+
+func test_board_in_progress_resumes_on_its_new_number() -> void:
+	# A real 1.0 snapshot of 1.0 level 75 restores onto level 125 (the same board).
+	var legacy := LevelCatalog.load_legacy()
+	var old := LevelDefinition.from_dict(legacy[74])
+	check_eq(old.key, "level:75")
+	var s := GameSession.start(old)
+	var free := s.state.free_tiles()
+	s.tap(free[0])
+	var save := _save_from_1_0(120)
+	save.active_session = {"mode": "level", "key": old.key, "level_id": 75, "session": s.to_dict()}
+	var m := GameState.migrate(JSON.parse_string(JSON.stringify(save)))
+	var L := ContentService.get_level(125)
+	check_eq(str(m.active_session.key), L.key)
+	var back := GameSession.restore(L, m.active_session.session)
+	check(back != null, "the snapshot restores on level 125")
+	if back != null:
+		check_eq(back.tray.size(), s.tray.size(), "same tray")
+		check_eq(back.state.remaining, s.state.remaining, "same tiles left")

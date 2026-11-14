@@ -237,10 +237,10 @@ func _run() -> void:
 	scr._open_pause()
 	await _wait(0.4)
 	await _shot("07_pause")
-	await _go("gameplay", {"mode": "level", "level": 150, "restart": true})
+	await _go("gameplay", {"mode": "level", "level": 250, "restart": true})
 	scr = Router.current_screen()
 	await _close_modals(scr, "play")
-	await _shot("08_gameplay_l150")
+	await _shot("08_gameplay_l250")
 	scr._open_rescue(false)
 	await _wait(0.4)
 	await _shot("09_stuck")
@@ -282,8 +282,8 @@ func _run() -> void:
 
 
 func _new_worlds_tour() -> void:
-	## The "Three New Worlds" (levels 151-300): maps, boards, Bloom and the tile back.
-	for id in range(13, 201):
+	## The "Three New Worlds" (levels 301-600): maps, boards, Bloom and the tile back.
+	for id in range(13, 401):
 		ProgressionService.complete_level(id, {"moves": 10, "hints": 0, "score": 300, "stars": 1 + (id % 3)})
 	ProgressionService.equip_back("jade_bamboo_valley")
 	await _go("worlds", {"world": "jade_bamboo_valley"})
@@ -292,18 +292,18 @@ func _new_worlds_tour() -> void:
 	await _shot("16b_worlds_sunset")
 	await _go("worlds", {"world": "frostlight_village"})
 	await _shot("16c_worlds_frost_locked")
-	await _go("gameplay", {"mode": "level", "level": 201, "restart": true})
+	await _go("gameplay", {"mode": "level", "level": 401, "restart": true})
 	var scr: Node = Router.current_screen()
 	for m in scr.find_children("*", "ModalDialog", true, false):
 		m.close("play")
 	await _wait(0.12)
 	await _shot("17a_deal_flip")
 	await _wait(0.8)
-	await _shot("17_gameplay_l201")
-	await _go("gameplay", {"mode": "level", "level": 300, "restart": true})
+	await _shot("17_gameplay_l401")
+	await _go("gameplay", {"mode": "level", "level": 600, "restart": true})
 	scr = Router.current_screen()
 	await _close_modals(scr, "play")
-	await _shot("18_gameplay_l300")
+	await _shot("18_gameplay_l600")
 	await _go("bloom", {"world": "jade_bamboo_valley"})
 	await _wait(0.8)
 	await _shot("19_bloom_jade")
@@ -540,7 +540,7 @@ func _store_tour() -> void:
 	for m in get_tree().root.find_children("*", "ModalDialog", true, false):
 		m.close("denied")  # first-run consent
 	GameState.data.tutorial_done = true
-	for id in range(1, 161):
+	for id in range(1, 311):  # worlds 1-3 done, Jade Bamboo Valley under way (store shot 5)
 		ProgressionService.complete_level(id, {"moves": 10, "hints": 0, "score": 300, "stars": 2 + (id % 2)})
 	var he := loc == "he"
 	FreePlayService.set_player_name(0, "מאיה" if he else "Maya")
@@ -576,7 +576,7 @@ func _store_tour() -> void:
 		m.close("close")
 	await _wait(0.6)
 	# 4. Tray play on a layered level.
-	await _go("gameplay", {"mode": "level", "level": 120, "restart": true})
+	await _go("gameplay", {"mode": "level", "level": 220, "restart": true})  # 1.0 level 120's board
 	scr = Router.current_screen()
 	await _close_modals(scr, "play")
 	await _wait(1.0)

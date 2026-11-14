@@ -223,6 +223,30 @@ themselves. Real Mahjong Solitaire distributes faces randomly.
 | 51-150 | Layered template boards (pyramid, brick, ridge, terraces, frame, bridge, ziggurat, twin; 3-5 layers, 68-144 tiles) | `tools/build_levels.gd` (`levels-51-150-v10`): 2,400 candidates → 1,470 validated → 100 selected; dead-end 0.28 → 0.94. See `docs/reports/levels_051_150.md` |
 | 151-300 | Layered template boards, harder through traps (116-144 tiles, 4-5 layers, twins far apart), continuing from level 150 | `tools/build_levels.gd -- --range=151-300` (`levels-151-300-v3`): 3,600 candidates → 2,101 validated → 150 selected; dead-end 0.93 → 1.00, score 96 → 104; dead-end target p98, score target p99, score weight 0.6. See `docs/reports/levels_151_300.md` |
 
+The table above uses the 1.0 numbering (50 levels per world). **Since 1.1.0 every world has 100
+levels** (`LevelCatalog`): 1.0 level `50(w-1)+k` is level `100(w-1)+k`, and each world's levels
+51-100 are new (`tools/build_levels.gd -- --range=wN`, `levels-wN-51-100-v1`). Each new half
+starts from the mean of the world's last five 1.0 levels and ramps 40% of the way to where the
+next world's 1.0 levels end, capped at the pool's p97/p98/p95. The next world therefore opens a
+little easier than the previous one ends.
+
+| World | New levels | Candidates → validated | Ramp (dead-end; score; skilled fail) |
+|---|---|---|---|
+| 1 Aurora Garden | 51-100 | 1,400 → 1,281 | 0.28 → 0.40; 43 → 54; (not weighted) |
+| 2 Pearl Coast | 151-200 | 1,600 → 1,348 | 0.59 → 0.73; 69 → 80; (not weighted) |
+| 3 Crystal Nocturne | 251-300 | 2,400 → 1,503 | 0.93 → 0.94; 96.3 → 96.6; 0.18 → 0.21 (weight 0.5) |
+| 4 Jade Bamboo Valley | 351-400 | 3,000 → 1,816 | 0.97 flat; 96.9 → 98.5; 0.27 → 0.28 |
+| 5 Sunset Lotus Palace | 451-500 | 3,600 → 1,536 | 0.98 → 0.99; 100.9 → 102.9; 0.29 → 0.33 |
+| 6 Frostlight Village | 551-600 | 4,800 → 2,029 | 1.00 flat; 105.9 → 106.5; 0.38 → 0.42 |
+
+From world 3 on, random play is stuck on nearly every board, so those halves also ramp on the
+**skilled fail rate** (`DifficultyAnalyzer.skilled_fail_rate`, 32 playouts): a careful tray
+player clears a tile from the tray when it can, takes one tile of a free pair, else picks the
+tile that frees the most neighbours, with a 15% random slip. Measured on the 1.0 levels it rises
+from 0 (levels up to 75) to about 0.4 (level 300). Worlds 4-6 draw from bigger, 5-layer
+candidates with far-apart twins (pairing spread up to 1.0). The per-level tables are in
+`docs/reports/levels_w<N>_051_100.md`.
+
 Selection for 51-150 ramps **two axes together** from where level 50 ends: the random-play
 dead-end rate (what a player feels as "getting stuck") is the primary axis, and the composite
 score is secondary (weight 0.35). Ramping the composite score alone had placed small-but-tricky

@@ -38,6 +38,11 @@ hint (≤ 24 solver runs) is bounded at 700 ms and always runs on a worker threa
   than 150 physical pixels.
 - One world's backgrounds plus one tile theme resident; `release_inactive()` runs on OS memory
   warnings.
+- Levels (1.1.0): one minified file per world (`data/levels/world_N.json`, 0.33-0.66 MB), parsed
+  the first time one of its levels is needed, at most two worlds kept (`ContentService`).
+  Measured on desktop (2026-11-14): all 600 levels parse in 130 ms into about 72 MB of Variant
+  data, so one world is about 22 ms and 12 MB. 1.0 parsed all 300 levels at boot (97 ms, 34 MB).
+  The level source files no longer ship (`export_presets.cfg` excludes `data/levels/levels_*`).
 - Pure-data solver/generator on worker threads; incremental O(1) freedom checks per tap; no
   allocation-heavy work in the input path.
 - UI nine-patch textures are downscaled once at startup (0.5×) and cached.

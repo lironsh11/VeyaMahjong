@@ -407,6 +407,8 @@
     "product_starter_bundle_desc": "Pièces : {coins} · Indices : {hint} · Mélanges : {shuffle} · Annulations : {undo} · Plus de pubs",
     "welcome_title": "Nouveau : les bonus !",
     "welcome_body": "Indice, Mélanger et Annuler sont désormais des bonus qui s'obtiennent avec des pièces. Merci de jouer - voici un cadeau. Pièces : {coins} · Indices : {hint} · Mélanges : {shuffle} · Annulations : {undo}",
+    "new_levels_title": "300 nouveaux niveaux !",
+    "new_levels_body": "Chaque monde compte désormais 100 niveaux. Les numéros des niveaux ont changé pour leur faire de la place, et votre progression, vos étoiles et vos récompenses ont suivi. Vous reprenez là où vous vous étiez arrêté, et les nouveaux niveaux des mondes déjà joués vous attendent sur la carte.",
     "tasks_reward": "+1 Lumière LiShi, pièces : +{count}",
     "privacy_choices": "Choix de confidentialité",
     "consent_title": "Ta vie privée",

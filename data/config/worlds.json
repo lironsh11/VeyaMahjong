@@ -5,7 +5,7 @@
     "chapter": 1,
     "levels": [
       1,
-      50
+      100
     ],
     "bg": "backgrounds/worlds/aurora_garden_1080x1920.png",
     "map": "backgrounds/maps/aurora_garden_map_1080x1920.png",
@@ -17,8 +17,8 @@
     "name": "Pearl Coast",
     "chapter": 2,
     "levels": [
-      51,
-      100
+      101,
+      200
     ],
     "bg": "backgrounds/worlds/pearl_coast_1080x1920.png",
     "map": "backgrounds/maps/pearl_coast_map_1080x1920.png",
@@ -30,8 +30,8 @@
     "name": "Crystal Nocturne",
     "chapter": 3,
     "levels": [
-      101,
-      150
+      201,
+      300
     ],
     "bg": "backgrounds/worlds/crystal_nocturne_1080x1920.png",
     "map": "backgrounds/maps/crystal_nocturne_map_1080x1920.png",
@@ -43,8 +43,8 @@
     "name": "Jade Bamboo Valley",
     "chapter": 4,
     "levels": [
-      151,
-      200
+      301,
+      400
     ],
     "bg": "res://art/lishi_worlds/jade_bamboo_valley/backgrounds/world_background_1440x2560.jpg",
     "map": "res://art/lishi_worlds/jade_bamboo_valley/backgrounds/world_background_1440x2560.jpg",
@@ -55,8 +55,8 @@
     "name": "Sunset Lotus Palace",
     "chapter": 5,
     "levels": [
-      201,
-      250
+      401,
+      500
     ],
     "bg": "res://art/lishi_worlds/sunset_lotus_palace/backgrounds/world_background_1440x2560.jpg",
     "map": "res://art/lishi_worlds/sunset_lotus_palace/backgrounds/world_background_1440x2560.jpg",
@@ -67,8 +67,8 @@
     "name": "Frostlight Village",
     "chapter": 6,
     "levels": [
-      251,
-      300
+      501,
+      600
     ],
     "bg": "res://art/lishi_worlds/frostlight_village/backgrounds/world_background_1440x2560.jpg",
     "map": "res://art/lishi_worlds/frostlight_village/backgrounds/world_background_1440x2560.jpg",

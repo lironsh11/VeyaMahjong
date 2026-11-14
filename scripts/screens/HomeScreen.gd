@@ -16,6 +16,17 @@ func _ready() -> void:
 	ContentService.active_world = str(_world.get("id", "aurora_garden"))
 	if EconomyService.welcome_notice_pending():
 		_show_welcome.call_deferred()
+	elif bool(GameState.data.progress.get("new_levels_notice", false)):
+		_show_new_levels.call_deferred()
+
+
+func _show_new_levels() -> void:
+	## One-time note for players from 1.0: every world grew to 100 levels and the numbers moved.
+	var m := ModalDialog.open(self, t("new_levels_title"), t("new_levels_body"))
+	m.add_action(t("ok"), "ok", "green")
+	m.closed.connect(func(_r: String) -> void:
+		GameState.data.progress.new_levels_notice = false
+		GameState.save_now())
 
 
 func _show_welcome() -> void:

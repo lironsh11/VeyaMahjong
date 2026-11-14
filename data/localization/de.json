@@ -407,6 +407,8 @@
     "product_starter_bundle_desc": "Münzen: {coins} · Tipps: {hint} · Mischen: {shuffle} · Zurück: {undo} · Keine Werbung mehr",
     "welcome_title": "Neu: Booster!",
     "welcome_body": "Tipp, Mischen und Zurück gibt es jetzt als Booster, die du mit Münzen bekommst. Danke fürs Spielen - hier ist ein Geschenk. Münzen: {coins} · Tipps: {hint} · Mischen: {shuffle} · Zurück: {undo}",
+    "new_levels_title": "300 neue Level!",
+    "new_levels_body": "Jede Welt hat jetzt 100 Level. Dafür haben sich die Levelnummern geändert, und dein Fortschritt, deine Sterne und Belohnungen sind mitgezogen. Du spielst dort weiter, wo du aufgehört hast; die neuen Level in Welten, die du schon gespielt hast, warten auf der Weltkarte.",
     "tasks_reward": "+1 LiShi-Licht, Münzen: +{count}",
     "privacy_choices": "Datenschutz-Einstellungen",
     "consent_title": "Deine Privatsphäre",

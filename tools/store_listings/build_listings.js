@@ -1,4 +1,4 @@
-// Writes docs/STORE_LISTINGS/<locale>.md for LiShi Mahjong 1.0.0 from the texts below, with
+// Writes docs/STORE_LISTINGS/<locale>.md for LiShi Mahjong 1.1.0 from the texts below, with
 // counts computed here (Unicode code points; Apple keywords in UTF-8 bytes) and hard limits
 // checked: the script fails instead of writing a field that is too long.
 //   node tools/store_listings/build_listings.js
@@ -8,7 +8,8 @@ const fs = require('fs');
 const path = require('path');
 
 const OUT = path.join(__dirname, '..', '..', 'docs', 'STORE_LISTINGS');
-const LIMITS = {name: 30, short: 80, subtitle: 30, promo: 170, description: 4000, keywords: 100};
+const VERSION = '1.1.0';
+const LIMITS = {name: 30, short: 80, subtitle: 30, promo: 170, description: 4000, keywords: 100, whatsNew: 500};
 const chars = (s) => [...s].length;
 const bytes = (s) => Buffer.byteLength(s, 'utf8');
 
@@ -29,12 +30,12 @@ BOARD STUDIO
 Build your own board: choose one of 10 shapes, how many tiles and how many layers. Before you play, the game's solver checks that the board can be cleared. Every board gets a short code – try LS-5VSW-11BK. Send yours to a friend and they play exactly the same board. Keep up to 30 boards in My boards.
 
 FAIR BY PROOF
-All 300 levels are checked by the same solver. A hint shows the next move of a solution the solver found, and says so when there was no time to check. If the solver proves the tiles left can't be cleared, the game tells you, and going back to the last solvable point costs nothing.
+All 600 levels are checked by the same solver. A hint shows the next move of a solution the solver found, and says so when there was no time to check. If the solver proves the tiles left can't be cleared, the game tells you, and going back to the last solvable point costs nothing.
 
 HOW TO PLAY
 Tap a free tile (nothing on top, and its left or right side open) and it moves into the tray. Two identical tiles clear. Four unmatched tiles fill the tray, so the order you pick in matters.
 
-300 LEVELS IN 6 WORLDS
+600 LEVELS IN 6 WORLDS
 Aurora Garden, Pearl Coast, Crystal Nocturne, Jade Bamboo Valley, Sunset Lotus Palace and Frostlight Village, with layered boards that grow as you travel.
 
 A DAILY PUZZLE
@@ -74,12 +75,12 @@ Available in English, Hebrew, Japanese, Korean, German, French, Spanish, Brazili
 בונים לוח משלכם: בוחרים אחת מ-10 צורות, כמה אריחים וכמה שכבות. לפני שמשחקים, הפותר של המשחק בודק שאפשר לפנות את הלוח. לכל לוח יש קוד קצר – נסו את LS-5VSW-11BK. שלחו את הקוד שלכם לחבר והוא ישחק בדיוק באותו הלוח. אפשר לשמור עד 30 לוחות בלוחות שלי.
 
 הוגן, וזה מוכח
-כל 300 השלבים נבדקו באותו פותר. רמז מראה את המהלך הבא בפתרון שהפותר מצא, ואומר כשלא היה זמן לבדוק. אם הפותר מוכיח שאי אפשר לפנות את האריחים שנשארו, המשחק אומר לכם, והחזרה לנקודה הפתירה האחרונה לא עולה כלום.
+כל 600 השלבים נבדקו באותו פותר. רמז מראה את המהלך הבא בפתרון שהפותר מצא, ואומר כשלא היה זמן לבדוק. אם הפותר מוכיח שאי אפשר לפנות את האריחים שנשארו, המשחק אומר לכם, והחזרה לנקודה הפתירה האחרונה לא עולה כלום.
 
 איך משחקים
 מקישים על אריח פנוי (אין עליו כלום, והצד הימני או השמאלי שלו פנוי) והוא עובר למגש. שני אריחים זהים נעלמים. ארבעה אריחים בלי זוג ממלאים את המגש, ולכן הסדר חשוב.
 
-300 שלבים ב-6 עולמות
+600 שלבים ב-6 עולמות
 גן הזוהר, חוף הפנינה, ליל הקריסטלים, עמק הבמבוק הירוק, ארמון הלוטוס בשקיעה וכפר אורות השלג, עם לוחות בשכבות שגדלים לאורך הדרך.
 
 פאזל יומי
@@ -118,12 +119,12 @@ Available in English, Hebrew, Japanese, Korean, German, French, Spanish, Brazili
 10種類の形から1つを選び、牌の数と段数を決めて自分の盤面を作れます。遊ぶ前に、ゲームのソルバーがクリアできることを確認します。盤面ごとに短いコードがつきます（例：LS-5VSW-11BK）。友だちに送れば、まったく同じ盤面で遊べます。マイ盤面には30個まで保存できます。
 
 公平さを証明
-300レベルすべてを同じソルバーで確認済み。ヒントはソルバーが見つけた解き方の次の一手を示し、確認が間に合わなかったときはそう伝えます。残りの牌がクリアできないことをソルバーが証明したときは知らせてくれて、最後に解けた地点へ無料で戻れます。
+600レベルすべてを同じソルバーで確認済み。ヒントはソルバーが見つけた解き方の次の一手を示し、確認が間に合わなかったときはそう伝えます。残りの牌がクリアできないことをソルバーが証明したときは知らせてくれて、最後に解けた地点へ無料で戻れます。
 
 遊び方
 空いている牌（上に何もなく、左か右が空いている牌）をタップするとトレイへ。同じ牌が2枚そろうと消えます。そろわない牌が4枚でトレイがいっぱいになるので、選ぶ順番が大切です。
 
-6つの世界に300レベル
+6つの世界に600レベル
 オーロラガーデン、パールコースト、クリスタルノクターン、翡翠の竹の谷、夕焼けの蓮の宮殿、霜灯りの村。旅が進むほど盤面が大きく、段も高くなります。
 
 デイリーパズル
@@ -159,12 +160,12 @@ Available in English, Hebrew, Japanese, Korean, German, French, Spanish, Brazili
 10가지 모양 중 하나를 고르고 패 개수와 층수를 정해 나만의 보드를 만들어요. 플레이 전에 게임의 솔버가 보드를 클리어할 수 있는지 확인해요. 모든 보드에는 짧은 코드가 붙어요(예: LS-5VSW-11BK). 친구에게 보내면 똑같은 보드로 플레이할 수 있어요. 내 보드에는 30개까지 저장할 수 있어요.
 
 증명된 공정함
-300개 레벨 모두 같은 솔버로 확인했어요. 힌트는 솔버가 찾은 풀이의 다음 수를 보여 주고, 확인할 시간이 부족했을 때는 그렇다고 알려 줘요. 남은 패를 치울 수 없다는 것이 증명되면 알려 주고, 마지막으로 풀 수 있던 곳으로 무료로 돌아갈 수 있어요.
+600개 레벨 모두 같은 솔버로 확인했어요. 힌트는 솔버가 찾은 풀이의 다음 수를 보여 주고, 확인할 시간이 부족했을 때는 그렇다고 알려 줘요. 남은 패를 치울 수 없다는 것이 증명되면 알려 주고, 마지막으로 풀 수 있던 곳으로 무료로 돌아갈 수 있어요.
 
 플레이 방법
 빈 패(위에 아무것도 없고 왼쪽이나 오른쪽이 비어 있는 패)를 탭하면 트레이로 이동해요. 같은 패 두 개가 모이면 사라져요. 짝이 없는 패 4개로 트레이가 가득 차니 고르는 순서가 중요해요.
 
-6개 세계, 300개 레벨
+6개 세계, 600개 레벨
 오로라 정원, 진주 해안, 크리스털 녹턴, 비취 대나무 계곡, 노을 연꽃 궁전, 서리빛 마을. 여행할수록 보드가 커지고 층이 높아져요.
 
 데일리 퍼즐
@@ -200,12 +201,12 @@ BRETT-STUDIO
 Bau dein eigenes Brett: Wähle eine von 10 Formen, die Zahl der Steine und der Ebenen. Bevor du spielst, prüft der Löser des Spiels, dass das Brett lösbar ist. Jedes Brett bekommt einen kurzen Code – probier LS-5VSW-11BK. Schick deinen einem Freund, und er spielt genau dasselbe Brett. In „Meine Bretter“ passen bis zu 30 Bretter.
 
 FAIR, UND BEWIESEN
-Alle 300 Level sind mit demselben Löser geprüft. Ein Tipp zeigt den nächsten Zug einer Lösung, die der Löser gefunden hat, und sagt es, wenn die Zeit zum Prüfen nicht reichte. Beweist der Löser, dass die restlichen Steine nicht mehr abgeräumt werden können, sagt dir das Spiel Bescheid, und zurück zum letzten lösbaren Punkt geht es gratis.
+Alle 600 Level sind mit demselben Löser geprüft. Ein Tipp zeigt den nächsten Zug einer Lösung, die der Löser gefunden hat, und sagt es, wenn die Zeit zum Prüfen nicht reichte. Beweist der Löser, dass die restlichen Steine nicht mehr abgeräumt werden können, sagt dir das Spiel Bescheid, und zurück zum letzten lösbaren Punkt geht es gratis.
 
 SO GEHT’S
 Tippe einen freien Stein an (nichts liegt darauf, und seine linke oder rechte Seite ist frei), und er wandert in die Ablage. Zwei gleiche Steine verschwinden. Vier Steine ohne Paar füllen die Ablage – die Reihenfolge zählt.
 
-300 LEVEL IN 6 WELTEN
+600 LEVEL IN 6 WELTEN
 Aurora-Garten, Perlenküste, Kristall-Nocturne, Jadebambus-Tal, Lotuspalast im Abendrot und Frostlicht-Dorf, mit Feldern in Ebenen, die unterwegs wachsen.
 
 EIN TÄGLICHES RÄTSEL
@@ -241,12 +242,12 @@ STUDIO DE GRILLES
 Créez votre grille : choisissez une forme parmi 10, le nombre de tuiles et d’étages. Avant de jouer, le solveur du jeu vérifie que la grille est faisable. Chaque grille a un code court – essayez LS-5VSW-11BK. Envoyez le vôtre à un ami : il jouera exactement la même grille. Gardez jusqu’à 30 grilles dans Mes grilles.
 
 ÉQUITABLE, C’EST PROUVÉ
-Les 300 niveaux sont vérifiés par le même solveur. Un indice montre le coup suivant d’une solution trouvée par le solveur, et le signale quand il n’a pas eu le temps de vérifier. Si le solveur prouve que les tuiles restantes ne peuvent plus être retirées, le jeu vous le dit, et revenir au dernier point faisable est gratuit.
+Les 600 niveaux sont vérifiés par le même solveur. Un indice montre le coup suivant d’une solution trouvée par le solveur, et le signale quand il n’a pas eu le temps de vérifier. Si le solveur prouve que les tuiles restantes ne peuvent plus être retirées, le jeu vous le dit, et revenir au dernier point faisable est gratuit.
 
 COMMENT JOUER
 Touchez une tuile libre (rien dessus, et son côté gauche ou droit libre) : elle va dans le plateau. Deux tuiles identiques disparaissent. Quatre tuiles sans paire remplissent le plateau : l’ordre compte.
 
-300 NIVEAUX, 6 MONDES
+600 NIVEAUX, 6 MONDES
 Jardin Aurore, Côte des Perles, Nocturne de cristal, Vallée du bambou de jade, Palais du lotus au couchant et Village de la lueur du givre, avec des grilles en étages qui grandissent au fil du voyage.
 
 UN PUZZLE PAR JOUR
@@ -282,12 +283,12 @@ ESTUDIO DE TABLEROS
 Crea tu propio tablero: elige una de 10 formas, cuántas fichas y cuántas capas. Antes de jugar, el solucionador del juego comprueba que el tablero se puede despejar. Cada tablero tiene un código corto: prueba LS-5VSW-11BK. Envía el tuyo a un amigo y jugará exactamente el mismo tablero. Guarda hasta 30 tableros en Mis tableros.
 
 JUSTO, Y DEMOSTRADO
-Los 300 niveles están comprobados por el mismo solucionador. Una pista muestra el siguiente movimiento de una solución que encontró el solucionador, y avisa cuando no hubo tiempo para comprobarlo. Si el solucionador demuestra que las fichas restantes ya no se pueden despejar, el juego te lo dice, y volver al último punto con solución es gratis.
+Los 600 niveles están comprobados por el mismo solucionador. Una pista muestra el siguiente movimiento de una solución que encontró el solucionador, y avisa cuando no hubo tiempo para comprobarlo. Si el solucionador demuestra que las fichas restantes ya no se pueden despejar, el juego te lo dice, y volver al último punto con solución es gratis.
 
 CÓMO SE JUEGA
 Toca una ficha libre (nada encima y su lado izquierdo o derecho libre) y pasa a la bandeja. Dos fichas iguales desaparecen. Cuatro fichas sin pareja llenan la bandeja, así que el orden importa.
 
-300 NIVELES EN 6 MUNDOS
+600 NIVELES EN 6 MUNDOS
 Jardín Aurora, Costa de Perlas, Nocturno de Cristal, Valle del Bambú de Jade, Palacio del Loto al Atardecer y Aldea Luz de Escarcha, con tableros en capas que crecen durante el viaje.
 
 UN PUZZLE DIARIO
@@ -323,12 +324,12 @@ ESTÚDIO DE TABULEIROS
 Crie seu tabuleiro: escolha um de 10 formatos, quantas peças e quantas camadas. Antes de jogar, o solucionador do jogo verifica se dá para limpar o tabuleiro. Cada tabuleiro tem um código curto – experimente LS-5VSW-11BK. Envie o seu para um amigo e ele joga exatamente o mesmo tabuleiro. Guarde até 30 tabuleiros em Meus tabuleiros.
 
 JUSTO, E COMPROVADO
-Os 300 níveis foram verificados pelo mesmo solucionador. Uma dica mostra o próximo lance de uma solução encontrada pelo solucionador e avisa quando não houve tempo de verificar. Se o solucionador prova que as peças restantes não podem mais ser limpas, o jogo avisa, e voltar ao último ponto com solução é grátis.
+Os 600 níveis foram verificados pelo mesmo solucionador. Uma dica mostra o próximo lance de uma solução encontrada pelo solucionador e avisa quando não houve tempo de verificar. Se o solucionador prova que as peças restantes não podem mais ser limpas, o jogo avisa, e voltar ao último ponto com solução é grátis.
 
 COMO JOGAR
 Toque em uma peça livre (nada por cima e o lado esquerdo ou direito livre) e ela vai para a bandeja. Duas peças iguais somem. Quatro peças sem par enchem a bandeja, então a ordem importa.
 
-300 NÍVEIS EM 6 MUNDOS
+600 NÍVEIS EM 6 MUNDOS
 Jardim da Aurora, Costa das Pérolas, Noturno de Cristal, Vale do Bambu de Jade, Palácio do Lótus ao Pôr do Sol e Vila da Luz Gelada, com tabuleiros em camadas que crescem na jornada.
 
 UM QUEBRA-CABEÇA POR DIA
@@ -364,12 +365,12 @@ Disponível em português do Brasil, inglês, hebraico, japonês, coreano, alem�
 自己打造牌陣：從 10 種形狀中選一種，再決定牌數和層數。開始前，遊戲的求解器會確認牌陣可以清完。每個牌陣都有一組短代碼，試試 LS-5VSW-11BK。把你的代碼傳給朋友，對方就能玩一模一樣的牌陣。「我的牌陣」最多可存 30 個。
 
 公平，有證明
-全部 300 個關卡都經過同一個求解器確認。提示會顯示求解器找到的解法的下一步；來不及確認時也會說明。若求解器證明剩下的牌已無法清完，遊戲會告訴你，而且回到最後可解處不用任何費用。
+全部 600 個關卡都經過同一個求解器確認。提示會顯示求解器找到的解法的下一步；來不及確認時也會說明。若求解器證明剩下的牌已無法清完，遊戲會告訴你，而且回到最後可解處不用任何費用。
 
 玩法
 點選可選的牌（上面沒有牌，左側或右側空著），牌就會進入托盤。兩張相同的牌會消除。四張沒有成對的牌會塞滿托盤，所以選牌順序很重要。
 
-6 個世界、300 個關卡
+6 個世界、600 個關卡
 極光花園、珍珠海岸、水晶夜曲、翠竹幽谷、夕照蓮花宮與霜光小村，層疊的牌局會隨著旅程越來越大。
 
 每日謎題
@@ -405,12 +406,12 @@ Disponível em português do Brasil, inglês, hebraico, japonês, coreano, alem�
 Создайте свой расклад: выберите одну из 10 форм, число фишек и слоёв. Перед игрой решатель проверит, что расклад можно пройти. У каждого расклада есть короткий код – попробуйте LS-5VSW-11BK. Отправьте свой другу, и он сыграет точно такой же расклад. В «Моих раскладах» помещается до 30 раскладов.
 
 ЧЕСТНО, И ЭТО ДОКАЗАНО
-Все 300 уровней проверены тем же решателем. Подсказка показывает следующий ход решения, найденного решателем, и предупреждает, если проверить не хватило времени. Если решатель доказывает, что оставшиеся фишки уже не убрать, игра сообщит об этом, а вернуться к последней решаемой позиции можно бесплатно.
+Все 600 уровней проверены тем же решателем. Подсказка показывает следующий ход решения, найденного решателем, и предупреждает, если проверить не хватило времени. Если решатель доказывает, что оставшиеся фишки уже не убрать, игра сообщит об этом, а вернуться к последней решаемой позиции можно бесплатно.
 
 КАК ИГРАТЬ
 Нажмите на свободную фишку (на ней ничего нет, а её левая или правая сторона свободна), и она перейдёт в лоток. Две одинаковые фишки исчезают. Четыре фишки без пары заполняют лоток, поэтому важен порядок.
 
-300 УРОВНЕЙ В 6 МИРАХ
+600 УРОВНЕЙ В 6 МИРАХ
 Сад Авроры, Жемчужный берег, Хрустальный ноктюрн, Долина нефритового бамбука, Лотосовый дворец на закате и Деревня морозных огней – с многослойными полями, которые растут по пути.
 
 ГОЛОВОЛОМКА ДНЯ
@@ -432,9 +433,42 @@ Disponível em português do Brasil, inglês, hebraico, japonês, coreano, alem�
   },
 };
 
+// What's New for ${VERSION} (App Store "What's New", Google Play release notes: 500 characters).
+const WHATS_NEW = {
+  "en": "300 new levels: every world now has 100. Each world's new levels continue where its level 50 leaves off and end a little harder. Your progress, stars and rewards moved with you, and you continue where you left off.\nFixed: closing and reopening the game reset the win streak and dropped a level in progress.",
+  "he": "300 שלבים חדשים: בכל עולם יש עכשיו 100. השלבים החדשים בכל עולם ממשיכים מהמקום שבו שלב 50 נגמר ומסתיימים קצת יותר קשה. ההתקדמות, הכוכבים והפרסים שלכם עברו איתכם, וממשיכים מאיפה שהפסקתם.\nתוקן: סגירה ופתיחה מחדש של המשחק איפסו את רצף הניצחונות וביטלו שלב שהיה באמצע.",
+  "ja": "新しいレベルが300個：どのワールドも100レベルになりました。各ワールドの新しいレベルはレベル50の続きから始まり、最後は少し難しくなります。進行状況・星・報酬はそのまま引き継がれ、続きから遊べます。\n修正：ゲームを閉じて開き直すと、連勝記録とプレイ途中のレベルが失われる問題を修正しました。",
+  "ko": "새 레벨 300개: 이제 모든 월드에 100개의 레벨이 있어요. 각 월드의 새 레벨은 50레벨에서 이어지고 끝으로 갈수록 조금 더 어려워져요. 진행 상황, 별, 보상은 그대로 옮겨졌고 하던 곳에서 이어서 플레이할 수 있어요.\n수정: 게임을 닫았다가 다시 열면 연승 기록이 초기화되고 플레이 중이던 레벨이 사라지던 문제를 고쳤어요.",
+  "de": "300 neue Level: Jede Welt hat jetzt 100. Die neuen Level jeder Welt setzen dort an, wo Level 50 aufhört, und werden zum Ende hin etwas schwerer. Dein Fortschritt, deine Sterne und Belohnungen sind mitgezogen, und du spielst dort weiter, wo du aufgehört hast.\nBehoben: Nach dem Schließen und erneuten Öffnen gingen die Siegesserie und ein angefangenes Level verloren.",
+  "fr": "300 nouveaux niveaux : chaque monde en compte désormais 100. Les nouveaux niveaux de chaque monde reprennent là où s’arrête le niveau 50 et finissent un peu plus difficiles. Votre progression, vos étoiles et vos récompenses ont suivi, et vous reprenez là où vous vous étiez arrêté.\nCorrigé : fermer puis rouvrir le jeu remettait à zéro la série de victoires et effaçait le niveau en cours.",
+  "es": "300 niveles nuevos: cada mundo tiene ahora 100. Los niveles nuevos de cada mundo siguen donde termina el nivel 50 y acaban un poco más difíciles. Tu progreso, tus estrellas y tus recompensas se movieron contigo, y sigues donde lo dejaste.\nCorregido: al cerrar y volver a abrir el juego se perdían la racha de victorias y el nivel en curso.",
+  "pt-BR": "300 níveis novos: cada mundo agora tem 100. Os níveis novos de cada mundo continuam de onde o nível 50 termina e ficam um pouco mais difíceis no fim. Seu progresso, suas estrelas e recompensas foram junto, e você continua de onde parou.\nCorrigido: fechar e abrir o jogo de novo zerava a sequência de vitórias e descartava o nível em andamento.",
+  "zh-Hant-TW": "新增 300 個關卡：現在每個世界都有 100 關。每個世界的新關卡從第 50 關結束的地方接續，最後會稍微難一點。你的進度、星星和獎勵都已一起移過來，可以從上次的地方繼續。\n修正：關閉後重新開啟遊戲，連勝紀錄會歸零、進行中的關卡會遺失的問題。",
+  "ru": "300 новых уровней: теперь в каждом мире их 100. Новые уровни каждого мира продолжают с того места, где заканчивается уровень 50, и к концу становятся чуть сложнее. Ваш прогресс, звёзды и награды перенесены, и вы продолжите с того места, где остановились.\nИсправлено: после закрытия и повторного открытия игры сбрасывалась серия побед и пропадал начатый уровень."
+};
+
+// Google Play release notes for ${VERSION}: Play's production track went from 0.1.10 straight
+// to 1.1.0 (1.0.0 was App Store only), so they also name Play Together and Board Studio.
+const PLAY_NOTES = {
+  "en": "New: Play Together – two players, one phone, one board, taking turns. Board Studio – build your own board, the solver proves it can be cleared, and you share it with a code. 300 new levels: every world now has 100, and your progress moved with you.\nFixed: closing and reopening the game reset the win streak and dropped a level in progress.",
+  "he": "חדש: משחק בשניים – שני שחקנים, טלפון אחד ולוח אחד, בתורות. סטודיו לוחות – בונים לוח משלכם, הפותר מוכיח שאפשר לפנות אותו, ומשתפים אותו בקוד. 300 שלבים חדשים: בכל עולם יש עכשיו 100, וההתקדמות שלכם עברה איתכם.\nתוקן: סגירה ופתיחה מחדש של המשחק איפסו את רצף הניצחונות וביטלו שלב שהיה באמצע.",
+  "ja": "新登場：ふたりで遊ぶ ― 1台のスマホ、1つの盤面を交代で。ボードスタジオ ― 自分で盤面を作ると、ソルバーがクリアできることを証明し、コードで共有できます。新しいレベルが300個：どのワールドも100レベルになり、進行状況はそのまま引き継がれます。\n修正：ゲームを閉じて開き直すと、連勝記録とプレイ途中のレベルが失われる問題を修正しました。",
+  "ko": "새 기능: 함께 플레이 – 휴대폰 하나, 보드 하나로 두 사람이 번갈아 플레이해요. 보드 스튜디오 – 나만의 보드를 만들면 솔버가 클리어 가능함을 증명하고, 코드로 공유할 수 있어요. 새 레벨 300개: 이제 모든 월드에 100개의 레벨이 있고, 진행 상황은 그대로 옮겨졌어요.\n수정: 게임을 닫았다가 다시 열면 연승 기록이 초기화되고 플레이 중이던 레벨이 사라지던 문제를 고쳤어요.",
+  "de": "Neu: Zu zweit spielen – zwei Spieler, ein Handy, ein Feld, abwechselnd. Brett-Studio – bau dein eigenes Brett, unser Löser beweist, dass es lösbar ist, und teil es per Code. 300 neue Level: Jede Welt hat jetzt 100, und dein Fortschritt ist mitgezogen.\nBehoben: Nach dem Schließen und erneuten Öffnen gingen die Siegesserie und ein angefangenes Level verloren.",
+  "fr": "Nouveau : Jouer à deux – deux joueurs, un téléphone, une grille, chacun son tour. Studio de grilles – créez votre grille, le solveur prouve qu’elle est faisable, et partagez son code. 300 nouveaux niveaux : chaque monde en compte désormais 100, et votre progression a suivi.\nCorrigé : fermer puis rouvrir le jeu remettait à zéro la série de victoires et effaçait le niveau en cours.",
+  "es": "Nuevo: Jugar juntos – dos jugadores, un teléfono, un tablero, por turnos. Estudio de tableros – crea tu propio tablero, el solucionador demuestra que tiene solución y lo compartes con un código. 300 niveles nuevos: cada mundo tiene ahora 100, y tu progreso se movió contigo.\nCorregido: al cerrar y volver a abrir el juego se perdían la racha de victorias y el nivel en curso.",
+  "pt-BR": "Novo: Jogar juntos – dois jogadores, um celular, um tabuleiro, em turnos. Estúdio de tabuleiros – crie seu próprio tabuleiro, o solucionador prova que ele tem solução e você compartilha com um código. 300 níveis novos: cada mundo agora tem 100, e seu progresso foi junto.\nCorrigido: fechar e abrir o jogo de novo zerava a sequência de vitórias e descartava o nível em andamento.",
+  "zh-Hant-TW": "新功能：雙人同樂 ― 一支手機、一個牌陣，輪流出手。牌陣工作室 ― 打造自己的牌陣，求解器會證明它可以清完，再用代碼分享。新增 300 個關卡：現在每個世界都有 100 關，你的進度也一起移過來了。\n修正：關閉後重新開啟遊戲，連勝紀錄會歸零、進行中的關卡會遺失的問題。",
+  "ru": "Новое: Играть вдвоём – два игрока, один телефон, одно поле, ходы по очереди. Студия раскладов – создайте свой расклад, решатель докажет, что он проходим, и поделитесь им по коду. 300 новых уровней: теперь в каждом мире их 100, а ваш прогресс перенесён.\nИсправлено: после закрытия и повторного открытия игры сбрасывалась серия побед и пропадал начатый уровень."
+};
+
 const rows = [];
 for (const [loc, t] of Object.entries(L)) {
-  const f = {name: t.name, short: t.short, subtitle: t.subtitle, promo: t.promo, description: t.description, keywords: t.keywords};
+  t.whatsNew = WHATS_NEW[loc];
+  t.playNotes = PLAY_NOTES[loc];
+  if (!t.playNotes || chars(t.playNotes) > 500) throw new Error(`${loc}: Play release notes missing or over 500`);
+  if (!t.whatsNew) throw new Error(`${loc}: no What's New`);
+  const f = {name: t.name, short: t.short, subtitle: t.subtitle, promo: t.promo, description: t.description, keywords: t.keywords, whatsNew: t.whatsNew};
   for (const k of Object.keys(LIMITS)) {
     const n = k === 'keywords' ? bytes(f[k]) : chars(f[k]);
     if (n > LIMITS[k]) throw new Error(`${loc}.${k} is ${n}/${LIMITS[k]}`);
@@ -443,7 +477,7 @@ for (const [loc, t] of Object.entries(L)) {
   const block = (s) => '```text\n' + s + '\n```';
   const md = `# LiShi Mahjong – Store listing: ${t.title}
 
-> Version 1.0.0. Generated by \`tools/store_listings/build_listings.js\` (edit the texts there, then rerun). Text inside each \`text\` block is the exact store text; counts in parentheses are script-computed (Unicode characters; Apple keywords in UTF-8 bytes). Non-English text is AI-translated: have a native speaker review it.
+> Version ${VERSION}. Generated by \`tools/store_listings/build_listings.js\` (edit the texts there, then rerun). Text inside each \`text\` block is the exact store text; counts in parentheses are script-computed (Unicode characters; Apple keywords in UTF-8 bytes). Non-English text is AI-translated: have a native speaker review it.
 
 Suggested store locales: ${t.locales}.
 
@@ -457,6 +491,9 @@ ${block(t.short)}
 
 ### Full description (${chars(t.description)}/4000)
 ${block(t.description)}
+
+### Release notes ${VERSION} (${chars(t.playNotes)}/500)
+${block(t.playNotes)}
 
 ## Apple App Store
 
@@ -475,11 +512,14 @@ ${block(t.description)}
 ### Keywords (${bytes(t.keywords)}/100 bytes)
 ${block(t.keywords)}
 
+### What's New in ${VERSION} (${chars(t.whatsNew)}/4000)
+${block(t.whatsNew)}
+
 ## Notes for native reviewer
 
 ${t.notes.map((n) => '- ' + n).join('\n')}
 `;
   fs.writeFileSync(path.join(OUT, `${loc}.md`), md);
-  rows.push(`${loc}: short ${chars(t.short)}, subtitle ${chars(t.subtitle)}, promo ${chars(t.promo)}, desc ${chars(t.description)}, keywords ${bytes(t.keywords)}B`);
+  rows.push(`${loc}: short ${chars(t.short)}, subtitle ${chars(t.subtitle)}, promo ${chars(t.promo)}, desc ${chars(t.description)}, keywords ${bytes(t.keywords)}B, what's new ${chars(t.whatsNew)}`);
 }
 console.log(rows.join('\n'));

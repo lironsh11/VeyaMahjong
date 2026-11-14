@@ -2,6 +2,50 @@
 
 ## Unreleased
 
+## 1.1.0 (Android version code 13), 2026-11-14
+
+- **Google Play:** uploaded to production (full rollout, in Google's review) on 2026-11-14, signed
+  with the upload key; release notes in 11 listing languages (`publish-play-release.mjs` in the
+  site folder). Play went from 0.1.10 straight to 1.1.0, so its notes also name Play Together and
+  Board Studio. The Play store listing text is still the 0.1.x one.
+- **App Store:** not submitted; waits for the review of 1.0.0.
+
+- **600 levels: every world has 100 (owner request 2026-11-14).** Each world keeps its 50 boards
+  from 1.0 in the same order, then 50 new ones (300 new levels). 1.0 level `50(w-1)+k` is now
+  level `100(w-1)+k` (`LevelCatalog.new_id`).
+  - The new halves are built by `tools/build_levels.gd --range=w1..w6`. Each starts where the
+    world's level 50 ends and ramps 40% of the way to where the next world's 1.0 levels end (the
+    last world extends its own climb), so every world ends a little harder and the next one opens
+    with a short breather. Reports: `docs/reports/levels_w<N>_051_100.md`.
+  - From world 3 on, random play is stuck on almost every board, so those worlds also ramp on a
+    new careful-player measure, `DifficultyAnalyzer.skilled_fail_rate` (stored as
+    `metrics.skill_fail_rate` on the new levels).
+  - Tile floors follow each level's place on the 1.0 scale (`LevelCatalog.legacy_position`).
+  - The game reads one minified file per world, `data/levels/world_1.json` … `world_6.json`,
+    written by the new `tools/build_catalog.gd`. `test_levels` checks that the files still match
+    their sources. The source files (`data/levels/levels_*`) no longer ship in the app
+    (`export_presets.cfg` exclude filter).
+- **Save schema 6** (`GameState.migrate_level_ids`, runs once). Every saved level number moves to
+  the new numbering:
+  - completed levels with their stars and scores, Lights, first-clear coin and win-double grants,
+    the streak attempt, and a level board in progress (it resumes on its new number);
+  - a world a 1.0 player had reached stays open (`progress.open`), and Play continues after the
+    furthest level completed (`GameState.next_level`);
+  - themes and tile backs earned at their 1.0 unlock levels stay earned (`cosmetics.granted`);
+  - players from 1.0 see a one-time note about the new levels on Home (10 languages).
+- **Unlocks and rewards follow the worlds:**
+  - first-clear coins are 20/30/40/50/60/70 per world (1.0 paid nothing past level 300);
+  - Crystal Nocturne's tile theme now unlocks at level 200, the end of world 2;
+  - the tile backs of worlds 4-6 unlock at levels 400, 500 and 600;
+  - finishing a world doesn't announce the next one again when it was already open.
+- **Fixed: closing and reopening the game reset the win streak and dropped a level in
+  progress.** 1.0.0 wrote save envelope version 2 around schema-5 data, and loading trusted the
+  envelope, so the v<3 and v<4 migration steps ran again on every launch. The payload's own
+  version now wins, and envelopes carry it (`SaveService`). Regression tests in `test_services`.
+- **Store text for 1.1.0** (`tools/store_listings/build_listings.js`): "600 levels in 6 worlds",
+  and What's New / release notes in 10 languages. `publish-asc.mjs` (site repo) takes
+  `--version=`, adds What's New, and opens the next version only when none is in review.
+
 ## 1.0.0 (Android version code 12), 2026-11-14
 
 - **Play Together (new):** two players share one phone, one board and one tray, and take turns

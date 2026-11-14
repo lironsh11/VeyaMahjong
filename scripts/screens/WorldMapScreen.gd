@@ -1,5 +1,5 @@
 extends Screen
-## Journey / chapter map: six worlds, 50 real levels each, with completed / current /
+## Journey / chapter map: six worlds, 100 levels each, with completed / current /
 ## locked states. Locked levels explain why instead of doing nothing.
 
 const COLS := 5

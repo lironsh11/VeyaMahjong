@@ -407,6 +407,8 @@
     "product_starter_bundle_desc": "Monedas: {coins} · Pistas: {hint} · Mezclas: {shuffle} · Deshacer: {undo} · Sin anuncios",
     "welcome_title": "Nuevo: ¡potenciadores!",
     "welcome_body": "Pista, Mezclar y Deshacer ahora son potenciadores que se consiguen con monedas. Gracias por jugar: aquí tienes un regalo. Monedas: {coins} · Pistas: {hint} · Mezclas: {shuffle} · Deshacer: {undo}",
+    "new_levels_title": "¡300 niveles nuevos!",
+    "new_levels_body": "Cada mundo tiene ahora 100 niveles. Los números de nivel cambiaron para hacerles sitio, y tu progreso, tus estrellas y tus recompensas se movieron con ellos. Sigues donde lo dejaste, y los niveles nuevos de los mundos que ya jugaste te esperan en el mapa.",
     "tasks_reward": "+1 Luz de LiShi, monedas: +{count}",
     "privacy_choices": "Opciones de privacidad",
     "consent_title": "Tu privacidad",
