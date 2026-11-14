@@ -37,7 +37,7 @@ func _ready() -> void:
 
 static func defaults() -> Dictionary:
 	return {
-		"schema_version": 4,
+		"schema_version": 5,
 		"settings_rev": SETTINGS_REV,
 		"created_unix": int(Time.get_unix_time_from_system()),
 		"tutorial_done": false,
@@ -60,6 +60,13 @@ static func defaults() -> Dictionary:
 		# level whose fresh attempt is in progress (a second fresh start there is a retry).
 		"streak": {"count": 0, "best": 0, "run": 0, "attempt": 0},
 		"active_session": {},
+		# Play Together and Board Studio (schema 5): each has its own resume slot, so neither can
+		# overwrite a level in progress. Names stay on the device. Studio boards are share codes.
+		"duet_session": {},
+		"studio_session": {},
+		"duet": {"players": [{"name": "", "color": 0}, {"name": "", "color": 1}], "first": 0, "wins": 0, "games": 0,
+			"best": {}, "seen": false, "difficulty": "easy"},
+		"studio": {"boards": [], "made": 0, "seen": false},
 		"settings": DEFAULT_SETTINGS.duplicate(),
 		"privacy": {"analytics_consent": "unset", "ads_consent": "unset", "notice_seen": false},
 		"stats": {"boards_completed": 0, "matches": 0, "hints": 0, "shuffles": 0, "undos": 0},
@@ -104,6 +111,9 @@ static func migrate(payload: Dictionary) -> Dictionary:
 		if typeof(act) == TYPE_DICTIONARY and str(act.get("mode", "")) == "level":
 			payload["active_session"] = {}
 		v = 4
+	if v < 5:
+		# Play Together and Board Studio: new sections and resume slots only (filled from defaults).
+		v = 5
 	payload["schema_version"] = v
 	# One-time settings revisions (no schema change: settings are free-form).
 	var settings: Variant = payload.get("settings")
@@ -226,3 +236,23 @@ func clear_active_session() -> void:
 func active_session() -> Dictionary:
 	var s: Variant = data.get("active_session", {})
 	return s if typeof(s) == TYPE_DICTIONARY else {}
+
+
+# --- resume slots (one board per kind of play) ---------------------------------------
+
+const SESSION_SLOTS: PackedStringArray = ["active_session", "duet_session", "studio_session"]
+
+
+func session(slot: String) -> Dictionary:
+	var s: Variant = data.get(slot, {})
+	return s if typeof(s) == TYPE_DICTIONARY else {}
+
+
+func set_session(slot: String, d: Dictionary) -> void:
+	data[slot] = d
+	request_save()
+
+
+func clear_session(slot: String) -> void:
+	data[slot] = {}
+	request_save()

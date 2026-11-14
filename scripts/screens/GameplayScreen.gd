@@ -43,7 +43,8 @@ func _ready() -> void:
 	set_meta("banner_suppressed", true)
 	super._ready()
 	EconomyService.inventory_changed.connect(_on_inventory_changed)
-	AdsService.on_level_started()
+	if _counts_for_ads():
+		AdsService.on_level_started()
 	controller.start_clock()
 	if has_meta("pre_level"):
 		remove_meta("pre_level")
@@ -76,7 +77,7 @@ func _init_session() -> bool:
 		_resumed = session != null
 	if session == null:
 		if not saved.is_empty() and str(saved.get("key", "")) != level.key:
-			AnalyticsService.track("level_abandoned", {"level": int(saved.get("level_id", 0)), "progress_pct": 0})
+			_track("level_abandoned", {"level": int(saved.get("level_id", 0)), "progress_pct": 0})
 		session = GameSession.start(level)
 		if mode == "level":
 			_start_fresh_attempt()
@@ -89,9 +90,9 @@ func _init_session() -> bool:
 	controller.changed.connect(_refresh_hud)
 	controller.blocked_tapped.connect(_on_blocked)
 	if mode == "daily":
-		AnalyticsService.track("daily_started", {"date": date})
+		_track("daily_started", {"date": date})
 	else:
-		AnalyticsService.track("level_started", {"level": level.id, "world": level.world, "resumed": _resumed})
+		_track("level_started", {"level": level.id, "world": level.world, "resumed": _resumed})
 	controller.save()
 	return true
 
@@ -130,7 +131,7 @@ func build() -> void:
 	var titles := UIKit.vbox(-4)
 	titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	titles.alignment = BoxContainer.ALIGNMENT_CENTER
-	var title_text := t("daily_puzzle") if mode == "daily" else t("level_n", {"level": level.id})
+	var title_text := _title_text()
 	var tl := UIKit.label(title_text, UITheme.FONT_BODY + 1, true, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, false)
 	tl.add_theme_color_override("font_outline_color", Color(UITheme.NAVY, 0.75))
 	tl.add_theme_constant_override("outline_size", 6)
@@ -141,7 +142,8 @@ func build() -> void:
 	_hud_score.pivot_offset = Vector2(60, 14)
 	titles.add_child(_hud_score)
 	hud.add_child(titles)
-	hud.add_child(UIKit.coin_pill(_open_shop))
+	if _show_coins():
+		hud.add_child(UIKit.coin_pill(_open_shop))
 	var pill := UIKit.panel("HudPill")
 	pill.custom_minimum_size = Vector2(56, 48)
 	var pv := UIKit.vbox(0)
@@ -159,6 +161,7 @@ func build() -> void:
 	root.add_child(hud)
 	_progress = UIKit.progress_bar(0, 100, 6)
 	root.add_child(_progress)
+	_after_progress(root)
 	# --- stuck banner (only when the solver PROVES the board is no longer clearable) ---
 	_banner = UIKit.panel("CardFlat")
 	_banner.visible = false
@@ -297,12 +300,12 @@ func _open_shop() -> void:
 		return
 	controller.stop_clock()
 	controller.save()
-	AnalyticsService.track("shop_opened", {"from": "gameplay"})
+	_track("shop_opened", {"from": "gameplay"})
 	Router.go("shop")
 
 
 func _track_booster(item: String, free: bool) -> void:
-	AnalyticsService.track("booster_used", {"item": item, "level": level.id, "free": free})
+	_track("booster_used", {"item": item, "level": level.id, "free": free})
 
 
 # --- toolbar -------------------------------------------------------------------------
@@ -344,7 +347,7 @@ func _on_hint(res: Dictionary) -> void:
 		EconomyService.consume("hint")
 		controller.save()
 		_track_booster("hint", false)
-	AnalyticsService.track("hint_used", {"level": level.id, "safe": bool(res.get("safe", false)), "charged": charged})
+	_track("hint_used", {"level": level.id, "safe": bool(res.get("safe", false)), "charged": charged})
 	if PackedInt32Array(res.get("tiles", [])).is_empty():
 		if session.failed:
 			_open_fail()
@@ -383,7 +386,7 @@ func _do_shuffle(from_rescue: bool, free: bool) -> void:
 		_track_booster("shuffle", free)
 		_banner.visible = false
 		if from_rescue:
-			AnalyticsService.track("level_rescued", {"level": level.id, "method": "shuffle"})
+			_track("level_rescued", {"level": level.id, "method": "shuffle"})
 		_refresh_hud()
 		return
 	_open_shuffle_failed()
@@ -411,7 +414,7 @@ func _on_get_more_closed(r: String) -> void:
 
 func _rewind() -> void:
 	var n := controller.undo_to_checkpoint()
-	AnalyticsService.track("level_rescued", {"level": level.id, "method": "rewind"})
+	_track("level_rescued", {"level": level.id, "method": "rewind"})
 	Router.toast(t("rewound_n", {"count": n}))
 	controller.start_clock()
 
@@ -464,11 +467,33 @@ func _confirm_restart() -> void:
 	m.add_action(t("cancel"), "no", "cream", "small")
 	m.closed.connect(func(r: String) -> void:
 		if r == "yes":
-			GameState.clear_active_session()
-			var p := {"mode": mode, "level": level.id, "date": date, "restart": true}
-			Router.replace("gameplay", p)
+			_restart()
 		else:
 			controller.start_clock())
+
+
+# --- hooks (Play Together and Board Studio boards override these: FreePlayScreen) ------
+
+func _restart() -> void:
+	## A fresh copy of this board.
+	GameState.clear_active_session()
+	Router.replace("gameplay", {"mode": mode, "level": level.id, "date": date, "restart": true})
+
+
+func _title_text() -> String:
+	return t("daily_puzzle") if mode == "daily" else t("level_n", {"level": level.id})
+
+
+func _show_coins() -> bool:
+	return true
+
+
+func _after_progress(_root: VBoxContainer) -> void:
+	pass
+
+
+func _counts_for_ads() -> bool:
+	return true
 
 
 func _on_matched(_tile: int, _partner: int, combo: int, _points: int) -> void:
@@ -511,7 +536,7 @@ func _open_fail() -> void:
 		return
 	set_meta("fail_open", true)
 	controller.stop_clock()
-	AnalyticsService.track("tray_full_dialog", {"level": level.id, "continues_used": int(session.assists.continues_used)})
+	_track("tray_full_dialog", {"level": level.id, "continues_used": int(session.assists.continues_used)})
 	var m := ModalDialog.open(self, t("tray_full_title"), t("tray_full_body"), false)
 	if has_meta("streak_lost"):
 		m.add_content(_streak_warning(t("streak_lost", {"count": int(get_meta("streak_lost"))})))
@@ -551,7 +576,7 @@ func _on_fail_closed(r: String, cc: Dictionary) -> void:
 			controller.send_back(SEND_BACK)
 			session.assists.continues_used = int(session.assists.continues_used) + 1
 			controller.save()
-			AnalyticsService.track("level_continued", {"level": level.id, "free": bool(cc.free), "coins": int(cc.coins)})
+			_track("level_continued", {"level": level.id, "free": bool(cc.free), "coins": int(cc.coins)})
 			controller.start_clock()
 			_refresh_hud()
 		"shop":
@@ -562,9 +587,8 @@ func _on_fail_closed(r: String, cc: Dictionary) -> void:
 			if session.failed:
 				_open_fail()
 		"restart":
-			AnalyticsService.track("level_failed_restart", {"level": level.id})
-			GameState.clear_active_session()
-			Router.replace("gameplay", {"mode": mode, "level": level.id, "date": date, "restart": true})
+			_track("level_failed_restart", {"level": level.id})
+			_restart()
 		_:
 			controller.save()
 			Router.reset_to("home")
@@ -686,11 +710,11 @@ func _on_won() -> void:
 	# Progress is committed BEFORE any celebration so nothing can be lost.
 	if mode == "daily":
 		result = ProgressionService.complete_daily(date, stats)
-		AnalyticsService.track("daily_completed", {"date": date, "first_time": bool(result.first_time)})
+		_track("daily_completed", {"date": date, "first_time": bool(result.first_time)})
 	else:
 		result = ProgressionService.complete_level(level.id, stats)
 		AdsService.on_level_finished()
-		AnalyticsService.track("level_completed", {"level": level.id, "moves": int(stats.moves), "hints": int(stats.hints), "undos": int(stats.undos), "shuffles": int(stats.shuffles), "first_time": bool(result.first_time)})
+		_track("level_completed", {"level": level.id, "moves": int(stats.moves), "hints": int(stats.hints), "undos": int(stats.undos), "shuffles": int(stats.shuffles), "first_time": bool(result.first_time)})
 	DailyService.record_board_complete(int(stats.hints), mode == "daily")
 	GameState.clear_active_session()
 	GameState.save_now()
@@ -872,3 +896,9 @@ func save_state() -> void:
 		controller.stop_clock()
 		controller.save()
 		controller.start_clock()
+
+
+func _track(event: String, props: Dictionary = {}) -> void:
+	## Analytics for levels and the daily only (Play Together and Studio boards send none).
+	if controller == null or controller.tracked():
+		AnalyticsService.track(event, props)

@@ -12,12 +12,17 @@ scripts/core/        Pure rules & content (no nodes; thread-safe on cloned data)
   BoardSolver   BoardGenerator  LayoutGenerator  LayoutTemplates  ShuffleRescue  DailyGenerator
   BoardFit  BoardProjection   (stacked projection: face/sides/lift, draw order, hit-test)
   BoardValidator  DifficultyAnalyzer  GameSession  SeededRng
+  StudioCode (LS-XXXX-XXXX share codes)  StudioBoard (code -> pinned, proven board; Duet presets)
+  DuetTurns (Play Together turns, credit and Team-ups worked out from the move history)
 scripts/gameplay/    BoardView (render + hit-test via BoardProjection), TileView (face, sides, contact shadow),
                      BoardController (session<->view, async)
 scripts/services/    Autoload singletons (below)
   ads/ iap/          Provider interfaces, QA mocks, Google Play Billing adapter
 scripts/ui/          Screen base class, UIKit builders, ModalDialog
-scripts/screens/     One script per screen (scenes/*/*.tscn are thin roots)
+scripts/screens/     One script per screen (scenes/*/*.tscn are thin roots). FreePlayScreen extends
+                     GameplayScreen for Play Together and Studio boards (own resume slots, no economy,
+                     untracked); DuetSetupScreen and StudioScreen are their entry screens
+scripts/services/FreePlayService.gd  Saved players, My boards (codes) and local results (static)
 scripts/debug/       Debug-build-only tools: ScreenshotTour, PerfLogger
 data/                levels, config (worlds, bloom, cosmetics, products, flags, analytics schema,
                      daily tasks, privacy links), localization (10 locales)

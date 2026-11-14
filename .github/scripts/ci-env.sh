@@ -321,3 +321,33 @@ ci_godot_import() {
   set -e
   echo "Godot import exited after about ${waited}s."
 }
+
+# Points the iOS export preset at LiShi Mahjong's own export template (IOS_CUSTOM_TEMPLATE=1;
+# see tools/godot_build/README.md). $1 = the zip built by build-godot-ios-template.sh.
+ci_patch_export_presets_ios_custom_template() {
+  local zip="${1:?custom template zip path required}"
+  python3 - "$REPO_ROOT/export_presets.cfg" "$zip" <<'PY'
+import re, sys
+path, zip_path = sys.argv[1], sys.argv[2]
+text = open(path, encoding="utf-8").read()
+# Only the iOS preset: the [preset.N.options] block whose preset has platform="iOS".
+blocks = re.split(r'(?m)^(?=\[preset\.)', text)
+ios_index = None
+for b in blocks:
+    m = re.match(r'\[preset\.(\d+)\]', b)
+    if m and re.search(r'(?m)^platform="iOS"', b):
+        ios_index = m.group(1)
+if ios_index is None:
+    raise SystemExit("no iOS preset in export_presets.cfg")
+out = []
+for b in blocks:
+    if b.startswith(f'[preset.{ios_index}.options]'):
+        b, n1 = re.subn(r'(?m)^custom_template/release="[^"]*"', f'custom_template/release="{zip_path}"', b)
+        b, n2 = re.subn(r'(?m)^custom_template/debug="[^"]*"', f'custom_template/debug="{zip_path}"', b)
+        if n1 != 1 or n2 != 1:
+            raise SystemExit(f"expected one custom_template/release and /debug line (got {n1}, {n2})")
+    out.append(b)
+open(path, "w", encoding="utf-8").write("".join(out))
+print(f"iOS preset {ios_index} uses custom template {zip_path}")
+PY
+}

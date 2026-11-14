@@ -40,18 +40,17 @@ func build() -> void:
 	_link_row(t("privacy_policy"), "privacy_policy")
 	_link_row(t("terms_of_service"), "terms")
 	_link_row(t("support"), "support")
-	_analytics_row()
+	if FeatureFlags.enabled("analytics_enabled"):
+		_analytics_row()  # no switch for statistics this version doesn't collect
 	if PrivacyService.ads_on():
 		# Everyone can review or change the ads consent answer (the dialog itself shows the state).
 		_list.add_child(UIKit.button(t("privacy_choices"), "cream", "small", func() -> void: ConsentDialog.open(self, true)))
 
-	_section(t("section_purchases"))
-	var restore := UIKit.button(t("restore_purchases"), "cream", "small", func() -> void:
-		Router.toast(t("restore_started") if IAPService.restore() else t("restore_unavailable")))
-	restore.disabled = IAPService.provider == null
-	_list.add_child(restore)
-	if restore.disabled:
-		_note(t("restore_unavailable"))
+	if IAPService.provider != null:
+		# Shown only where this store can restore purchases (no greyed-out button otherwise).
+		_section(t("section_purchases"))
+		_list.add_child(UIKit.button(t("restore_purchases"), "cream", "small", func() -> void:
+			Router.toast(t("restore_started") if IAPService.restore() else t("restore_failed"))))
 
 	_section(t("section_data"))
 	_list.add_child(UIKit.button(t("replay_tutorial"), "cream", "small", func() -> void: Router.go("tutorial", {"replay": true})))
@@ -59,7 +58,10 @@ func build() -> void:
 	_note(t("reset_progress_note"))
 
 	_section(t("section_about"))
-	_note("%s %s · %s" % [t("app_name"), ProjectSettings.get_setting("application/config/version", "dev"), FeatureFlags.get_str("content_version")])
+	var about := "%s %s" % [t("app_name"), ProjectSettings.get_setting("application/config/version", "dev")]
+	if OS.is_debug_build():
+		about += " · " + FeatureFlags.get_str("content_version")  # content build ids are for QA only
+	_note(about)
 	_list.add_child(UIKit.button(t("licenses"), "cream", "small", _show_licenses))
 	if OS.is_debug_build() and FeatureFlags.enabled("qa_mock_services"):
 		# QA only (debug builds with mock services): never in release.

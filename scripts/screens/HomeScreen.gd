@@ -48,7 +48,7 @@ func build() -> void:
 	top.add_child(UIKit.spacer(0, true))
 	top.add_child(UIKit.icon_button("settings", t("settings"), func() -> void: Router.go("settings"), 60))
 	root.add_child(top)
-	var logo := UIKit.texrect(ContentService.art("branding/logo_ornate_large.png"), Vector2(300, 170))
+	var logo := UIKit.texrect(ContentService.art("branding/logo_ornate_large.png"), Vector2(270, 130))
 	root.add_child(logo)
 	root.add_child(UIKit.spacer(0, true))
 	# Continue card
@@ -84,6 +84,12 @@ func build() -> void:
 	play.add_theme_font_size_override("font_size", UITheme.FONT_TITLE)
 	root.add_child(play)
 	UIKit.focus_initial.call_deferred(play)
+	# The two ways to play beyond the journey: Play Together and Board Studio.
+	var sig := UIKit.hbox(10)
+	var duet_sub := t("duet_in_progress") if not GameState.session(FreePlayService.SLOT_DUET).is_empty() else t("play_together_sub")
+	sig.add_child(_feature_card("duet", t("play_together"), duet_sub, _together_art(), func() -> void: Router.go("duet")))
+	sig.add_child(_feature_card("studio", t("board_studio"), t("board_studio_sub"), _studio_art(), func() -> void: Router.go("studio")))
+	root.add_child(sig)
 	# Bloom progress + Daily, side by side
 	var row := UIKit.hbox(10)
 	row.add_child(_bloom_card())
@@ -150,3 +156,79 @@ func _daily_card() -> Control:
 		AudioService.play("button")
 		Router.go("daily"))
 	return b
+
+
+func _feature_card(feature: String, title: String, sub: String, art: Control, on_press: Callable) -> Control:
+	## A large card for Play Together / Board Studio, with a "new" chip until first opened.
+	var b := Button.new()
+	b.theme_type_variation = "FlatTool"
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b.custom_minimum_size = Vector2(0, 118)
+	var p := UIKit.panel("Card")
+	p.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var v := UIKit.vbox(2)
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.alignment = BoxContainer.ALIGNMENT_CENTER
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(art)
+	var tl := UIKit.label(title, UITheme.FONT_BODY, true, null, HORIZONTAL_ALIGNMENT_CENTER, false)
+	tl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UIKit.fit_label(tl, 200.0, UITheme.FONT_BODY, UITheme.FONT_SMALL - 2)
+	v.add_child(tl)
+	var sl := UIKit.label(sub, UITheme.FONT_SMALL - 2, false, UITheme.text_soft(), HORIZONTAL_ALIGNMENT_CENTER, false)
+	sl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UIKit.fit_label(sl, 200.0, UITheme.FONT_SMALL - 2, 12)
+	v.add_child(sl)
+	p.add_child(v)
+	b.add_child(p)
+	if not FreePlayService.seen(feature):
+		var c := UIKit.chip(t("new_badge"), "BadgeRed")
+		b.add_child(c)
+		c.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 6)
+		c.position.y = -16
+		c.z_index = 1
+	AccessibilityService.set_access_name(b, "%s. %s" % [title, sub])
+	b.pressed.connect(func() -> void:
+		AudioService.play("button")
+		on_press.call())
+	return b
+
+
+func _tile(parent: Control, face: String, at: Vector2, w: float) -> TextureRect:
+	## Attached before it is positioned: a position set first is mirrored in right-to-left.
+	var r := UIKit.texrect(ContentService.tile_texture(ProgressionService.equipped_theme(), face, false), Vector2(w, w * BoardFit.ASPECT))
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(r)
+	r.position = at
+	r.size = Vector2(w, w * BoardFit.ASPECT)
+	return r
+
+
+func _art_box() -> Control:
+	var c := Control.new()
+	c.custom_minimum_size = Vector2(110, 52)
+	c.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	c.layout_direction = Control.LAYOUT_DIRECTION_LTR
+	return c
+
+
+func _together_art() -> Control:
+	## A matching pair, one tile from each player (their numbered tokens on top).
+	var c := _art_box()
+	for k in 2:
+		var x := 18.0 + k * 40.0
+		_tile(c, "circle_5", Vector2(x, 0), 34.0)
+		var tok := TurnBar.token(k + 1, FreePlayService.player_color(k), 20)
+		c.add_child(tok)
+		tok.position = Vector2(x + 22.0, 30.0)
+	return c
+
+
+func _studio_art() -> Control:
+	## A small layered stack: two tiles below, one resting on both.
+	var c := _art_box()
+	_tile(c, "bamboo_2", Vector2(22, 10), 32.0)
+	_tile(c, "character_7", Vector2(54, 10), 32.0)
+	_tile(c, "dragon_red", Vector2(38, -2), 32.0)
+	return c

@@ -178,3 +178,25 @@ Personalized ads follow consent: `LPMPrivacySettings setGDPRConsent:` is set fro
 - Background/foreground saving and haptics (`Input.vibrate_handheld` on iPhone).
 - CJK and Hebrew rendering with system fonts, VoiceOver behaviour (see QA_MATRIX accessibility
   notes), iPad layout (portrait; banner 320x50 centred on wide screens).
+
+## Custom engine template (optional, `IOS_CUSTOM_TEMPLATE=1`)
+
+Since 1.0.0 the pipeline can build LiShi Mahjong's own iOS export template instead of using the
+stock one: 3D, XR, networking and import-only modules are switched off and the engine is
+optimised for size (`tools/godot_build/lishi_ios_custom.py`). The stock template is the same
+binary every Godot iOS game ships, including another Godot game on this developer account, and
+App Review has cited binary similarity under Guideline 4.3(a) for other engines.
+
+- **Enable:** set `IOS_CUSTOM_TEMPLATE=1` in the Codemagic environment group or the GitHub
+  Actions workflow env. Off by default: without it nothing changes.
+- **What runs:** `.github/scripts/build-godot-ios-template.sh` builds `template_debug` and
+  `template_release` (arm64) from the Godot source in `~/.cache/lishi-godot/<tag>` before the
+  plugins, then `ci_patch_export_presets_ios_custom_template` sets `custom_template/*` in the iOS
+  preset for that build only (the file in git is unchanged).
+- **Time:** about 25-40 minutes the first time on a Mac mini M2 (run it once as its own build if
+  the 120-minute limit is tight); cached afterwards, keyed by the tag and the profile file.
+- **Before shipping it:** full TestFlight pass (levels, Play Together, Board Studio, the daily,
+  music, Hebrew, sandbox purchases, ads) and no `Cannot get class` / missing-module errors in the
+  device log. If something is missing, re-enable that module in the profile.
+- **Not used for** the simulator/Appetize builds (Godot can't build simulator templates from
+  source); they keep the stock template.

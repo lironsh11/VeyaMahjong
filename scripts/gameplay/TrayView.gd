@@ -51,6 +51,8 @@ var _order := PackedInt32Array()
 var _faces := PackedStringArray()
 var _nodes := {}        ## tile -> TextureRect resting in (or flying to) its slot
 var _hi_res: bool = false
+var _marks: Array = []          ## Play Together: per slot, the colour of the player who put the tile there
+var _mark_layer: Control
 static var _dot: Texture2D
 static var _art_meta: Dictionary = {}
 
@@ -247,6 +249,8 @@ func _relayout() -> void:
 		for t in _nodes:
 			(_nodes[t] as TextureRect).texture = _tex(_face(t))
 	_layout(false)
+	if _mark_layer:
+		_mark_layer.queue_redraw()
 
 
 func _face(tile: int) -> String:
@@ -654,6 +658,39 @@ func play_fail() -> void:
 	_shake_tw.tween_interval(FLY_S)
 	for dx in [-12.0, 12.0, -9.0, 8.0, -5.0, 3.0, 0.0]:
 		_shake_tw.tween_property(_root, "position:x", dx, 0.04)
+
+
+func float_text(text: String, color: Color) -> void:
+	## A short line floating up from the middle of the tray ("Team-up!", a player's name).
+	_float_text(text, Vector2(size.x * 0.5, TRAY_H * 0.3), color, UITheme.FONT_H2)
+
+
+func set_slot_marks(colors: Array) -> void:
+	## A coloured dot under each tray tile showing who put it there (Play Together). Colors may
+	## hold null for unknown. An empty array removes the marks.
+	_marks = colors.duplicate()
+	if _mark_layer == null:
+		_mark_layer = MarkLayer.new()
+		_mark_layer.tray = self
+		_mark_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_mark_layer.z_index = 3
+		_root.add_child(_mark_layer)
+	_mark_layer.queue_redraw()
+
+
+class MarkLayer:
+	extends Control
+	var tray: Control
+
+	func _draw() -> void:
+		var marks: Array = tray.get("_marks")
+		for s in marks.size():
+			if typeof(marks[s]) != TYPE_COLOR:
+				continue
+			var r: Rect2 = tray.call("slot_rect", s)
+			var at := Vector2(r.get_center().x, r.end.y - 2.0)
+			draw_circle(at, 8.0, Color.WHITE)
+			draw_circle(at, 6.0, marks[s])
 
 
 class Ring:

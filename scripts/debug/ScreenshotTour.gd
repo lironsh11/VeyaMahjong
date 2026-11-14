@@ -7,6 +7,8 @@ extends Node
 ## directory (see SaveService) so real player data is never touched.
 
 var out_dir: String = ""
+var _recording: bool = false   ## --preview: every rendered frame is saved (with --fixed-fps 30)
+var _frame_n: int = 0
 
 
 func _ready() -> void:
@@ -36,6 +38,14 @@ func _shot(name: String) -> void:
 	await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	var img := get_viewport().get_texture().get_image()
+	img.convert(Image.FORMAT_RGB8)  # App Store Connect rejects screenshots with an alpha channel
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--expect="):
+			var want := a.trim_prefix("--expect=").split("x")
+			if img.get_width() != int(want[0]) or img.get_height() != int(want[1]):
+				push_error("TOUR %s is %s, expected %s" % [name, img.get_size(), a])
+				get_tree().quit(2)
+				return
 	img.save_png(out_dir.path_join(name + ".png"))
 	print("TOUR shot ", name, " ", img.get_size())
 
@@ -148,6 +158,18 @@ func _run() -> void:
 			return
 		if a == "--economy":
 			await _economy_tour()
+			get_tree().quit()
+			return
+		if a == "--preview":
+			await _preview_tour()
+			get_tree().quit()
+			return
+		if a == "--store":
+			await _store_tour()
+			get_tree().quit()
+			return
+		if a == "--together":
+			await _together_tour()
 			get_tree().quit()
 			return
 		if a == "--consent":
@@ -337,3 +359,339 @@ func _economy_tour() -> void:
 	await _wait(0.8)
 	await _shot("econ_07_bloom")
 	print("TOUR economy done")
+
+
+func _modal_open() -> bool:
+	return not get_tree().root.find_children("*", "ModalDialog", true, false).is_empty()
+
+
+func _wait_for_modal(max_s: float) -> void:
+	var t := 0.0
+	while not _modal_open() and t < max_s:
+		await _wait(0.1)
+		t += 0.1
+	await _wait(0.5)
+
+
+func _together_tour() -> void:
+	## Play Together and Board Studio (store screenshots and visual QA): Home with the two new
+	## cards, the Duet setup, a live shared board (Team-up and the pass cue), the team results,
+	## and the Studio's Create / ready / My boards / Enter code screens.
+	await _wait(1.0)
+	for m in get_tree().root.find_children("*", "ModalDialog", true, false):
+		m.close("denied")  # first-run consent
+	GameState.data.tutorial_done = true
+	for id in range(1, 13):
+		ProgressionService.start_attempt(id)
+		ProgressionService.complete_level(id, {"moves": 10, "hints": 0, "score": 300, "stars": 1 + (id % 3)})
+	var he := LocalizationService.current == "he"
+	FreePlayService.set_player_name(0, "מאיה" if he else "Maya")
+	FreePlayService.set_player_name(1, "נועם" if he else "Noam")
+	FreePlayService.set_player_color(0, 0)
+	FreePlayService.set_player_color(1, 1)
+	GameState.data.duet.first = 0
+	await _ensure_home()
+	await _shot("21_home_cards")
+	await _go("duet")
+	await _shot("22_duet_setup")
+	await _go("freeplay", {"kind": "duet", "code": StudioBoard.SAMPLE_CODE, "difficulty": "medium", "restart": true})
+	await _wait(1.6)  # deal flip
+	var scr: Node = Router.current_screen()
+	# A real tray-play order from the solver (pairs get finished by both players), else the witness.
+	var sol: Dictionary = TraySolver.new(400000, 8000, scr.session.capacity).solve(scr.session.state.clone(), scr.session.tray.duplicate())
+	var picks: PackedInt32Array = sol.solution if sol.result == BoardSolver.Result.SOLVED else TraySolver.flatten(scr.level.solution)
+	print("TOUR duet picks from ", "solver" if sol.result == BoardSolver.Result.SOLVED else "witness")
+	scr.controller._on_tap(picks[0])
+	await _wait(1.0)
+	await _shot("23_duet_pass")
+	scr.controller._on_tap(picks[1])  # the partner finishes the pair: a Team-up
+	await _wait(0.3)
+	await _shot("24_duet_teamup")
+	for k in range(2, 9):
+		await _wait(0.45)
+		scr.controller._on_tap(picks[k])
+	await _wait(1.0)
+	await _shot("25_duet_midgame")
+	for k in range(9, picks.size()):
+		scr.board.input_enabled = true
+		scr.controller._on_tap(picks[k])
+		await _wait(0.02)
+	await _wait_for_modal(4.0)
+	await _wait(1.2)
+	await _shot("26_duet_results")
+	for m in get_tree().root.find_children("*", "ModalDialog", true, false):
+		m.close("home")
+	await _wait(1.2)
+	var studio := load("res://scripts/screens/StudioScreen.gd")
+	studio._params = {"family": "turtle", "cols": 6, "layers": 4, "mode": "top", "tiles": 76, "seed": 1}
+	await _go("studio", {"tab": "create"})
+	await _wait(0.4)
+	await _shot("27_studio_create")
+	Router.current_screen()._check_and_play()
+	await _wait_for_modal(10.0)
+	await _shot("28_studio_ready")
+	for m in get_tree().root.find_children("*", "ModalDialog", true, false):
+		m.close("close")
+	FreePlayService.save_board(StudioBoard.SAMPLE_CODE, true)
+	FreePlayService.record_studio_win(StudioBoard.SAMPLE_CODE, 1460)
+	await _go("studio", {"tab": "mine"})
+	await _shot("29_studio_mine")
+	await _go("studio", {"tab": "code"})
+	var sc: Node = Router.current_screen()
+	sc._code_text = StudioBoard.SAMPLE_CODE.replace("V", "W")
+	sc._code_field.text = sc._code_text
+	sc._play_code()
+	await _wait(0.4)
+	await _shot("30_studio_code_error")
+	sc._code_text = StudioBoard.SAMPLE_CODE.to_lower()
+	sc._code_field.text = sc._code_text
+	sc._play_code()
+	await _wait_for_modal(3.0)
+	await _shot("31_studio_code_ok")
+
+
+# --- store screenshots ------------------------------------------------------------------
+
+const STORE_BG := Color("0D4F40")
+const STORE_EDGE := Color("F4C568")
+
+
+func _store_shot(n: int, slug: String, caption: String) -> void:
+	## Saves the real screen as NN_slug_raw.png, then the store version NN_slug.png: the same
+	## capture, scaled into the frame under a caption band (no device frame, no invented UI).
+	await get_tree().process_frame
+	await RenderingServer.frame_post_draw
+	var raw := get_viewport().get_texture().get_image()
+	raw.convert(Image.FORMAT_RGB8)
+	var name := "%02d_%s" % [n, slug]
+	raw.save_png(out_dir.path_join(name + "_raw.png"))
+	var vp := get_viewport().get_visible_rect().size
+	var layer := CanvasLayer.new()
+	layer.layer = 300
+	get_tree().root.add_child(layer)
+	# A left-to-right root, attached before anything is positioned: in a right-to-left language
+	# Godot would otherwise mirror these positions off-screen (caption text stays RTL).
+	var box := Control.new()
+	box.layout_direction = Control.LAYOUT_DIRECTION_LTR
+	layer.add_child(box)
+	box.size = vp
+	var bg := ColorRect.new()
+	box.add_child(bg)
+	bg.color = STORE_BG
+	bg.size = vp
+	var band_h := roundf(vp.y * 0.15)
+	# One line whose font shrinks until it fits: a wrapping label measures its height at zero
+	# width in its first frame (and grows far taller than the band), and anything positioned
+	# before it is attached is mirrored in a right-to-left locale.
+	var l := Label.new()
+	l.text = caption
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.text_direction = Control.TEXT_DIRECTION_AUTO
+	l.add_theme_color_override("font_color", UITheme.IVORY)
+	if UITheme.font_bold:
+		l.add_theme_font_override("font", UITheme.font_bold)
+	box.add_child(l)
+	var font: Font = l.get_theme_font("font")
+	var fsz := 42
+	while fsz > 22 and font.get_string_size(caption, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz).x > vp.x - 56:
+		fsz -= 1
+	l.add_theme_font_size_override("font_size", fsz)
+	l.size = Vector2(vp.x - 48, band_h - 10)
+	l.position = Vector2(24, 10)
+	var margin := 26.0
+	var avail := Vector2(vp.x - margin * 2.0, vp.y - band_h - margin)
+	var k := minf(avail.x / vp.x, avail.y / vp.y)
+	var shown := vp * k
+	var at := Vector2((vp.x - shown.x) * 0.5, band_h)
+	var edge := Panel.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = STORE_EDGE
+	sb.set_corner_radius_all(22)
+	edge.add_theme_stylebox_override("panel", sb)
+	box.add_child(edge)
+	edge.position = at - Vector2(4, 4)
+	edge.size = shown + Vector2(8, 8)
+	var tr := TextureRect.new()
+	tr.texture = ImageTexture.create_from_image(raw)
+	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr.stretch_mode = TextureRect.STRETCH_SCALE
+	box.add_child(tr)
+	tr.position = at
+	tr.size = shown
+	await _wait(0.1)
+	await _shot(name)
+	layer.queue_free()
+	await _wait(0.05)
+
+
+func _store_tour() -> void:
+	## The App Store / Google Play screenshots, in the order of docs/STORE_LISTINGS/captions.json.
+	## Run once per locale and device size, e.g.
+	##   godot --path . --resolution 1320x2868 -- --tour=build/store/en/iphone --store --locale=en --expect=1320x2868 --save-dir=user://store
+	var caps: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://docs/STORE_LISTINGS/captions.json"))
+	var loc := LocalizationService.current
+	var lines: Array = caps.get(loc, caps.en)
+	await _wait(1.0)
+	for m in get_tree().root.find_children("*", "ModalDialog", true, false):
+		m.close("denied")  # first-run consent
+	GameState.data.tutorial_done = true
+	for id in range(1, 161):
+		ProgressionService.complete_level(id, {"moves": 10, "hints": 0, "score": 300, "stars": 2 + (id % 2)})
+	var he := loc == "he"
+	FreePlayService.set_player_name(0, "מאיה" if he else "Maya")
+	FreePlayService.set_player_name(1, "נועם" if he else "Noam")
+	FreePlayService.set_player_color(0, 0)
+	FreePlayService.set_player_color(1, 1)
+	GameState.data.duet.first = 0
+	await _ensure_home()
+	# 1. Play Together: a shared board mid-game, the hand-off cue showing.
+	await _go("freeplay", {"kind": "duet", "code": StudioBoard.SAMPLE_CODE, "difficulty": "medium", "restart": true})
+	await _wait(1.6)
+	var scr: Node = Router.current_screen()
+	var sol: Dictionary = TraySolver.new(400000, 8000, scr.session.capacity).solve(scr.session.state.clone(), scr.session.tray.duplicate())
+	var picks: PackedInt32Array = sol.solution if sol.result == BoardSolver.Result.SOLVED else TraySolver.flatten(scr.level.solution)
+	for k in 7:
+		scr.board.input_enabled = true
+		scr.controller._on_tap(picks[k])
+		await _wait(0.5)
+	scr.board.input_enabled = true
+	scr.controller._on_tap(picks[7])
+	await _wait(0.45)
+	await _store_shot(1, "play_together", lines[0])
+	# 2-3. Board Studio: the editor, then the solver-checked board with its code.
+	var studio := load("res://scripts/screens/StudioScreen.gd")
+	studio._params = {"family": "turtle", "cols": 6, "layers": 4, "mode": "top", "tiles": 72, "seed": 1}
+	await _go("studio", {"tab": "create"})
+	await _wait(0.4)
+	await _store_shot(2, "board_studio", lines[1])
+	Router.current_screen()._check_and_play()
+	await _wait_for_modal(10.0)
+	await _store_shot(3, "board_code", lines[2])
+	for m in get_tree().root.find_children("*", "ModalDialog", true, false):
+		m.close("close")
+	await _wait(0.6)
+	# 4. Tray play on a layered level.
+	await _go("gameplay", {"mode": "level", "level": 120, "restart": true})
+	scr = Router.current_screen()
+	await _close_modals(scr, "play")
+	await _wait(1.0)
+	# Play the solver's moves (never a dead end) until two tiles wait in the tray.
+	var lsol: Dictionary = TraySolver.new(400000, 8000, scr.session.capacity).solve(scr.session.state.clone(), scr.session.tray.duplicate())
+	var lpicks: PackedInt32Array = lsol.solution if lsol.result == BoardSolver.Result.SOLVED else TraySolver.flatten(scr.level.solution)
+	for k in mini(40, lpicks.size()):
+		scr.controller._on_tap(lpicks[k])
+		await _wait(0.3)
+		if k >= 9 and scr.session.tray.size() >= 1:
+			break
+	await _wait(1.3)  # let the combo praise fade
+	await _store_shot(4, "tray", lines[3])
+	# 5. Worlds (a newer world's map).
+	await _go("worlds", {"world": "jade_bamboo_valley"})
+	await _wait(0.4)
+	await _store_shot(5, "worlds", lines[4])
+	# 6. Bloom.
+	await _go("bloom", {"world": "aurora_garden"})
+	await _wait(1.0)
+	await _store_shot(6, "bloom", lines[5])
+	# 7. Daily.
+	await _go("daily")
+	await _wait(0.4)
+	await _store_shot(7, "daily", lines[6])
+	# 8. Accessibility settings.
+	await _go("settings")
+	await _wait(0.3)
+	for sc in Router.current_screen().find_children("*", "ScrollContainer", true, false):
+		(sc as ScrollContainer).scroll_vertical = 520
+	await _wait(0.4)
+	await _store_shot(8, "accessibility", lines[7])
+	print("TOUR store done")
+
+
+func _preview_tour() -> void:
+	## App Preview video (record with Movie Maker at a fixed 30 fps, then trim the first
+	## PREVIEW_TRIM_S seconds of boot in ffmpeg; see docs/STORE_LISTINGS/README.md):
+	##   godot --path . --resolution 886x1920 --fixed-fps 30 --write-movie build/preview/en/iphone/f.png -- --tour=build/preview/en --preview --locale=en --save-dir=user://preview
+	## Home -> Play Together (a few shared turns with Team-ups) -> Board Studio (shapes, Check &
+	## Play, the code) -> a friend's code -> Home. About 26 s after the trim.
+	await _wait(1.0)
+	for m in get_tree().root.find_children("*", "ModalDialog", true, false):
+		m.close("denied")
+	GameState.data.tutorial_done = true
+	for id in range(1, 41):
+		ProgressionService.complete_level(id, {"moves": 10, "hints": 0, "score": 300, "stars": 3})
+	var he := LocalizationService.current == "he"
+	FreePlayService.set_player_name(0, "מאיה" if he else "Maya")
+	FreePlayService.set_player_name(1, "נועם" if he else "Noam")
+	FreePlayService.set_player_color(0, 0)
+	FreePlayService.set_player_color(1, 1)
+	GameState.data.duet.first = 0
+	await _ensure_home()
+	DirAccess.make_dir_recursive_absolute(out_dir.path_join("frames"))
+	RenderingServer.frame_post_draw.connect(_save_frame)
+	_recording = true
+	print("TOUR preview start")
+	await _wait(1.6)
+	await _go("duet")
+	await _wait(1.2)
+	await _go("freeplay", {"kind": "duet", "code": StudioBoard.SAMPLE_CODE, "difficulty": "medium", "restart": true})
+	await _wait(1.5)
+	var scr: Node = Router.current_screen()
+	var sol: Dictionary = TraySolver.new(400000, 8000, scr.session.capacity).solve(scr.session.state.clone(), scr.session.tray.duplicate())
+	var picks: PackedInt32Array = sol.solution if sol.result == BoardSolver.Result.SOLVED else TraySolver.flatten(scr.level.solution)
+	for k in 10:
+		scr.board.input_enabled = true
+		scr.controller._on_tap(picks[k])
+		await _wait(0.7)
+	await _wait(0.6)
+	var studio := load("res://scripts/screens/StudioScreen.gd")
+	studio._params = {"family": "pyramid", "cols": 6, "layers": 3, "mode": "top", "tiles": 72, "seed": 2026}
+	await _go("studio", {"tab": "create"})
+	await _wait(1.0)
+	for fam in ["turtle", "bridge", "ziggurat"]:
+		Router.current_screen()._change("family", fam)
+		await _wait(0.8)
+	Router.current_screen()._check_and_play()
+	await _wait_for_modal(8.0)
+	await _wait(1.6)
+	for m in get_tree().root.find_children("*", "ModalDialog", true, false):
+		m.close("close")
+	await _wait(0.4)
+	await _go("studio", {"tab": "code"})
+	await _wait(0.5)
+	var sc: Node = Router.current_screen()
+	for n in range(1, StudioBoard.SAMPLE_CODE.length() + 1):
+		sc._code_text = StudioBoard.SAMPLE_CODE.left(n)
+		sc._code_field.text = sc._code_text
+		await _wait(0.07)
+	await _wait(0.4)
+	sc._play_code()
+	await _wait_for_modal(3.0)
+	await _wait(1.3)
+	for m in get_tree().root.find_children("*", "ModalDialog", true, false):
+		m.close("close")
+	await _go("home")
+	await _wait(1.0)
+	_recording = false
+	print("TOUR preview end: %d frames" % _frame_n)
+
+
+func _save_frame() -> void:
+	## One video frame at the viewport's full size (Movie Maker records the window, which the OS
+	## keeps smaller than the 886x1920 an App Preview needs).
+	if not _recording:
+		return
+	var img := get_viewport().get_texture().get_image()
+	img.convert(Image.FORMAT_RGB8)
+	img.save_png(out_dir.path_join("frames/%05d.png" % _frame_n))
+	_frame_n += 1
+
+
+func _ensure_home() -> void:
+	## Home for sure (a go() while the boot/tutorial transition runs is ignored by Router).
+	for i in 20:
+		if Router.current_name == "home":
+			break
+		Router.reset_to("home")
+		await _wait(0.5)
+	await _wait(0.6)

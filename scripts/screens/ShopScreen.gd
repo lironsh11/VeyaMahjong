@@ -145,14 +145,16 @@ func _refresh_boosters() -> void:
 # --- store products -------------------------------------------------------------------
 
 func _add_store_section(list: VBoxContainer) -> void:
+	## Real-money products. A build or store without purchases (no billing plugin, no product
+	## ids) shows none of this: no "unavailable" notice and no dead Restore button.
+	if IAPService.provider == null or IAPService.status in [IAPService.Status.UNAVAILABLE, IAPService.Status.NOT_CONFIGURED]:
+		return
 	var products := IAPService.offered_products()
 	if products.is_empty():
 		var p := UIKit.panel("Card")
 		var v := UIKit.vbox(10)
 		p.add_child(v)
-		var reason := t("shop_connecting") if IAPService.status == IAPService.Status.CONNECTING else t("shop_unavailable")
-		if IAPService.status == IAPService.Status.ERROR:
-			reason = t("shop_error")
+		var reason := t("shop_connecting") if IAPService.status == IAPService.Status.CONNECTING else t("shop_error")
 		v.add_child(UIKit.label(reason, UITheme.FONT_BODY, true, null, HORIZONTAL_ALIGNMENT_CENTER))
 		v.add_child(UIKit.label(t("shop_iap_note"), UITheme.FONT_SMALL, false, UITheme.text_soft(), HORIZONTAL_ALIGNMENT_CENTER))
 		list.add_child(p)
@@ -180,15 +182,10 @@ func _add_store_section(list: VBoxContainer) -> void:
 		list.add_child(UIKit.label(t("shop_iap_note"), UITheme.FONT_SMALL, false, UITheme.text_soft(), HORIZONTAL_ALIGNMENT_CENTER))
 	if FeatureFlags.enabled("qa_mock_services") and OS.is_debug_build():
 		list.add_child(UIKit.label("QA MOCK STORE - debug build only, no real transactions", UITheme.FONT_SMALL, true, UITheme.DANGER, HORIZONTAL_ALIGNMENT_CENTER))
-	var restore := UIKit.button(t("restore_purchases"), "cream", "small", func() -> void:
-		if IAPService.restore():
-			Router.toast(t("restore_started"))
-		else:
-			Router.toast(t("restore_unavailable")))
-	restore.disabled = IAPService.provider == null
-	list.add_child(restore)
+	list.add_child(UIKit.button(t("restore_purchases"), "cream", "small", func() -> void:
+		Router.toast(t("restore_started") if IAPService.restore() else t("restore_failed"))))
 	var note := UIKit.panel("CardFlat")
-	note.add_child(UIKit.label(t("restore_unavailable") if restore.disabled else t("shop_restore_note"), UITheme.FONT_SMALL, false, UITheme.text_soft(), HORIZONTAL_ALIGNMENT_CENTER))
+	note.add_child(UIKit.label(t("shop_restore_note"), UITheme.FONT_SMALL, false, UITheme.text_soft(), HORIZONTAL_ALIGNMENT_CENTER))
 	list.add_child(note)
 
 
@@ -221,7 +218,7 @@ func _product_card(prod: Dictionary) -> Control:
 			_busy = true
 			if not IAPService.purchase(str(prod.id)):
 				_busy = false
-				Router.toast(t("shop_unavailable")))
+				Router.toast(t("shop_error")))
 		v.add_child(b)
 	return p
 

@@ -11,7 +11,7 @@
    changed boards are discarded (completions are kept). Rerunning 51-150 today would reselect 14
    boards (it was built before the left/right rule), so it stays as shipped.
 2. Difficulty bands are stored per level but not displayed.
-3. Bloom: 26 unique sprites fill 30 discovery slots, so 4 sprites (pond, rocks, butterfly, grass
+3. Bloom: 60 discovery slots across 6 worlds; some sprites (pond, rocks, butterfly, grass
    patch) appear in two worlds. Positions were tuned on 16:9-20:9 screens only.
 4. Only the `match_sparkle` and `gold_twinkle` effects are used; `petal_pop`/`ripple` are reserved.
 
@@ -21,9 +21,11 @@
    the in-game dialog (Europe/UK only). Meta bidding is connected for the banner, both rewarded
    units and the interstitial on Android and iOS. Device verification (test suite, one grant per
    reward) is still open. See MONETIZATION.md.
-6. **IAP:** Google Play adapter written but not installed or device-tested; no iOS adapter.
-   Product IDs are empty. **BLOCKED** on the plugin plus Play Console/App Store Connect setup.
-7. **iOS:** no build or signing possible here (needs macOS, Xcode 26+, Team ID).
+6. **IAP:** Google Play Billing (addons/GodotGooglePlayBilling) and a StoreKit 2 bridge
+   (native/storekit/ios) are integrated; the 6 App Store products must be submitted with a version
+   and tested in the sandbox. The shop hides real-money products when the store has none.
+7. **iOS:** built and signed in the cloud (Codemagic or GitHub Actions, docs/IOS_BUILD.md); not yet
+   tested on a physical iPhone or iPad.
 8. **Release signing:** no upload keystore; release AAB not produced.
 9. **Physical device QA** not performed (see QA_MATRIX). Emulator memory (PSS 204-223 MB, debug)
    is above the 200 MB aim; it must be re-measured with a release build on ARM hardware.
@@ -55,10 +57,12 @@
 18. The solvability check after each pair is bounded (40k nodes / 600 ms); on very large future
     boards it may return "unknown", in which case no "stuck" banner is shown (by design).
 19. Headless tools print exit-time leak warnings from autoload resources; not runtime leaks.
-20. The git repository is initialised but nothing has been committed.
+20. Board Studio codes must rebuild the same board forever: `StudioBoard` pins its seeds, area
+    and generator settings, and `tests/test_studio_code.gd` pins 5 fingerprints. Changing a shared
+    algorithm (LayoutTemplates, BoardGenerator, face order, SeededRng) needs a new code version.
 
 ## Legal / owner
 
-21. Privacy policy, terms, support URL/email and deletion URL are empty (`data/config/privacy_config.json`).
+21. Privacy policy, terms and support are live at mahjong.bylishi.com (`data/config/privacy_config.json`).
 22. "LiShi Mahjong" trademark clearance has not been performed. The application/bundle ID
-    `com.lishimahjong.app` is a placeholder.
+    `com.lishimahjong.app` is final (it cannot change after the first store upload).

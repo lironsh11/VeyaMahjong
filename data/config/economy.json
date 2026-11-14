@@ -8,6 +8,8 @@
   "free_undos_per_board": 2,
   "free_rescue_shuffles_per_board": 1,
   "continue_costs": [0, 100, 200],
+  "_free_play_comment": "Play Together and Board Studio boards never use coins or boosters: each board has this many free helpers (restart and rewinding to the last solvable point are always available).",
+  "free_play_limits": {"hint": 3, "undo": 3, "shuffle": 2, "send_back": 1},
   "rewards": {
     "level_first_clear": [
       {"from": 1, "to": 50, "coins": 20},

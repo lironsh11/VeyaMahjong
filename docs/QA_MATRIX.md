@@ -73,3 +73,15 @@ Environment: Godot 4.7.stable, Windows 11, 2026-10-18.
 - Exit-time "ObjectDB instances leaked / resources still in use" warnings appear only when
   headless tools quit while autoloads hold resources. They are benign and are not runtime leaks
   (the in-game object count stays flat).
+
+## 1.0.0 additions (2026-11-14): Play Together and Board Studio
+
+| # | Area | How | Status |
+|---|---|---|---|
+| 22 | Share codes: format, round trip over every field, forgiving input, every single typo caught, >=95% of neighbour swaps caught, error kinds, future-version codes | `test_studio_code` | **PASS** |
+| 23 | Studio boards: same code -> same board (5 pinned fingerprints), validator-proven, auto-adjust rebuilds from the adjusted code, preview shape == played shape, presets grow with difficulty | `test_studio_code` | **PASS** |
+| 24 | Play Together: turn per pick, team actions keep the turn, undo gives it back, credit/Team-ups, points add up to the team score, chain combo, free allowances saved with the board | `test_duet` | **PASS** |
+| 25 | Shared boards never touch progress (coins, Lights, levels, streak, stats, Daily Tasks) and never replace the level in progress; save schema 5 migration keeps it | `test_duet` | **PASS** |
+| 26 | New screens build in English and Hebrew (Duet setup, Studio Create/My boards/Enter code, Duet and Studio boards) | `test_duet::test_screens_build`, ScreenshotTour `--together` in en/he | **PASS (desktop)** |
+| 27 | Store screenshots are real captures at App Store sizes, no alpha, caption band, 10 locales | ScreenshotTour `--store --expect=WxH` (1320x2868, 2064x2752) | **PASS (desktop render)** |
+| 28 | Text fields on phones (keyboard covering, Paste permission prompt on iOS 16+), VoiceOver names on the new controls | Device | **NOT TESTED** (TestFlight / Android device) |

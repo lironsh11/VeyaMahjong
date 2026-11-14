@@ -183,6 +183,11 @@ func free_rescue_shuffles_per_board() -> int:
 	return int(cfg.get("free_rescue_shuffles_per_board", 0))
 
 
+func free_play_limits() -> Dictionary:
+	var d: Variant = cfg.get("free_play_limits", {})
+	return d if typeof(d) == TYPE_DICTIONARY else {}
+
+
 func continue_costs() -> Array:
 	## Coin price of the n-th "send tiles back" on one board (0 = free).
 	return cfg.get("continue_costs", [0, 100, 200])

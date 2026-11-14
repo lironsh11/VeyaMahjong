@@ -46,3 +46,19 @@ static func hint_should_charge(res: Dictionary, economy_on: bool) -> bool:
 	## not a free repeat of the hint already on screen.
 	return economy_on and not PackedInt32Array(res.get("tiles", [])).is_empty() \
 		and not bool(res.get("dead", false)) and not bool(res.get("repeat", false))
+
+
+const FREE_PLAY_USED := {"hint": "hints_used", "undo": "free_undos_used", "shuffle": "rescue_shuffles_used", "send_back": "continues_used"}
+
+
+static func free_play_left(kind: String, assists: Dictionary, limits: Dictionary) -> int:
+	## Play Together / Board Studio: helpers are free, with a small allowance per board (saved
+	## with the board, so quitting and resuming doesn't refill it). Unknown kinds have none.
+	if not FREE_PLAY_USED.has(kind):
+		return 0
+	return maxi(0, int(limits.get(kind, 0)) - int(assists.get(FREE_PLAY_USED[kind], 0)))
+
+
+static func free_play_use(kind: String, assists: Dictionary) -> void:
+	if FREE_PLAY_USED.has(kind):
+		assists[FREE_PLAY_USED[kind]] = int(assists.get(FREE_PLAY_USED[kind], 0)) + 1

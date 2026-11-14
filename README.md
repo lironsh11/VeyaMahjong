@@ -28,6 +28,12 @@ built with **Godot 4.7** (GDScript, GL Compatibility renderer) from the supplied
   traps: more layers, twins far apart, same tile size). All are
   validated (and proven clearable with the tray) and ordered by measured difficulty. No timers,
   lives or energy.
+- **Play Together:** two players share one phone, one board and one tray, one tile per turn;
+  finishing a partner's pair is a Team-up. Offline, no accounts, free helpers per board, and it
+  never touches progression or the economy (`FreePlayScreen`, `DuetTurns`).
+- **Board Studio:** build a board from 10 shapes (tiles, layers, width, style), the solver proves
+  it can be cleared, and every board has a share code (`LS-XXXX-XXXX`) a friend can enter
+  (`StudioBoard`, `StudioCode`; codes hold only board settings).
 - LiShi Bloom: Lights from new levels unlock 60 discoveries in illustrated worlds.
 - Finishing each of the three newer worlds earns its tile back, shown as a new board flips face-up.
 - Four tile themes, a deterministic offline Daily Puzzle with a 30-day archive, and optional daily tasks.
@@ -35,7 +41,8 @@ built with **Godot 4.7** (GDScript, GL Compatibility renderer) from the supplied
   High Contrast, Reduce Motion, Dim Blocked Tiles, Soften Background, a Low graphics profile,
   volume and vibration settings.
 - Crash-safe saves after every pair (resume exactly after an app kill).
-- Ads and purchases are honest, tested facades that are **off and not integrated** (no SDKs).
+- Ads: Unity LevelPlay (ironSource, Meta Audience Network) with an in-game consent dialog in
+  Europe/UK and ATT on iOS. Purchases: Google Play Billing and StoreKit 2 (see MONETIZATION.md).
 
 ## Tests and tools
 

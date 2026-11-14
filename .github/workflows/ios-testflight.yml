@@ -73,11 +73,12 @@ jobs:
           restore-keys: |
             godot-${{ env.GODOT_TAG }}-
 
-      - name: Cache Godot engine headers
+      - name: Cache Godot engine headers (and the custom iOS template, IOS_CUSTOM_TEMPLATE=1)
         uses: actions/cache@v4
         with:
           path: ~/.cache/lishi-godot
-          key: godot-src-${{ env.GODOT_TAG }}-v1
+          key: godot-src-${{ env.GODOT_TAG }}-v1-${{ hashFiles('tools/godot_build/**') }}
+          restore-keys: godot-src-${{ env.GODOT_TAG }}-v1-
 
       - name: Cache Codemagic CLI venv
         uses: actions/cache@v4

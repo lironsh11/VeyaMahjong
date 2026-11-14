@@ -36,7 +36,7 @@ var checkpoint: int = 0
 ## with the board so quitting and resuming cannot refill them; a restart starts a fresh board.
 ## extra_slots_used: Extra Slot boosters spent here; streak_slot: 1 when the win-streak bonus
 ## slot was given; retry: 1 when this is not the first attempt at the level (no streak win).
-var assists := {"free_undos_used": 0, "rescue_shuffles_used": 0, "continues_used": 0,
+var assists := {"free_undos_used": 0, "rescue_shuffles_used": 0, "continues_used": 0, "hints_used": 0,
 	"extra_slots_used": 0, "streak_slot": 0, "retry": 0}
 var completed: bool = false
 var shuffle_counter: int = 0

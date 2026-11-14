@@ -2,6 +2,35 @@
 
 ## Unreleased
 
+## 1.0.0 (Android version code 12), 2026-11-14
+
+- **Play Together (new):** two players share one phone, one board and one tray, and take turns
+  one tile at a time. Whose turn it is comes from the move history (`DuetTurns`), so Undo,
+  rewinding, saving and resuming stay in step. Finishing the pair whose twin your partner put in
+  the tray is a Team-up (+5). Combos are chains of consecutive matches (a phone hand-off would
+  break a 3-second window). A turn bar, a "Pass to …" cue and a short input pause at each change;
+  dots under tray tiles show who placed them. Names and colours stay on the device. Easy / Medium /
+  Hard boards are Studio presets, made and proven winnable on a worker thread. Helpers are free
+  with a small allowance per board (`economy.json` `free_play_limits`); no coins, ads after the
+  board, Lights, streak, levels or Daily Tasks are touched (`BoardController.tracked()`).
+- **Board Studio (new):** choose one of 10 shapes, tiles, layers, width and style with a live
+  preview of the exact shape; Check & Play builds the faces and proves the board can be cleared
+  (adjusting the variation or a few tiles when needed). Every board has a share code
+  `LS-XXXX-XXXX` (Crockford base-32, Luhn mod-32 check character, forgiving input, localized
+  errors). My boards keeps up to 30 codes (own and friends'). A code rebuilds the same board on
+  every device and version: seeds, area and generator settings are pinned in `StudioBoard`, and
+  5 fingerprints are pinned in `tests/test_studio_code.gd`.
+- **Home:** Play Together and Board Studio cards (with "New" chips) under the Play button.
+- **Save schema 5:** separate resume slots for Play Together and Studio boards, so neither can
+  replace a level in progress. Duet and Studio sections are added on load.
+- **Release polish:** About shows only the app name and version (the content build id is debug
+  only); the disabled analytics switch is hidden; the shop shows real-money products and Restore
+  only where the store has them (no "isn't available in this version" text); a real gear icon
+  for Settings; podspec homepages point to mahjong.bylishi.com.
+- 107 new strings in all 10 languages; Router screens `duet`, `studio`, `freeplay`.
+- Tests: `test_studio_code.gd` (14) and `test_duet.gd` (13). ScreenshotTour `--together` captures
+  the new screens.
+
 ## 0.1.10 (build 11), 2026-10-22
 
 - **Real layered boards (owner request 2026-10-22):** boards no longer look like a flat grid.

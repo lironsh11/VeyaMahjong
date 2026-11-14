@@ -68,7 +68,7 @@ function classify(rel) {
   }
   if (rel.startsWith('ui/rewards/')) {
     if (/^(light|flower)(_256)?$/.test(base)) return code.includes(`ui/rewards/${base.replace('_256', '')}.png`) ? ['USED', 'Light reward / collection icon.'] : ['IMPORTED-UNUSED', '256px variant not needed at current sizes.'];
-    return ['IMPORTED-UNUSED', 'Coins/gems/hearts/chests/gifts/stars are concept economy art; no currency, lives or loot exists in the game by design.'];
+    return ['IMPORTED-UNUSED', "Coins/gems/hearts/chests/gifts/stars are concept economy art; the game's coins use the LiShi v2 icons; it has no gems, lives, energy or loot."];
   }
   if (rel.startsWith('decorations/')) {
     const name = base.replace(/_(256|512)$/, '');
@@ -114,7 +114,7 @@ const meaning = {
 };
 for (const [k, v] of Object.entries(counts).sort()) md += `| ${k} | ${v} | ${meaning[k] || ''} |\n`;
 md += `\n## Missing files referenced by the pack's screen bindings\n\n${missing.length ? missing.map(m => '- ' + m).join('\n') : 'None - every concrete path in `config/screen_asset_bindings.json` exists.'}\n`;
-md += `\n## Design overrides honoured\n\n- Coins, gems, hearts, chests and gift art from the concept mockups are **not** used: the game has no currency, lives, energy or loot (spec section 3).\n- Concept previews/marketing composites are not used as game screens or store screenshots.\n- Text is never baked into PNGs; all labels are live Godot text.\n`;
+md += `\n## Design overrides honoured\n\n- Coins, gems, hearts, chests and gift art from the concept mockups are **not** used: the game's coins (booster economy since 2026-10-19) use the LiShi v2 icons, and it has no gems, lives, energy or loot.\n- Concept previews/marketing composites are not used as game screens or store screenshots.\n- Text is never baked into PNGs; all labels are live Godot text.\n`;
 md += `\n## Per-file detail\n\n| File | Class | Notes |\n|---|---|---|\n`;
 for (const r of rows) md += `| \`${r[0]}\` | ${r[1]} | ${r[2]} |\n`;
 fs.writeFileSync(path.join(ROOT, 'docs', 'ASSET_USAGE_REPORT.md'), md);

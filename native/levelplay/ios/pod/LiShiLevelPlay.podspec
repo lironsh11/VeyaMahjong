@@ -3,7 +3,7 @@ Pod::Spec.new do |s|
   s.version          = '1.0.0'
   s.summary          = 'LevelPlay / ATT bridge used by the LevelPlayBanner Godot iOS plugin.'
   s.description      = 'Objective-C implementation of docs/NATIVE_ADS_API.md, driven by the Godot glue in ios/plugins/LevelPlayBanner.'
-  s.homepage         = 'https://example.invalid/lishi-mahjong'
+  s.homepage         = 'https://mahjong.bylishi.com/'
   s.license          = { :type => 'Proprietary', :text => 'Part of LiShi Mahjong.' }
   s.author           = 'LiShi Mahjong'
   s.source           = { :path => '.' }

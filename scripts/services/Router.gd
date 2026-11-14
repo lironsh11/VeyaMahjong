@@ -20,6 +20,9 @@ const SCREENS := {
 	"collection": "res://scenes/collection/Collection.tscn",
 	"shop": "res://scenes/store/Shop.tscn",
 	"settings": "res://scenes/settings/Settings.tscn",
+	"duet": "res://scenes/duet/DuetSetup.tscn",
+	"studio": "res://scenes/studio/Studio.tscn",
+	"freeplay": "res://scenes/freeplay/FreePlay.tscn",
 }
 
 var current_name: String = ""

@@ -363,3 +363,51 @@ static func streak_pill(count: int, height: int = 52) -> PanelContainer:
 	h.add_child(label(LocalizationService.format_number(count), UITheme.FONT_BODY, true, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, false))
 	AccessibilityService.set_access_name(p, LocalizationService.t("streak_n", {"count": count}))
 	return p
+
+
+static func text_field(placeholder: String, max_len: int, ltr: bool = false) -> LineEdit:
+	## A single-line text box in the game's card style (player names, share codes). The phone's
+	## keyboard opens on tap; Enter closes it.
+	var e := LineEdit.new()
+	e.placeholder_text = placeholder
+	e.max_length = max_len
+	e.custom_minimum_size = Vector2(0, UITheme.TOUCH_MIN)
+	e.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	e.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+	e.add_theme_color_override("font_color", UITheme.NAVY)
+	e.add_theme_color_override("font_placeholder_color", Color(UITheme.NAVY, 0.45))
+	e.add_theme_color_override("caret_color", UITheme.NAVY)
+	if UITheme.font_bold:
+		e.add_theme_font_override("font", UITheme.font_bold)
+	for st in ["normal", "focus", "read_only"]:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color.WHITE if st == "focus" else UITheme.IVORY
+		sb.border_color = UITheme.GOLD if st == "focus" else Color(UITheme.NAVY, 0.25)
+		sb.set_border_width_all(2)
+		sb.set_corner_radius_all(14)
+		sb.content_margin_left = 14
+		sb.content_margin_right = 14
+		e.add_theme_stylebox_override(st, sb)
+	if ltr:
+		e.text_direction = Control.TEXT_DIRECTION_LTR
+		e.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	else:
+		e.text_direction = Control.TEXT_DIRECTION_AUTO
+	e.text_submitted.connect(func(_t: String) -> void: e.release_focus())
+	return e
+
+
+static func stepper(caption: String, value_text: String, on_minus: Callable, on_plus: Callable, minus_name: String = "", plus_name: String = "") -> HBoxContainer:
+	## "Caption   [-]  value  [+]" in one row.
+	var row := hbox(8)
+	var l := label(caption, UITheme.FONT_BODY, true)
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(l)
+	var minus := icon_button("minus", minus_name if minus_name != "" else caption, on_minus, 48)
+	row.add_child(minus)
+	var v := label(value_text, UITheme.FONT_H2, true, null, HORIZONTAL_ALIGNMENT_CENTER, false)
+	v.custom_minimum_size.x = 64
+	v.name = "Value"
+	row.add_child(v)
+	row.add_child(icon_button("plus", plus_name if plus_name != "" else caption, on_plus, 48))
+	return row

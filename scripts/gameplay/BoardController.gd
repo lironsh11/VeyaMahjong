@@ -42,6 +42,13 @@ var _hint_shown_gen: int = -1   ## _gen at which the last hint was shown (repeat
 var _hint_last: Dictionary = {}
 var _clock_start: int = -1
 var _paused_at: int = -1   ## when the clock was last stopped (pauses keep the combo window)
+## Where save() keeps the board (GameState resume slot) and extra fields saved with it.
+var slot: String = "active_session"
+var extra: Dictionary = {}
+## Play Together scores "chains" instead of timed combos: a combo grows while consecutive picks
+## each finish a pair, and any pick into the tray ends it. Passing the phone takes time, so a
+## 3-second window would almost never connect two players' matches.
+var chain_combo: bool = false
 
 
 func _init(p_session: GameSession, p_mode: String, p_persist: bool = true) -> void:
@@ -140,21 +147,25 @@ func _on_tap(i: int) -> void:
 			_after_match(i, int(r.partner), int(r.slot), from)
 
 
-func _after_pick(i: int, slot: int) -> void:
+func _after_pick(i: int, tray_slot: int) -> void:
+	if chain_combo:
+		combo = 0  # a pick into the tray ends the chain
+		if tray_view:
+			tray_view.show_combo(0, 0.0)
 	if tray_view:
 		tray_view.set_danger(session.tray_danger())
 	if session.tray_danger():
 		AudioService.play("tray_alert")
 	_gen += 1
 	save()
-	picked.emit(i, slot)
+	picked.emit(i, tray_slot)
 	changed.emit()
 	_schedule_check()
 
 
 func _after_match(i: int, partner: int, partner_slot: int, from: Rect2) -> void:
 	var now := Time.get_ticks_msec()
-	combo = combo + 1 if now - _last_match_ms <= COMBO_WINDOW_MS else 1
+	combo = next_combo(combo, chain_combo, now - _last_match_ms)
 	_last_match_ms = now
 	var pts := points_for(combo)
 	session.award(pts, combo)
@@ -164,7 +175,7 @@ func _after_match(i: int, partner: int, partner_slot: int, from: Rect2) -> void:
 		tray_view.set_danger(session.tray_danger())
 	else:
 		_on_popped(Vector2.ZERO, combo)
-	if mode != "tutorial":
+	if tracked():
 		DailyService.record_match(session.state.faces[i])
 	dead_known = false
 	_gen += 1
@@ -193,7 +204,7 @@ func _after_fail() -> void:
 	AccessibilityService.haptic("fail")
 	_gen += 1
 	save()
-	if mode != "tutorial":
+	if tracked():
 		AnalyticsService.track("tray_full", {"level": session.level.id, "tiles_left": session.tiles_left()})
 	changed.emit()
 	tray_failed.emit()
@@ -220,7 +231,7 @@ func undo() -> bool:
 	save()
 	changed.emit()
 	_schedule_check()
-	if mode != "tutorial":
+	if tracked():
 		AnalyticsService.track("undo_used", {"level": session.level.id})
 	return true
 
@@ -273,7 +284,7 @@ func undo_to_checkpoint() -> int:
 
 func shuffle() -> Dictionary:
 	var res := session.shuffle()
-	if mode != "tutorial":
+	if tracked():
 		AnalyticsService.track("shuffle_used", {"level": session.level.id, "ok": bool(res.ok)})
 	if not res.ok:
 		return res
@@ -393,4 +404,20 @@ func save() -> void:
 		return
 	var snap := session.to_dict()
 	snap.stats.elapsed_ms = elapsed_ms()
-	GameState.set_active_session({"mode": mode, "key": session.level.key, "level_id": session.level.id, "session": snap})
+	var d := {"mode": mode, "key": session.level.key, "level_id": session.level.id, "session": snap}
+	d.merge(extra, true)
+	GameState.set_session(slot, d)
+
+
+func tracked() -> bool:
+	## Levels and the daily count towards Daily Tasks, stats and analytics. The tutorial, Play
+	## Together and Board Studio boards don't (they never pay out rewards).
+	return mode == "level" or mode == "daily"
+
+
+static func next_combo(prev: int, chain: bool, since_last_match_ms: int) -> int:
+	## The combo after a match: a chain grows on every consecutive match (a pick into the tray
+	## already reset it to 0); a timed combo grows when this match came within the window.
+	if chain:
+		return prev + 1
+	return prev + 1 if since_last_match_ms <= COMBO_WINDOW_MS else 1

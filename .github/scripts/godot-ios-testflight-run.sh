@@ -26,6 +26,15 @@ if [ ! -x "$GODOT_BIN" ]; then
   exit 1
 fi
 
+if [ "${IOS_CUSTOM_TEMPLATE:-0}" = "1" ]; then
+  # LiShi Mahjong's own stripped engine template (tools/godot_build/README.md). Built before the
+  # plugins so both use the same generated engine headers.
+  echo "=== Custom iOS export template ==="
+  export GODOT_TAG GODOT_SRC
+  CUSTOM_TPL_DIR="$(bash "$SCRIPT_DIR/build-godot-ios-template.sh")"
+  export IOS_CUSTOM_TEMPLATE_ZIP="$CUSTOM_TPL_DIR/godot_ios.zip"
+fi
+
 echo "=== Build iOS plugins (LevelPlayBanner, LiShiStoreKit) ==="
 export GODOT_TAG GODOT_SRC
 bash "$REPO_ROOT/native/levelplay/ios/build.sh"
@@ -43,6 +52,9 @@ ci_godot_import "$GODOT_BIN"
 echo "=== Godot iOS export (Xcode project) ==="
 ci_patch_export_presets_team_id
 ci_patch_export_presets_ios_versions
+if [ -n "${IOS_CUSTOM_TEMPLATE_ZIP:-}" ]; then
+  ci_patch_export_presets_ios_custom_template "$IOS_CUSTOM_TEMPLATE_ZIP"
+fi
 mkdir -p "$(dirname "$IOS_EXPORT_ABS")"
 set +e
 "$GODOT_BIN" --headless --path "$REPO_ROOT" --export-release "$IOS_EXPORT_PRESET" "$IOS_EXPORT_ABS" \
