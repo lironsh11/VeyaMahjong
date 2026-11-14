@@ -20,10 +20,9 @@ Done:
 - The 6 in-app purchases got real review screenshots of the shop (ScreenshotTour --iap-review).
 - mahjong.bylishi.com redeployed (privacy and terms mention Play Together names and share codes).
 
-Left for the owner (App Store Connect website; the API can't attach first in-app purchases):
-1. Open the app → version 1.0.0 → "In-App Purchases and Subscriptions" → select all 6 → Save.
-2. "Add for Review" → "Submit to App Review".
-3. Optional: paste message 2 (below) in the Resolution Center reply.
+Submitted 2026-11-14 12:01 UTC: version 1.0.0 (build 1) and the 6 in-app purchases are WAITING_FOR_REVIEW
+(the first in-app purchases were added on the website: the API refuses them with a 409).
+Optional: paste message 2 (below) in the Resolution Center; the review notes already carry the same answers.
 
 Two messages:
 
