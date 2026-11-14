@@ -7,7 +7,9 @@
 - **Google Play:** uploaded to production (full rollout, in Google's review) on 2026-11-14, signed
   with the upload key; release notes in 11 listing languages (`publish-play-release.mjs` in the
   site folder). Play went from 0.1.10 straight to 1.1.0, so its notes also name Play Together and
-  Board Studio. The Play store listing text is still the 0.1.x one.
+  Board Studio. The Play listing text (title, short and full description, 11 languages) was
+  replaced the same day with the 1.0/1.1 text from `docs/STORE_LISTINGS` (`publish-play-listing.mjs`
+  in the site folder); its graphics and screenshots are still the 0.1.x ones.
 - **App Store:** not submitted; waits for the review of 1.0.0.
 
 - **600 levels: every world has 100 (owner request 2026-11-14).** Each world keeps its 50 boards
