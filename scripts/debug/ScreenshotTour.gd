@@ -160,6 +160,10 @@ func _run() -> void:
 			await _economy_tour()
 			get_tree().quit()
 			return
+		if a == "--iap-review":
+			await _iap_review_shots()
+			get_tree().quit()
+			return
 		if a == "--preview":
 			await _preview_tour()
 			get_tree().quit()
@@ -695,3 +699,40 @@ func _ensure_home() -> void:
 		Router.reset_to("home")
 		await _wait(0.5)
 	await _wait(0.6)
+
+
+const IAP_REVIEW_PRICES := {"coins_s": "$1.99", "coins_m": "$4.99", "coins_l": "$9.99", "remove_ads": "$3.99", "theme_bundle": "$2.99", "starter_bundle": "$4.99"}
+
+
+func _iap_review_shots() -> void:
+	## The in-app purchase review screenshots for App Store Connect: the real shop with every
+	## product, at the App Store prices (US), from the QA store (debug only; its label hidden).
+	await _wait(1.0)
+	for m in get_tree().root.find_children("*", "ModalDialog", true, false):
+		m.close("denied")
+	GameState.data.tutorial_done = true
+	for id in range(1, 21):
+		ProgressionService.complete_level(id, {"moves": 10, "hints": 0, "score": 300, "stars": 3})
+	FeatureFlags.set_override("qa_mock_services", true)
+	FeatureFlags.set_override("shop_enabled", true)
+	IAPService.provider = null
+	IAPService.initialize()
+	await _wait(0.5)
+	for pid in IAP_REVIEW_PRICES:
+		var d: Dictionary = IAPService._details.get(pid, {})
+		d["price"] = IAP_REVIEW_PRICES[pid]
+		IAPService._details[pid] = d
+	await _ensure_home()
+	await _go("shop")
+	await _wait(0.6)
+	var scr: Node = Router.current_screen()
+	for l in scr.find_children("*", "Label", true, false):
+		if (l as Label).text.begins_with("QA MOCK"):
+			l.visible = false
+	var scrolls := scr.find_children("*", "ScrollContainer", true, false)
+	for k in 3:
+		await _shot("iap_review_%d" % (k + 1))
+		for sc in scrolls:
+			(sc as ScrollContainer).scroll_vertical += 700
+		await _wait(0.4)
+	print("TOUR iap review done")

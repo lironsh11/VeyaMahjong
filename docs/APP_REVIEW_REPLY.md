@@ -10,20 +10,20 @@ hand (the API doesn't expose the Resolution Center). Nothing in here is sent aut
 Apple treats inaccurate answers as dishonesty (Guideline 2.3.1(b), 5.6), and that puts the whole
 developer account at risk, not only this app.
 
-## Owner checklist (in this order; nothing here has been sent or uploaded yet)
+## Status (2026-11-14)
 
-1. Read message 1 once more and confirm the Gate 1 rights (art packs, match sound);
-   paste message 1 in the Resolution Center. Pause other new-app submissions meanwhile.
-2. Build 1.0.0 on Codemagic / GitHub Actions (optionally with `IOS_CUSTOM_TEMPLATE=1`,
-   docs/IOS_BUILD.md) and test it on TestFlight, including sandbox purchases of the 6 products.
-3. Deploy the updated site (`lishi-mahjong-site`: privacy/terms mention Play Together names and
-   share codes; "by by" typo fixed).
-4. `node publish-asc.mjs --dry-run`, then `node publish-asc.mjs` (text in 10 languages, version
-   1.0.0, review notes, 160 real screenshots, 4 App Preview videos, old AI screenshot sets
-   deleted). Then `node remove-placements.mjs` (removes the AI header/search images).
-5. In App Store Connect: attach the new build to version 1.0.0, add the 6 in-app purchases
-   (each needs a review screenshot from the sandbox run) to the same submission.
-6. Paste message 2 in the Resolution Center, then Submit for Review.
+Done:
+- Build 1.0.0 (1) uploaded to TestFlight by GitHub Actions (run 43589768991), VALID, attached to version 1.0.0.
+- Store page in 10 languages, 160 real screenshots (iPhone 6.9", iPad 13"), App Preview videos (en, he); the
+  0.1.0 AI screenshot sets and the header/search images were removed.
+- Review notes = what changed + how to test + short answers to the 9 questions (lishi-mahjong-site/submit-1.0.0.mjs).
+- The 6 in-app purchases got real review screenshots of the shop (ScreenshotTour --iap-review).
+- mahjong.bylishi.com redeployed (privacy and terms mention Play Together names and share codes).
+
+Left for the owner (App Store Connect website; the API can't attach first in-app purchases):
+1. Open the app → version 1.0.0 → "In-App Purchases and Subscriptions" → select all 6 → Save.
+2. "Add for Review" → "Submit to App Review".
+3. Optional: paste message 2 (below) in the Resolution Center reply.
 
 Two messages:
 
