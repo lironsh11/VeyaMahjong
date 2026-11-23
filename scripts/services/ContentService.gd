@@ -11,20 +11,19 @@ const COSMETICS_PATH := "res://data/config/cosmetics.json"
 const RULES_PATH := "res://data/levels/tile_match_rules.json"
 const ASSET_ROOT := "res://assets/veya/"   ## audio, effects and legacy art
 const ART_ROOT := "res://art/lishi_v2/"
-## "Three New Worlds" pack (tools/import_lishi_worlds.ps1): one folder per world with its own
-## backgrounds, UI and props, as the pack ships them.
+## Pack worlds under art/lishi_worlds/<id>/ (tools/import_lishi_worlds.ps1,
+## tools/import_pearl_coast.ps1): each folder has its own backgrounds, UI and props.
 const WORLDS_ART_ROOT := "res://art/lishi_worlds/"
-const PACK_WORLDS := ["jade_bamboo_valley", "sunset_lotus_palace", "frostlight_village"]
+const PACK_WORLDS := ["pearl_coast", "jade_bamboo_valley", "sunset_lotus_palace", "frostlight_village"]
 const WORLD_NAME_KEYS := {
 	"aurora_garden": "world_aurora", "pearl_coast": "world_coast", "crystal_nocturne": "world_nocturne",
 	"jade_bamboo_valley": "world_jade", "sunset_lotus_palace": "world_sunset", "frostlight_village": "world_frost",
 }
 ## Tile theme ids are save keys and never change; only the art each one shows does.
 const TILE_THEME_ART := {"classic": "sakura_premium", "sakura": "jade_garden", "ocean": "pearl_ocean", "nocturne": "moonlit_lilac"}
-## Pearl Coast keeps its legacy illustration until the pack provides a matching one.
+## Non-pack worlds use LiShi v2 background stems under art/lishi_v2/backgrounds/.
 const WORLD_BACKGROUNDS := {
 	"aurora_garden": {"world": "aurora_garden_home", "map": "aurora_garden_journey", "gameplay": "aurora_garden_gameplay"},
-	"pearl_coast": {"world": "pearl_coast_original_art"},
 	"crystal_nocturne": {"world": "crystal_nocturne_night"},
 }
 const SCREEN_BACKGROUNDS := {"daily": "aurora_garden_journey", "settings": "aurora_garden_home"}
@@ -242,7 +241,7 @@ func world_bg(world_id: String, kind: String, low: bool) -> Texture2D:
 
 
 func world_art(world_id: String, rel_path: String) -> Texture2D:
-	## Texture from a world of the "Three New Worlds" pack, e.g. "ui/world_badge_512.png".
+	## Texture from a pack world under art/lishi_worlds/, e.g. "ui/world_badge_512.png".
 	return tex(WORLDS_ART_ROOT + world_id + "/" + rel_path)
 
 
@@ -288,8 +287,8 @@ func tile_overlay(state: String, hi_res: bool) -> Texture2D:
 
 
 func discovery_texture(d: Dictionary, hi: bool) -> Texture2D:
-	## Bloom sprite: a "Three New Worlds" prop named by "world_art", the v2 pack prop named by
-	## "art", else the legacy decoration (Pearl Coast and objects the pack does not cover yet).
+	## Bloom sprite: a pack-world prop named by "world_art", a LiShi v2 prop named by "art",
+	## else the legacy decoration named by "sprite".
 	if d.has("world_art"):
 		return world_art(str(d.world), "props/%s_%d.png" % [d.world_art, 512 if hi else 256])
 	if d.has("art"):

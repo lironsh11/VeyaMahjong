@@ -88,13 +88,19 @@ func _level_node(id: int, next: int) -> Control:
 	b.custom_minimum_size = Vector2(84, 84)
 	b.focus_mode = Control.FOCUS_ALL
 	var sprite := "complete" if completed else ("current" if id == next else ("available" if unlocked else "locked"))
-	# The "Three New Worlds" pack has its own nodes: one open disc, a check-mark disc and a
-	# padlock disc. Its check and padlock leave no room for the number, so those show none
-	# (the accessible name still says it).
+	# Pack worlds have their own nodes: open / check / padlock discs (and optionally a
+	# dedicated "current" disc). Check and padlock leave no room for the number, so those
+	# show none (the accessible name still says it).
 	var pack := ContentService.is_pack_world(_world_id)
 	var node_tex := UITheme.scaled_tex("ui/level_nodes/%s.png" % sprite, 0.6)
+	var used_current_node := false
 	if pack:
 		var pack_state := "completed" if completed else ("active" if unlocked else "locked")
+		if id == next and unlocked and not completed:
+			var current_path := ContentService.WORLDS_ART_ROOT + "%s/ui/level_node_current_256.png" % _world_id
+			if ResourceLoader.exists(current_path):
+				pack_state = "current"
+				used_current_node = true
 		node_tex = UITheme.scaled_tex(ContentService.WORLDS_ART_ROOT + "%s/ui/level_node_%s_256.png" % [_world_id, pack_state], 0.33)
 	var bg := UIKit.texrect(node_tex, Vector2(80, 80))
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -108,8 +114,8 @@ func _level_node(id: int, next: int) -> Control:
 		l.add_theme_color_override("font_outline_color", Color(UITheme.NAVY, 0.55))
 		l.add_theme_constant_override("outline_size", 5)
 		b.add_child(l)
-	if pack and id == next:
-		# The pack has one open disc; the level to play next stands out a little.
+	if pack and id == next and not used_current_node:
+		# Packs without a dedicated current node: scale the open disc a little.
 		bg.pivot_offset = Vector2(42, 42)
 		bg.scale = Vector2(1.08, 1.08)
 	var stars := ProgressionService.level_stars(id) if completed else 0

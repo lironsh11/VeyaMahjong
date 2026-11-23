@@ -20,8 +20,8 @@
       101,
       200
     ],
-    "bg": "backgrounds/worlds/pearl_coast_1080x1920.png",
-    "map": "backgrounds/maps/pearl_coast_map_1080x1920.png",
+    "bg": "res://art/lishi_worlds/pearl_coast/backgrounds/world_background_1440x2560.jpg",
+    "map": "res://art/lishi_worlds/pearl_coast/backgrounds/world_background_1440x2560.jpg",
     "music": "audio/music/pearl_coast_loop.ogg",
     "default_tile_theme": "ocean"
   },

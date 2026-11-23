@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cvg5uch7bcqgk"
-path="res://.godot/imported/pearl_coast_original_art.png-495835fe0751155647206674b4ed3231.ctex"
+uid="uid://ciruf3pmy7ysk"
+path="res://.godot/imported/sand_256.png-e5c69f432baaa1cfb43327e346acd605.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/lishi_v2/backgrounds/soft/pearl_coast_original_art.png"
-dest_files=["res://.godot/imported/pearl_coast_original_art.png-495835fe0751155647206674b4ed3231.ctex"]
+source_file="res://art/lishi_worlds/pearl_coast/props/sand_256.png"
+dest_files=["res://.godot/imported/sand_256.png-e5c69f432baaa1cfb43327e346acd605.ctex"]
 
 [params]
 

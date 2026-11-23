@@ -51,10 +51,10 @@ Kept: audio, fonts, effect atlases, `ui/rewards`, owner app icons and 13 legacy 
   body (`BoardView.BODY`, `BoardFit.ASPECT`), so hit-testing, layout and the level tools'
   tile-size guarantees are untouched. `test_atlas_body_matches_board_view` pins this.
 - **Backgrounds**: Aurora home/journey/gameplay art per screen kind; Crystal Nocturne uses its one
-  night illustration; Pearl Coast keeps the pack's *legacy* illustration. Daily and Settings use
-  Aurora art (Daily used Pearl Coast before). Gameplay and Bloom use the pack's pre-blurred
-  boards (no shaders). Low profile uses the 540x960 sets, with pre-blurred 540x960 boards
-  derived at import.
+  night illustration. Pearl Coast later moved to its own pack under `art/lishi_worlds/pearl_coast/`
+  (see `tools/import_pearl_coast.ps1`). Daily and Settings use Aurora art (Daily used Pearl Coast
+  before). Gameplay and Bloom use the pack's pre-blurred boards (no shaders). Low profile uses the
+  540x960 sets, with pre-blurred 540x960 boards derived at import.
 - **Bloom**: ids, order, unlock rules, tap stories and names are unchanged (`sprite` still keys
   the translations). Aurora Garden discoveries were re-anchored for the new art. Bloom now shows
   the world art pre-blurred so discoveries read as the sharp focal objects; with the sharp art
@@ -81,8 +81,9 @@ Kept: audio, fonts, effect atlases, `ui/rewards`, owner app icons and 13 legacy 
 
 ## Not covered by the pack (still legacy or flat)
 
-- **Pearl Coast world**: background (the pack's own legacy file) and all 10 of its Bloom
-  discoveries stay flat-vector, so that world is at least consistent with itself.
+- **Pearl Coast world**: redesigned separately — backgrounds, UI nodes and Bloom props live in
+  `art/lishi_worlds/pearl_coast/` (`tools/import_pearl_coast.ps1`); discoveries keep their
+  `sprite` translation keys and use `world_art` for the new props.
 - **Bloom objects with no matching prop** (legacy flat art): butterfly (Aurora + Nocturne),
   crystal cluster, drifting petals and sea grass (Nocturne). New props for these, or new
   translation keys if different objects are wanted, are needed.

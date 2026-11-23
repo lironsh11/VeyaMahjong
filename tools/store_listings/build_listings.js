@@ -1,4 +1,4 @@
-// Writes docs/STORE_LISTINGS/<locale>.md for LiShi Mahjong 1.1.0 from the texts below, with
+// Writes docs/STORE_LISTINGS/<locale>.md for LiShi Mahjong 1.1.1 from the texts below, with
 // counts computed here (Unicode code points; Apple keywords in UTF-8 bytes) and hard limits
 // checked: the script fails instead of writing a field that is too long.
 //   node tools/store_listings/build_listings.js
@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 
 const OUT = path.join(__dirname, '..', '..', 'docs', 'STORE_LISTINGS');
-const VERSION = '1.1.0';
+const VERSION = '1.1.1';
 const LIMITS = {name: 30, short: 80, subtitle: 30, promo: 170, description: 4000, keywords: 100, whatsNew: 500};
 const chars = (s) => [...s].length;
 const bytes = (s) => Buffer.byteLength(s, 'utf8');
@@ -435,31 +435,30 @@ Disponível em português do Brasil, inglês, hebraico, japonês, coreano, alem�
 
 // What's New for ${VERSION} (App Store "What's New", Google Play release notes: 500 characters).
 const WHATS_NEW = {
-  "en": "300 new levels: every world now has 100. Each world's new levels continue where its level 50 leaves off and end a little harder. Your progress, stars and rewards moved with you, and you continue where you left off.\nFixed: closing and reopening the game reset the win streak and dropped a level in progress.",
-  "he": "300 שלבים חדשים: בכל עולם יש עכשיו 100. השלבים החדשים בכל עולם ממשיכים מהמקום שבו שלב 50 נגמר ומסתיימים קצת יותר קשה. ההתקדמות, הכוכבים והפרסים שלכם עברו איתכם, וממשיכים מאיפה שהפסקתם.\nתוקן: סגירה ופתיחה מחדש של המשחק איפסו את רצף הניצחונות וביטלו שלב שהיה באמצע.",
-  "ja": "新しいレベルが300個：どのワールドも100レベルになりました。各ワールドの新しいレベルはレベル50の続きから始まり、最後は少し難しくなります。進行状況・星・報酬はそのまま引き継がれ、続きから遊べます。\n修正：ゲームを閉じて開き直すと、連勝記録とプレイ途中のレベルが失われる問題を修正しました。",
-  "ko": "새 레벨 300개: 이제 모든 월드에 100개의 레벨이 있어요. 각 월드의 새 레벨은 50레벨에서 이어지고 끝으로 갈수록 조금 더 어려워져요. 진행 상황, 별, 보상은 그대로 옮겨졌고 하던 곳에서 이어서 플레이할 수 있어요.\n수정: 게임을 닫았다가 다시 열면 연승 기록이 초기화되고 플레이 중이던 레벨이 사라지던 문제를 고쳤어요.",
-  "de": "300 neue Level: Jede Welt hat jetzt 100. Die neuen Level jeder Welt setzen dort an, wo Level 50 aufhört, und werden zum Ende hin etwas schwerer. Dein Fortschritt, deine Sterne und Belohnungen sind mitgezogen, und du spielst dort weiter, wo du aufgehört hast.\nBehoben: Nach dem Schließen und erneuten Öffnen gingen die Siegesserie und ein angefangenes Level verloren.",
-  "fr": "300 nouveaux niveaux : chaque monde en compte désormais 100. Les nouveaux niveaux de chaque monde reprennent là où s’arrête le niveau 50 et finissent un peu plus difficiles. Votre progression, vos étoiles et vos récompenses ont suivi, et vous reprenez là où vous vous étiez arrêté.\nCorrigé : fermer puis rouvrir le jeu remettait à zéro la série de victoires et effaçait le niveau en cours.",
-  "es": "300 niveles nuevos: cada mundo tiene ahora 100. Los niveles nuevos de cada mundo siguen donde termina el nivel 50 y acaban un poco más difíciles. Tu progreso, tus estrellas y tus recompensas se movieron contigo, y sigues donde lo dejaste.\nCorregido: al cerrar y volver a abrir el juego se perdían la racha de victorias y el nivel en curso.",
-  "pt-BR": "300 níveis novos: cada mundo agora tem 100. Os níveis novos de cada mundo continuam de onde o nível 50 termina e ficam um pouco mais difíceis no fim. Seu progresso, suas estrelas e recompensas foram junto, e você continua de onde parou.\nCorrigido: fechar e abrir o jogo de novo zerava a sequência de vitórias e descartava o nível em andamento.",
-  "zh-Hant-TW": "新增 300 個關卡：現在每個世界都有 100 關。每個世界的新關卡從第 50 關結束的地方接續，最後會稍微難一點。你的進度、星星和獎勵都已一起移過來，可以從上次的地方繼續。\n修正：關閉後重新開啟遊戲，連勝紀錄會歸零、進行中的關卡會遺失的問題。",
-  "ru": "300 новых уровней: теперь в каждом мире их 100. Новые уровни каждого мира продолжают с того места, где заканчивается уровень 50, и к концу становятся чуть сложнее. Ваш прогресс, звёзды и награды перенесены, и вы продолжите с того места, где остановились.\nИсправлено: после закрытия и повторного открытия игры сбрасывалась серия побед и пропадал начатый уровень."
+  "en": "Pearl Coast has a new look: fresh coastal backgrounds, map nodes and Bloom discoveries that match the rest of the journey.",
+  "he": "לחוף הפנינה יש מראה חדש: רקעים חופיים, כפתורי מפה ותגליות פריחה שמתאימים לשאר המסע.",
+  "ja": "パール・コーストが新しくなりました。海岸の背景、マップのノード、ブルームの発見物を、旅のほかの世界に合わせて刷新しました。",
+  "ko": "진주 해안이 새 모습으로 바뀌었어요. 해안 배경, 맵 노드, 블룸 발견물이 나머지 여정과 어울리도록 새로워졌습니다.",
+  "de": "Pearl Coast hat ein neues Aussehen: frische Küstenhintergründe, Kartenknoten und Bloom-Entdeckungen, die zum Rest der Reise passen.",
+  "fr": "Pearl Coast a un nouveau look : fonds côtiers, nœuds de carte et découvertes Bloom qui s’accordent au reste du voyage.",
+  "es": "Pearl Coast tiene un aspecto nuevo: fondos costeros, nodos del mapa y descubrimientos de Bloom que encajan con el resto del viaje.",
+  "pt-BR": "Pearl Coast está de visual novo: fundos costeiros, nós do mapa e descobertas do Bloom que combinam com o resto da jornada.",
+  "zh-Hant-TW": "珍珠海岸換上新樣貌：全新海岸背景、地圖節點與綻放發現，風格與旅程其餘世界一致。",
+  "ru": "Жемчужный берег обновился: новые прибрежные фоны, узлы карты и находки Bloom в том же стиле, что и остальной путь."
 };
 
-// Google Play release notes for ${VERSION}: Play's production track went from 0.1.10 straight
-// to 1.1.0 (1.0.0 was App Store only), so they also name Play Together and Board Studio.
+// Google Play release notes for ${VERSION} (≤500 characters).
 const PLAY_NOTES = {
-  "en": "New: Play Together – two players, one phone, one board, taking turns. Board Studio – build your own board, the solver proves it can be cleared, and you share it with a code. 300 new levels: every world now has 100, and your progress moved with you.\nFixed: closing and reopening the game reset the win streak and dropped a level in progress.",
-  "he": "חדש: משחק בשניים – שני שחקנים, טלפון אחד ולוח אחד, בתורות. סטודיו לוחות – בונים לוח משלכם, הפותר מוכיח שאפשר לפנות אותו, ומשתפים אותו בקוד. 300 שלבים חדשים: בכל עולם יש עכשיו 100, וההתקדמות שלכם עברה איתכם.\nתוקן: סגירה ופתיחה מחדש של המשחק איפסו את רצף הניצחונות וביטלו שלב שהיה באמצע.",
-  "ja": "新登場：ふたりで遊ぶ ― 1台のスマホ、1つの盤面を交代で。ボードスタジオ ― 自分で盤面を作ると、ソルバーがクリアできることを証明し、コードで共有できます。新しいレベルが300個：どのワールドも100レベルになり、進行状況はそのまま引き継がれます。\n修正：ゲームを閉じて開き直すと、連勝記録とプレイ途中のレベルが失われる問題を修正しました。",
-  "ko": "새 기능: 함께 플레이 – 휴대폰 하나, 보드 하나로 두 사람이 번갈아 플레이해요. 보드 스튜디오 – 나만의 보드를 만들면 솔버가 클리어 가능함을 증명하고, 코드로 공유할 수 있어요. 새 레벨 300개: 이제 모든 월드에 100개의 레벨이 있고, 진행 상황은 그대로 옮겨졌어요.\n수정: 게임을 닫았다가 다시 열면 연승 기록이 초기화되고 플레이 중이던 레벨이 사라지던 문제를 고쳤어요.",
-  "de": "Neu: Zu zweit spielen – zwei Spieler, ein Handy, ein Feld, abwechselnd. Brett-Studio – bau dein eigenes Brett, unser Löser beweist, dass es lösbar ist, und teil es per Code. 300 neue Level: Jede Welt hat jetzt 100, und dein Fortschritt ist mitgezogen.\nBehoben: Nach dem Schließen und erneuten Öffnen gingen die Siegesserie und ein angefangenes Level verloren.",
-  "fr": "Nouveau : Jouer à deux – deux joueurs, un téléphone, une grille, chacun son tour. Studio de grilles – créez votre grille, le solveur prouve qu’elle est faisable, et partagez son code. 300 nouveaux niveaux : chaque monde en compte désormais 100, et votre progression a suivi.\nCorrigé : fermer puis rouvrir le jeu remettait à zéro la série de victoires et effaçait le niveau en cours.",
-  "es": "Nuevo: Jugar juntos – dos jugadores, un teléfono, un tablero, por turnos. Estudio de tableros – crea tu propio tablero, el solucionador demuestra que tiene solución y lo compartes con un código. 300 niveles nuevos: cada mundo tiene ahora 100, y tu progreso se movió contigo.\nCorregido: al cerrar y volver a abrir el juego se perdían la racha de victorias y el nivel en curso.",
-  "pt-BR": "Novo: Jogar juntos – dois jogadores, um celular, um tabuleiro, em turnos. Estúdio de tabuleiros – crie seu próprio tabuleiro, o solucionador prova que ele tem solução e você compartilha com um código. 300 níveis novos: cada mundo agora tem 100, e seu progresso foi junto.\nCorrigido: fechar e abrir o jogo de novo zerava a sequência de vitórias e descartava o nível em andamento.",
-  "zh-Hant-TW": "新功能：雙人同樂 ― 一支手機、一個牌陣，輪流出手。牌陣工作室 ― 打造自己的牌陣，求解器會證明它可以清完，再用代碼分享。新增 300 個關卡：現在每個世界都有 100 關，你的進度也一起移過來了。\n修正：關閉後重新開啟遊戲，連勝紀錄會歸零、進行中的關卡會遺失的問題。",
-  "ru": "Новое: Играть вдвоём – два игрока, один телефон, одно поле, ходы по очереди. Студия раскладов – создайте свой расклад, решатель докажет, что он проходим, и поделитесь им по коду. 300 новых уровней: теперь в каждом мире их 100, а ваш прогресс перенесён.\nИсправлено: после закрытия и повторного открытия игры сбрасывалась серия побед и пропадал начатый уровень."
+  "en": "Pearl Coast has a new look: fresh coastal backgrounds, map nodes and Bloom discoveries that match the rest of the journey.",
+  "he": "לחוף הפנינה יש מראה חדש: רקעים חופיים, כפתורי מפה ותגליות פריחה שמתאימים לשאר המסע.",
+  "ja": "パール・コーストが新しくなりました。海岸の背景、マップのノード、ブルームの発見物を、旅のほかの世界に合わせて刷新しました。",
+  "ko": "진주 해안이 새 모습으로 바뀌었어요. 해안 배경, 맵 노드, 블룸 발견물이 나머지 여정과 어울리도록 새로워졌습니다.",
+  "de": "Pearl Coast hat ein neues Aussehen: frische Küstenhintergründe, Kartenknoten und Bloom-Entdeckungen, die zum Rest der Reise passen.",
+  "fr": "Pearl Coast a un nouveau look : fonds côtiers, nœuds de carte et découvertes Bloom qui s’accordent au reste du voyage.",
+  "es": "Pearl Coast tiene un aspecto nuevo: fondos costeros, nodos del mapa y descubrimientos de Bloom que encajan con el resto del viaje.",
+  "pt-BR": "Pearl Coast está de visual novo: fundos costeiros, nós do mapa e descobertas do Bloom que combinam com o resto da jornada.",
+  "zh-Hant-TW": "珍珠海岸換上新樣貌：全新海岸背景、地圖節點與綻放發現，風格與旅程其餘世界一致。",
+  "ru": "Жемчужный берег обновился: новые прибрежные фоны, узлы карты и находки Bloom в том же стиле, что и остальной путь."
 };
 
 const rows = [];

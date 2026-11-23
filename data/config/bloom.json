@@ -1,5 +1,5 @@
 {
-  "_comment": "LiShi Bloom discoveries. One discovery unlocks every lights_per_discovery LiShi Lights, in this order across worlds. Positions are normalized (0..1) on the 1080x1920 world background (anchor = sprite bottom-centre) and kept between y 0.40 and 0.86 so they stay clear of the header card and bottom bar on 16:9-20:9 phones. \"art\" names a LiShi v2 prop (art/lishi_v2/props/); discoveries without it use the legacy decoration named by \"sprite\" (Pearl Coast, and objects the v2 pack does not cover yet). \"world_art\" names a prop of a \"Three New Worlds\" pack world (art/lishi_worlds/<world>/props/). \"sprite\" also keys the localized name and story, so it never changes.",
+  "_comment": "LiShi Bloom discoveries. One discovery unlocks every lights_per_discovery LiShi Lights, in this order across worlds. Positions are normalized (0..1) on the 1080x1920 world background (anchor = sprite bottom-centre) and kept between y 0.40 and 0.86 so they stay clear of the header card and bottom bar on 16:9-20:9 phones. \"art\" names a LiShi v2 prop (art/lishi_v2/props/); \"world_art\" names a prop of a pack world (art/lishi_worlds/<world>/props/). Discoveries without either use the legacy decoration named by \"sprite\". \"sprite\" also keys the localized name and story, so it never changes.",
   "lights_per_discovery": 5,
   "worlds": [
     {
@@ -112,6 +112,7 @@
         {
           "id": "pc_shell",
           "sprite": "shell",
+          "world_art": "pearl_shell",
           "pos": [
             0.2,
             0.8
@@ -121,6 +122,7 @@
         {
           "id": "pc_rocks",
           "sprite": "rocks",
+          "world_art": "rocks",
           "pos": [
             0.84,
             0.66
@@ -130,6 +132,7 @@
         {
           "id": "pc_coral",
           "sprite": "coral",
+          "world_art": "coral",
           "pos": [
             0.66,
             0.82
@@ -139,6 +142,7 @@
         {
           "id": "pc_pearl",
           "sprite": "pearl",
+          "world_art": "starfish",
           "pos": [
             0.4,
             0.82
@@ -148,6 +152,7 @@
         {
           "id": "pc_grass_patch",
           "sprite": "grass_patch",
+          "world_art": "sand",
           "pos": [
             0.16,
             0.64
@@ -157,6 +162,7 @@
         {
           "id": "pc_shrub",
           "sprite": "shrub",
+          "world_art": "flower_vase",
           "pos": [
             0.92,
             0.56
@@ -166,6 +172,7 @@
         {
           "id": "pc_leaf_tree",
           "sprite": "leaf_tree",
+          "world_art": "coastal_tree",
           "pos": [
             0.1,
             0.56
@@ -175,6 +182,7 @@
         {
           "id": "pc_lotus",
           "sprite": "lotus",
+          "world_art": "conch",
           "pos": [
             0.52,
             0.74
@@ -184,6 +192,7 @@
         {
           "id": "pc_blossom_white",
           "sprite": "blossom_white",
+          "world_art": "blossom_branch",
           "pos": [
             0.86,
             0.83
@@ -193,6 +202,7 @@
         {
           "id": "pc_hedge",
           "sprite": "hedge",
+          "world_art": "rope_fence",
           "pos": [
             0.32,
             0.62

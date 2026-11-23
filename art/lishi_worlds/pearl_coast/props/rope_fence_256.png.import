@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cpltqur8baahl"
-path="res://.godot/imported/pearl_coast_original_art.png-15c17b6f845911ef99065b5abf60e573.ctex"
+uid="uid://bjlfdpfqgujja"
+path="res://.godot/imported/rope_fence_256.png-7e52b70d75d9ed3f20232a554bb4e639.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/lishi_v2/backgrounds/low/pearl_coast_original_art.png"
-dest_files=["res://.godot/imported/pearl_coast_original_art.png-15c17b6f845911ef99065b5abf60e573.ctex"]
+source_file="res://art/lishi_worlds/pearl_coast/props/rope_fence_256.png"
+dest_files=["res://.godot/imported/rope_fence_256.png-7e52b70d75d9ed3f20232a554bb4e639.ctex"]
 
 [params]
 

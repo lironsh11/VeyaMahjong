@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://be51lvfoeo4ve"
-path="res://.godot/imported/pearl_coast_original_art.png-20b35068c3b149d93928336f60039920.ctex"
+uid="uid://syursw8xe21q"
+path="res://.godot/imported/starfish_256.png-c9e00a8df239969f3028ae821a850d20.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/lishi_v2/backgrounds/full/pearl_coast_original_art.png"
-dest_files=["res://.godot/imported/pearl_coast_original_art.png-20b35068c3b149d93928336f60039920.ctex"]
+source_file="res://art/lishi_worlds/pearl_coast/props/starfish_256.png"
+dest_files=["res://.godot/imported/starfish_256.png-c9e00a8df239969f3028ae821a850d20.ctex"]
 
 [params]
 

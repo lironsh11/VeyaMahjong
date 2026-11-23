@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.1.1 (Android version code 14), 2026-11-23
+
+- **Pearl Coast redesign:** new world pack under `art/lishi_worlds/pearl_coast/`
+  (`tools/import_pearl_coast.ps1`) — world/gameplay backgrounds, level nodes, chapter badge and
+  Bloom props. Pearl Coast is now a pack world like Jade/Sunset/Frost; legacy
+  `pearl_coast_original_art` backgrounds removed.
+
 ## 1.1.0 (Android version code 13), 2026-11-14
 
 - **Google Play:** uploaded to production (full rollout, in Google's review) on 2026-11-14, signed

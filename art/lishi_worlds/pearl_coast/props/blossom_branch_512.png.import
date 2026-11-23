@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://qpkulg5773t8"
-path="res://.godot/imported/pearl_coast_original_art.png-243a3450a824fab212c855fb186364c5.ctex"
+uid="uid://cfsjubj607odj"
+path="res://.godot/imported/blossom_branch_512.png-168a619ca4ff5a90c223c1d9b0a24554.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/lishi_v2/backgrounds/soft_low/pearl_coast_original_art.png"
-dest_files=["res://.godot/imported/pearl_coast_original_art.png-243a3450a824fab212c855fb186364c5.ctex"]
+source_file="res://art/lishi_worlds/pearl_coast/props/blossom_branch_512.png"
+dest_files=["res://.godot/imported/blossom_branch_512.png-168a619ca4ff5a90c223c1d9b0a24554.ctex"]
 
 [params]
 
