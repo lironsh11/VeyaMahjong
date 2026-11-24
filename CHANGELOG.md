@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.1.2 (Android version code 15), 2026-11-24
+
+- **iOS Meta ads:** add `FacebookAppID` and `FacebookClientToken` to the iOS Info.plist so
+  Meta Audience Network can fill through LevelPlay (Android already had both in the plugin
+  manifest).
+
 ## 1.1.1 (Android version code 14), 2026-11-23
 
 - **Pearl Coast redesign:** new world pack under `art/lishi_worlds/pearl_coast/`

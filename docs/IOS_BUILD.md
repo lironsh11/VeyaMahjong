@@ -94,6 +94,7 @@ These live in `export_presets.cfg` → `[preset.1.options]` → `application/add
 | Key | Value / note |
 |---|---|
 | `NSUserTrackingUsageDescription` | English base text. Localized for en, he, ja, ko, de, fr, es, pt-BR, zh-Hant, ru through `native/levelplay/ios/InfoPlist/<lang>.lproj/InfoPlist.strings`. Godot only writes `InfoPlist.strings` when a project uses Godot translations, and this game uses its own JSON localization, so `prepare_xcode_project.sh` adds them as a localized resource. Godot locale `zh-Hant-TW` maps to Apple's `zh-Hant` |
+| `FacebookAppID` / `FacebookClientToken` | Meta Audience Network app id and client token (same values as Android `LevelPlayBanner` `strings.xml`). Required for the Meta bidder on iOS since FAN SDK 6.14; without them Meta returns no fill |
 | `SKAdNetworkItems` | `su67r6k2v3` (ironSource / LevelPlay); `v9wttpbfk9` and `n38lu8286q` (Meta). Add the ids of every other network enabled later in LevelPlay ([SKAdNetwork ID manager](https://docs.unity.com/en-us/grow/levelplay/sdk/ios/skadnetwork-id-manager)) |
 | `NSAdvertisingAttributionReportEndpoint` | `https://postbacks-is.com` (ironSource) |
 

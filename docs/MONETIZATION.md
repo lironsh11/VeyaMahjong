@@ -226,7 +226,8 @@ Nothing external was changed; these are owner actions.
    are registered. If they say `com.veyamahjong.app`, change them to `com.lishimahjong.app`
    (add the platforms if none are set). Meta matches bid requests against the registered app, so a
    mismatch usually means no fill in production. This could not be checked from the repo: the Meta
-   setup was done outside this script.
+   setup was done outside this script. iOS builds must also ship `FacebookAppID` and
+   `FacebookClientToken` in Info.plist (same values as Android; see `export_presets.cfg`).
 2. **LevelPlay dashboard**: after publishing, link each app to its store listing (Play URL
    `…?id=com.lishimahjong.app`; App Store ID of bundle `com.lishimahjong.app`). Optional now: rename
    the dashboard apps "Veya Mahjong" → "LiShi Mahjong". If you do, change `appName` in
