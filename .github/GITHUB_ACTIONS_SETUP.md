@@ -52,7 +52,7 @@ Optional, off by default:
 
 ## Appetize (separate run, no secrets)
 
-Godot's iOS templates only include an **x86_64** simulator `libgodot`. This run links `ARCHS=x86_64` and does not sign or talk to App Store Connect. Same script on both hosts: `.github/scripts/godot-ios-appetize-run.sh`.
+Builds an **arm64** iOS Simulator `.app` (`ARCHS=arm64`). Appetize recommends ARM builds; LevelPlay / IronSource do not ship an x86_64 simulator slice, so the old x86_64 Appetize path no longer links. Does not sign or talk to App Store Connect. Same script on both hosts: `.github/scripts/godot-ios-appetize-run.sh`.
 
 | Host | Where |
 |------|--------|

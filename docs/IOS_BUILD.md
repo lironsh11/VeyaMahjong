@@ -76,7 +76,7 @@ and it does not check the Godot ↔ plugin ABI at runtime. That needs a device.
 
 ## Appetize
 
-**iOS — Simulator (Appetize)** on Codemagic, or **iOS — Godot Appetize** on GitHub Actions, builds an unsigned x86_64 Simulator `.app` and zips it with `LiShiMahjong.app` at the root. No App Store Connect secrets. Upload that zip at https://appetize.io/. Details: `.github/GITHUB_ACTIONS_SETUP.md`.
+**iOS — Simulator (Appetize)** on Codemagic, or **iOS — Godot Appetize** on GitHub Actions, builds an unsigned **arm64** Simulator `.app` and zips it with `LiShiMahjong.app` at the root (Appetize prefers ARM; LevelPlay has no x86_64 simulator slice). No App Store Connect secrets. Upload that zip at https://appetize.io/. Details: `.github/GITHUB_ACTIONS_SETUP.md`.
 
 ## TestFlight CI (GitHub Actions and Codemagic)
 
