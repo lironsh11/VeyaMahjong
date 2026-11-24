@@ -36,7 +36,8 @@ env:
   SIMULATOR_DERIVED_DATA: ${{ github.workspace }}/build/DerivedDataSimulator
   APPETIZE_STAGING_DIR: ${{ github.workspace }}/build/appetize-staging
   APPETIZE_ZIP: ${{ github.workspace }}/build/LiShiMahjong-simulator-appetize.zip
-  IOS_BUILD_NUMBER_FLOOR: "1"
+  IOS_BUILD_NUMBER_FLOOR: "3"
+  APP_STORE_APPLE_ID: "6824438042"
 
 jobs:
   build-and-publish:
