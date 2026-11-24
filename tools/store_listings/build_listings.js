@@ -1,4 +1,4 @@
-// Writes docs/STORE_LISTINGS/<locale>.md for LiShi Mahjong 1.1.1 from the texts below, with
+// Writes docs/STORE_LISTINGS/<locale>.md for LiShi Mahjong 1.1.3 from the texts below, with
 // counts computed here (Unicode code points; Apple keywords in UTF-8 bytes) and hard limits
 // checked: the script fails instead of writing a field that is too long.
 //   node tools/store_listings/build_listings.js
@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 
 const OUT = path.join(__dirname, '..', '..', 'docs', 'STORE_LISTINGS');
-const VERSION = '1.1.1';
+const VERSION = '1.1.3';
 const LIMITS = {name: 30, short: 80, subtitle: 30, promo: 170, description: 4000, keywords: 100, whatsNew: 500};
 const chars = (s) => [...s].length;
 const bytes = (s) => Buffer.byteLength(s, 'utf8');
@@ -435,30 +435,30 @@ Disponível em português do Brasil, inglês, hebraico, japonês, coreano, alem�
 
 // What's New for ${VERSION} (App Store "What's New", Google Play release notes: 500 characters).
 const WHATS_NEW = {
-  "en": "Pearl Coast has a new look: fresh coastal backgrounds, map nodes and Bloom discoveries that match the rest of the journey.",
-  "he": "לחוף הפנינה יש מראה חדש: רקעים חופיים, כפתורי מפה ותגליות פריחה שמתאימים לשאר המסע.",
-  "ja": "パール・コーストが新しくなりました。海岸の背景、マップのノード、ブルームの発見物を、旅のほかの世界に合わせて刷新しました。",
-  "ko": "진주 해안이 새 모습으로 바뀌었어요. 해안 배경, 맵 노드, 블룸 발견물이 나머지 여정과 어울리도록 새로워졌습니다.",
-  "de": "Pearl Coast hat ein neues Aussehen: frische Küstenhintergründe, Kartenknoten und Bloom-Entdeckungen, die zum Rest der Reise passen.",
-  "fr": "Pearl Coast a un nouveau look : fonds côtiers, nœuds de carte et découvertes Bloom qui s’accordent au reste du voyage.",
-  "es": "Pearl Coast tiene un aspecto nuevo: fondos costeros, nodos del mapa y descubrimientos de Bloom que encajan con el resto del viaje.",
-  "pt-BR": "Pearl Coast está de visual novo: fundos costeiros, nós do mapa e descobertas do Bloom que combinam com o resto da jornada.",
-  "zh-Hant-TW": "珍珠海岸換上新樣貌：全新海岸背景、地圖節點與綻放發現，風格與旅程其餘世界一致。",
-  "ru": "Жемчужный берег обновился: новые прибрежные фоны, узлы карты и находки Bloom в том же стиле, что и остальной путь."
+  "en": "Shop scroll stays put when ads or the store catalog finish loading — no more jump back to the top while you browse.",
+  "he": "הגלילה בחנות נשארת במקום כשפרסומות או קטלוג החנות מסיימים להיטען — בלי קפיצה חזרה למעלה באמצע.",
+  "ja": "広告やストアの読み込みが終わってもショップのスクロール位置を保つようにしました。閲覧中に先頭へ跳ね返ることがありません。",
+  "ko": "광고나 스토어 목록이 로드되어도 상점 스크롤 위치가 유지됩니다. 둘러보다가 맨 위로 튀지 않아요.",
+  "de": "Der Shop behält die Scroll-Position, wenn Anzeigen oder der Store-Katalog fertig geladen sind – kein Zurückspringen nach oben mehr.",
+  "fr": "Le défilement de la boutique reste en place quand les pubs ou le catalogue se chargent — plus de retour en haut au milieu de la navigation.",
+  "es": "La tienda mantiene el scroll cuando terminan de cargar los anuncios o el catálogo: ya no salta arriba mientras miras.",
+  "pt-BR": "A rolagem da loja permanece no lugar quando anúncios ou o catálogo terminam de carregar — sem pular de volta ao topo.",
+  "zh-Hant-TW": "廣告或商店目錄載入完成後，商店捲動位置會保持不動，瀏覽時不會再跳回頂部。",
+  "ru": "Прокрутка магазина больше не прыгает вверх, когда загружаются реклама или каталог."
 };
 
 // Google Play release notes for ${VERSION} (≤500 characters).
 const PLAY_NOTES = {
-  "en": "Pearl Coast has a new look: fresh coastal backgrounds, map nodes and Bloom discoveries that match the rest of the journey.",
-  "he": "לחוף הפנינה יש מראה חדש: רקעים חופיים, כפתורי מפה ותגליות פריחה שמתאימים לשאר המסע.",
-  "ja": "パール・コーストが新しくなりました。海岸の背景、マップのノード、ブルームの発見物を、旅のほかの世界に合わせて刷新しました。",
-  "ko": "진주 해안이 새 모습으로 바뀌었어요. 해안 배경, 맵 노드, 블룸 발견물이 나머지 여정과 어울리도록 새로워졌습니다.",
-  "de": "Pearl Coast hat ein neues Aussehen: frische Küstenhintergründe, Kartenknoten und Bloom-Entdeckungen, die zum Rest der Reise passen.",
-  "fr": "Pearl Coast a un nouveau look : fonds côtiers, nœuds de carte et découvertes Bloom qui s’accordent au reste du voyage.",
-  "es": "Pearl Coast tiene un aspecto nuevo: fondos costeros, nodos del mapa y descubrimientos de Bloom que encajan con el resto del viaje.",
-  "pt-BR": "Pearl Coast está de visual novo: fundos costeiros, nós do mapa e descobertas do Bloom que combinam com o resto da jornada.",
-  "zh-Hant-TW": "珍珠海岸換上新樣貌：全新海岸背景、地圖節點與綻放發現，風格與旅程其餘世界一致。",
-  "ru": "Жемчужный берег обновился: новые прибрежные фоны, узлы карты и находки Bloom в том же стиле, что и остальной путь."
+  "en": "Shop scroll stays put when ads or the store catalog finish loading — no more jump back to the top while you browse.",
+  "he": "הגלילה בחנות נשארת במקום כשפרסומות או קטלוג החנות מסיימים להיטען — בלי קפיצה חזרה למעלה באמצע.",
+  "ja": "広告やストアの読み込みが終わってもショップのスクロール位置を保つようにしました。閲覧中に先頭へ跳ね返ることがありません。",
+  "ko": "광고나 스토어 목록이 로드되어도 상점 스크롤 위치가 유지됩니다. 둘러보다가 맨 위로 튀지 않아요.",
+  "de": "Der Shop behält die Scroll-Position, wenn Anzeigen oder der Store-Katalog fertig geladen sind – kein Zurückspringen nach oben mehr.",
+  "fr": "Le défilement de la boutique reste en place quand les pubs ou le catalogue se chargent — plus de retour en haut au milieu de la navigation.",
+  "es": "La tienda mantiene el scroll cuando terminan de cargar los anuncios o el catálogo: ya no salta arriba mientras miras.",
+  "pt-BR": "A rolagem da loja permanece no lugar quando anúncios ou o catálogo terminam de carregar — sem pular de volta ao topo.",
+  "zh-Hant-TW": "廣告或商店目錄載入完成後，商店捲動位置會保持不動，瀏覽時不會再跳回頂部。",
+  "ru": "Прокрутка магазина больше не прыгает вверх, когда загружаются реклама или каталог."
 };
 
 const rows = [];

@@ -7,6 +7,7 @@ extends Screen
 var _busy: bool = false
 var _owned_labels: Dictionary = {}   ## item -> Label
 var _buy_buttons: Array = []         ## [{button, item, qty}]
+var _restore_scroll_y: int = -1      ## keep list position across ads/IAP rebuilds
 
 
 func _ready() -> void:
@@ -21,9 +22,27 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	for pair in [[AdsService.availability_changed, _on_relayout], [EconomyService.wallet_changed, _refresh_boosters], [EconomyService.inventory_changed, _on_inventory]]:
+	for pair in [
+		[IAPService.products_updated, _on_relayout],
+		[IAPService.entitlements_changed, _on_relayout],
+		[IAPService.purchase_result, _on_purchase_result],
+		[AdsService.availability_changed, _on_relayout],
+		[EconomyService.wallet_changed, _refresh_boosters],
+		[EconomyService.inventory_changed, _on_inventory],
+	]:
 		if pair[0].is_connected(pair[1]):
 			pair[0].disconnect(pair[1])
+
+
+func _on_relayout(_a: Variant = null) -> void:
+	## Ads finishing load / IAP catalog updates rebuild the list; without this the scroll
+	## jumps to the top mid-drag when the user is browsing the store.
+	var sc := _shop_scroll()
+	if sc != null and sc.scroll_vertical > 0:
+		_restore_scroll_y = sc.scroll_vertical
+	elif sc != null and _restore_scroll_y < 0:
+		_restore_scroll_y = 0
+	_rebuild.call_deferred()
 
 
 func build_background() -> void:
@@ -51,6 +70,24 @@ func build() -> void:
 	_add_store_section(list)
 	root.add_child(UIKit.bottom_nav("shop"))
 	_refresh_boosters()
+	if _restore_scroll_y >= 0:
+		# Keep _restore_scroll_y until applied so a second relayout mid-frame does not
+		# capture the freshly rebuilt scroll at 0 and wipe the saved offset.
+		_apply_scroll.call_deferred(_restore_scroll_y)
+
+
+func _shop_scroll() -> ScrollContainer:
+	if safe == null or not is_instance_valid(safe):
+		return null
+	var found := safe.find_children("*", "ScrollContainer", true, false)
+	return found[0] as ScrollContainer if not found.is_empty() else null
+
+
+func _apply_scroll(y: int) -> void:
+	var sc := _shop_scroll()
+	if sc != null:
+		sc.scroll_vertical = y
+	_restore_scroll_y = -1
 
 
 # --- free coins -----------------------------------------------------------------------

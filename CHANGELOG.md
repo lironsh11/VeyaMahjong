@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.1.3 (Android version code 16), 2026-11-24
+
+- **Shop scroll:** keep the shop list position when ads or the store catalog finish loading, so
+  the screen no longer jumps back to the top mid-scroll.
+
 ## 1.1.2 (Android version code 15), 2026-11-24
 
 - **iOS Meta ads:** add `FacebookAppID` and `FacebookClientToken` to the iOS Info.plist so
