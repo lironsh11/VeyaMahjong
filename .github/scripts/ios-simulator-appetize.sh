@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Unsigned iOS Simulator .app for Appetize. Something.app must sit at the zip root.
 #
-# Appetize recommends ARM simulator builds (docs.appetize.io, Oct 2026: apps without
-# an ARM slice are flagged). LevelPlay / IronSource also ship arm64-simulator only —
-# an x86_64 link fails with missing LPM* symbols. Godot 4.7.2 templates on CI provide
-# an arm64 simulator libgodot (verified by .github/workflows/ios.yml).
+# Stock Godot iOS templates ship simulator libgodot as x86_64 only. LevelPlay / Meta
+# have no x86_64 simulator slice, so Appetize builds use LISHI_APPETIZE_STUB_ADS=1
+# (no-op ads pod) and ARCHS=x86_64. Appetize still accepts x86_64; ARM is preferred
+# when both sides of the link exist.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -24,7 +24,7 @@ SIMULATOR_DERIVED_DATA="${SIMULATOR_DERIVED_DATA:-$BUILD_DIR/DerivedDataSimulato
 APPETIZE_STAGING_DIR="${APPETIZE_STAGING_DIR:-$BUILD_DIR/appetize-staging}"
 APPETIZE_ZIP="${APPETIZE_ZIP:-$BUILD_DIR/LiShiMahjong-simulator-appetize.zip}"
 
-echo "=== Build iOS Simulator app for Appetize (arm64) ==="
+echo "=== Build iOS Simulator app for Appetize (x86_64 + stub ads) ==="
 # shellcheck disable=SC2046
 xcodebuild build \
   $(ci_xcode_container_args) \
@@ -36,9 +36,9 @@ xcodebuild build \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \
   CODE_SIGN_IDENTITY="" \
-  ARCHS=arm64 \
+  ARCHS=x86_64 \
   ONLY_ACTIVE_ARCH=YES \
-  EXCLUDED_ARCHS=x86_64 \
+  EXCLUDED_ARCHS=arm64 \
   COMPILER_INDEX_STORE_ENABLE=NO
 
 APP_PATH=""
@@ -81,8 +81,8 @@ if ! grep -q "${APP_NAME}/Info.plist" "$BUILD_DIR/appetize-zip-listing.txt"; the
 fi
 BIN="$STAGED_APP/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$STAGED_APP/Info.plist")"
 file "$BIN"
-if ! file "$BIN" | grep -Eq 'arm64|ARM64'; then
-  echo "ERROR: Simulator binary is not arm64. Appetize expects an ARM simulator build." >&2
+if ! file "$BIN" | grep -q 'x86_64'; then
+  echo "ERROR: Simulator binary is not x86_64 (stock Godot template arch)." >&2
   exit 1
 fi
 echo "Appetize zip: $APPETIZE_ZIP"

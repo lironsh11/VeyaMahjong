@@ -52,7 +52,7 @@ Optional, off by default:
 
 ## Appetize (separate run, no secrets)
 
-Builds an **arm64** iOS Simulator `.app` (`ARCHS=arm64`). Appetize recommends ARM builds; LevelPlay / IronSource do not ship an x86_64 simulator slice, so the old x86_64 Appetize path no longer links. Does not sign or talk to App Store Connect. Same script on both hosts: `.github/scripts/godot-ios-appetize-run.sh`.
+Builds an **x86_64** iOS Simulator `.app` (stock Godot template) with **stub ads** (`LISHI_APPETIZE_STUB_ADS=1`: no IronSource/Meta pods — they have no x86_64 simulator slice). Gameplay on Appetize works; real ads only on device / TestFlight. Does not sign or talk to App Store Connect. Same script on both hosts: `.github/scripts/godot-ios-appetize-run.sh`.
 
 | Host | Where |
 |------|--------|

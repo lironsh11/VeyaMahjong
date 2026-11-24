@@ -139,7 +139,11 @@ jobs:
         if: ${{ inputs.build_appetize }}
         continue-on-error: true
         id: appetize_build
-        run: bash .github/scripts/ios-simulator-appetize.sh
+        run: |
+          # Re-prepare with stub ads: LevelPlay/Meta have no x86_64 simulator slice.
+          export LISHI_APPETIZE_STUB_ADS=1
+          bash native/levelplay/ios/scripts/prepare_xcode_project.sh "$(dirname "${{ env.XCODE_PROJECT }}")"
+          bash .github/scripts/ios-simulator-appetize.sh
 
       - name: Upload Appetize simulator .app
         if: ${{ inputs.build_appetize && steps.appetize_build.outcome == 'success' }}

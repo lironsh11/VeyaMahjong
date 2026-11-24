@@ -57,7 +57,8 @@ if [ ! -d "$XCODE_PROJECT_ABS" ]; then
   exit 1
 fi
 
-echo "=== CocoaPods, localized ATT strings, shared scheme ==="
+echo "=== CocoaPods (stub ads — no IronSource/Meta for x86_64 simulator) ==="
+export LISHI_APPETIZE_STUB_ADS=1
 bash "$REPO_ROOT/native/levelplay/ios/scripts/prepare_xcode_project.sh" "$(dirname "$XCODE_PROJECT_ABS")"
 ci_find_xcode_workspace
 ci_patch_xcode_project_versions
