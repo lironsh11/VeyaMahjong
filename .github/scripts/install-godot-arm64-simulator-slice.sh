@@ -11,22 +11,31 @@ shopt -s nullglob
 found_godot=0
 for simlib in "$LIB_DIR"/*.template_release.arm64.simulator.a; do
   base="$(basename "$simlib")"
-  xcf_name="${base/.template_release.arm64.simulator.a/.release.xcframework}"
-  xcf="$(find "$EXPORT_ROOT" -type d -name "$xcf_name" | head -n 1 || true)"
-  if [[ -z "$xcf" ]]; then
-    echo "No $xcf_name under $EXPORT_ROOT (skip $base)"
+  dests=()
+  if [[ "$base" == libgodot.ios.template_release.arm64.simulator.a ]]; then
+    # Godot's exporter renames libgodot.ios.release.xcframework to <Project>.xcframework.
+    while IFS= read -r dest; do
+      [[ -n "$dest" ]] && dests+=("$dest")
+    done < <(find "$EXPORT_ROOT" -path '*/ios-arm64_x86_64-simulator/libgodot.a' -type f)
+  else
+    xcf_name="${base/.template_release.arm64.simulator.a/.release.xcframework}"
+    xcf="$(find "$EXPORT_ROOT" -type d -name "$xcf_name" | head -n 1 || true)"
+    if [[ -z "$xcf" ]]; then
+      echo "No $xcf_name under $EXPORT_ROOT (skip $base)"
+      continue
+    fi
+    slice_dir="$xcf/ios-arm64_x86_64-simulator"
+    dest="$slice_dir/libgodot.a"
+    if [[ ! -f "$dest" ]]; then
+      dest="$(find "$slice_dir" -name '*.a' | head -n 1 || true)"
+    fi
+    [[ -n "$dest" && -f "$dest" ]] && dests+=("$dest")
+  fi
+  if [[ ${#dests[@]} -eq 0 ]]; then
+    echo "No simulator archive to patch for $base"
     continue
   fi
-  slice_dir="$xcf/ios-arm64_x86_64-simulator"
-  dest="$slice_dir/libgodot.a"
-  if [[ ! -f "$dest" ]]; then
-    # Camera and other modules use the archive's own filename.
-    dest="$(find "$slice_dir" -name '*.a' | head -n 1 || true)"
-  fi
-  if [[ -z "$dest" || ! -f "$dest" ]]; then
-    echo "::error::no simulator .a in $slice_dir" >&2
-    exit 1
-  fi
+  for dest in "${dests[@]}"; do
   work="$(mktemp -d)"
   if lipo -info "$dest" | grep -q 'x86_64'; then
     if lipo -info "$dest" | grep -q 'Non-fat'; then
@@ -46,7 +55,8 @@ for simlib in "$LIB_DIR"/*.template_release.arm64.simulator.a; do
     echo "::error::$dest still has no arm64" >&2
     exit 1
   fi
-  [[ "$xcf_name" == "libgodot.ios.release.xcframework" ]] && found_godot=1
+    [[ "$base" == libgodot.ios.template_release.arm64.simulator.a ]] && found_godot=1
+  done
 done
 
 if [[ "$found_godot" -ne 1 ]]; then
