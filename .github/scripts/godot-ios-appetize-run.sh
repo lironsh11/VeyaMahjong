@@ -61,8 +61,9 @@ echo "=== arm64 simulator libgodot (IronSource/Meta have no x86_64 slice) ==="
 SIM_LIB_DIR="$(bash "$SCRIPT_DIR/build-godot-ios-arm64-simulator.sh")"
 bash "$SCRIPT_DIR/install-godot-arm64-simulator-slice.sh" "$SIM_LIB_DIR" "$(dirname "$XCODE_PROJECT_ABS")"
 
-echo "=== CocoaPods (real LevelPlay + Meta, arm64 simulator) ==="
+echo "=== CocoaPods (LevelPlay / ironSource on arm64 simulator; Meta has no simulator slice) ==="
 unset LISHI_APPETIZE_STUB_ADS
+export LISHI_APPETIZE_SKIP_META=1
 bash "$REPO_ROOT/native/levelplay/ios/scripts/prepare_xcode_project.sh" "$(dirname "$XCODE_PROJECT_ABS")"
 ci_find_xcode_workspace
 ci_patch_xcode_project_versions
