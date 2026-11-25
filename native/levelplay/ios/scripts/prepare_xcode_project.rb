@@ -109,8 +109,8 @@ end
 # LISHI_APPETIZE_STUB_ADS=1: no IronSource / Meta (they lack x86_64 simulator slices). Used by
 # the Appetize pipeline so the stock Godot x86_64 simulator template can still link.
 stub_ads = ENV['LISHI_APPETIZE_STUB_ADS'].to_s == '1'
-# FBAudienceNetwork.xcframework ships ios-arm64 (device) only. Linking it into an
-# arm64 simulator app fails with "built for iOS". IronSourceSDK itself has a simulator slice.
+# Optional escape hatch. The arm64 Appetize build keeps Meta and instead drops the
+# device slice from the simulator framework search path (prepare_xcode_project.sh).
 skip_meta = ENV['LISHI_APPETIZE_SKIP_META'].to_s == '1'
 levelplay_pod = File.join(repo_root, stub_ads ? 'native/levelplay/ios/pod-stub' : 'native/levelplay/ios/pod')
 meta_line = if stub_ads
