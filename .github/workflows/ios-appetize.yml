@@ -48,6 +48,12 @@ jobs:
           path: ~/.cache/lishi-godot
           key: godot-src-${{ env.GODOT_TAG }}-v1
 
+      - name: Cache arm64 simulator libgodot
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/lishi-godot/sim-arm64-libs
+          key: godot-ios-sim-arm64-${{ env.GODOT_TAG }}-v1
+
       - name: Export Godot iOS and package Appetize
         run: bash .github/scripts/godot-ios-appetize-run.sh
 

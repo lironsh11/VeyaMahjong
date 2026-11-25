@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **Appetize:** the standalone iOS zip is an arm64 simulator build with LevelPlay and Meta
+  linked. The previous zip stubbed ads out because the stock Godot simulator library is
+  x86_64 only and those SDKs have no x86_64 slice.
+
 ## 1.1.4 (Android version code 17), 2026-11-25
 
 - **iOS ads:** point the iOS build at the LevelPlay app that is linked to App Store id

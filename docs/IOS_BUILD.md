@@ -76,7 +76,7 @@ and it does not check the Godot ↔ plugin ABI at runtime. That needs a device.
 
 ## Appetize
 
-**iOS — Simulator (Appetize)** on Codemagic, or **iOS — Godot Appetize** on GitHub Actions, builds an unsigned **x86_64** Simulator `.app` (stock Godot template) with **stub ads** (`LISHI_APPETIZE_STUB_ADS=1`, no IronSource/Meta — they lack an x86_64 simulator slice) and zips it with `LiShiMahjong.app` at the root. No App Store Connect secrets. Upload that zip at https://appetize.io/. Details: `.github/GITHUB_ACTIONS_SETUP.md`.
+**iOS — Godot Appetize** on GitHub Actions builds an unsigned **arm64** Simulator `.app` with LevelPlay and Meta linked (Appetize runs that on Apple Silicon, which is where ads can appear). The stock template simulator library is x86_64-only, so the workflow compiles an arm64 simulator `libgodot` and lips it into the xcframework before linking. The optional Appetize zip on the TestFlight workflow is still x86_64 with stub ads. `LiShiMahjong.app` sits at the zip root. No App Store Connect secrets. Details: `.github/GITHUB_ACTIONS_SETUP.md`.
 
 ## TestFlight CI (GitHub Actions and Codemagic)
 

@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Unsigned iOS Simulator .app for Appetize. Something.app must sit at the zip root.
 #
-# Stock Godot iOS templates ship simulator libgodot as x86_64 only. LevelPlay / Meta
-# have no x86_64 simulator slice, so Appetize builds use LISHI_APPETIZE_STUB_ADS=1
-# (no-op ads pod) and ARCHS=x86_64. Appetize still accepts x86_64; ARM is preferred
-# when both sides of the link exist.
+# APPETIZE_WITH_ADS=1: arm64 simulator + the real LevelPlay/Meta pods. Appetize's
+# Apple Silicon hosts run that binary, which is how ads show up there. The stock
+# Godot template's "arm64" simulator file is actually x86_64, so the caller must
+# already have installed an arm64 slice (install-godot-arm64-simulator-slice.sh).
+# Without the flag this stays the x86_64 stub-ads build used beside TestFlight.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -24,7 +25,15 @@ SIMULATOR_DERIVED_DATA="${SIMULATOR_DERIVED_DATA:-$BUILD_DIR/DerivedDataSimulato
 APPETIZE_STAGING_DIR="${APPETIZE_STAGING_DIR:-$BUILD_DIR/appetize-staging}"
 APPETIZE_ZIP="${APPETIZE_ZIP:-$BUILD_DIR/LiShiMahjong-simulator-appetize.zip}"
 
-echo "=== Build iOS Simulator app for Appetize (x86_64 + stub ads) ==="
+if [ "${APPETIZE_WITH_ADS:-}" = "1" ]; then
+  APPETIZE_ARCH=arm64
+  APPETIZE_EXCLUDED_ARCH=x86_64
+  echo "=== Build iOS Simulator app for Appetize (arm64 + LevelPlay/Meta) ==="
+else
+  APPETIZE_ARCH=x86_64
+  APPETIZE_EXCLUDED_ARCH=arm64
+  echo "=== Build iOS Simulator app for Appetize (x86_64 + stub ads) ==="
+fi
 # shellcheck disable=SC2046
 xcodebuild build \
   $(ci_xcode_container_args) \
@@ -36,9 +45,9 @@ xcodebuild build \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \
   CODE_SIGN_IDENTITY="" \
-  ARCHS=x86_64 \
+  ARCHS="$APPETIZE_ARCH" \
   ONLY_ACTIVE_ARCH=YES \
-  EXCLUDED_ARCHS=arm64 \
+  "EXCLUDED_ARCHS=$APPETIZE_EXCLUDED_ARCH" \
   COMPILER_INDEX_STORE_ENABLE=NO
 
 APP_PATH=""
@@ -81,9 +90,18 @@ if ! grep -q "${APP_NAME}/Info.plist" "$BUILD_DIR/appetize-zip-listing.txt"; the
 fi
 BIN="$STAGED_APP/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$STAGED_APP/Info.plist")"
 file "$BIN"
-if ! file "$BIN" | grep -q 'x86_64'; then
-  echo "ERROR: Simulator binary is not x86_64 (stock Godot template arch)." >&2
+if ! file "$BIN" | grep -q "$APPETIZE_ARCH"; then
+  echo "ERROR: Simulator binary is not $APPETIZE_ARCH." >&2
   exit 1
+fi
+if [ "${APPETIZE_WITH_ADS:-}" = "1" ]; then
+  if ! find "$STAGED_APP" \( -iname '*IronSource*' -o -iname '*FBAudienceNetwork*' -o -iname '*UnityAds*' \) | grep -q . \
+    && ! nm -gU "$BIN" | grep -E -q 'IronSource|LevelPlay|FBAd|FBAudience'; then
+    echo "ERROR: arm64 Appetize app has no IronSource/Meta binary. Ads will not show." >&2
+    find "$STAGED_APP" -iname '*.framework' -o -iname '*.a' >&2 || true
+    exit 1
+  fi
+  echo "Ads SDK is linked into the Appetize app."
 fi
 echo "Appetize zip: $APPETIZE_ZIP"
 ls -la "$STAGED_APP"

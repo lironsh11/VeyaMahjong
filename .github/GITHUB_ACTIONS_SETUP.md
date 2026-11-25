@@ -52,7 +52,7 @@ Optional, off by default:
 
 ## Appetize (separate run, no secrets)
 
-Builds an **x86_64** iOS Simulator `.app` (stock Godot template) with **stub ads** (`LISHI_APPETIZE_STUB_ADS=1`: no IronSource/Meta pods — they have no x86_64 simulator slice). Gameplay on Appetize works; real ads only on device / TestFlight. Does not sign or talk to App Store Connect. Same script on both hosts: `.github/scripts/godot-ios-appetize-run.sh`.
+Builds an **arm64** iOS Simulator `.app` with the real LevelPlay and Meta pods, so ads can show on Appetize (Apple Silicon). The stock Godot template's simulator `libgodot` is x86_64 only, and those SDKs have no x86_64 slice, so the run compiles the missing arm64 simulator library first (`build-godot-ios-arm64-simulator.sh`, about 30 minutes the first time, then cached). Does not sign or talk to App Store Connect. Same script on both hosts: `.github/scripts/godot-ios-appetize-run.sh`. The TestFlight workflow's optional Appetize zip is still the x86_64 stub.
 
 | Host | Where |
 |------|--------|

@@ -57,14 +57,19 @@ if [ ! -d "$XCODE_PROJECT_ABS" ]; then
   exit 1
 fi
 
-echo "=== CocoaPods (stub ads — no IronSource/Meta for x86_64 simulator) ==="
-export LISHI_APPETIZE_STUB_ADS=1
+echo "=== arm64 simulator libgodot (IronSource/Meta have no x86_64 slice) ==="
+SIM_LIB_DIR="$(bash "$SCRIPT_DIR/build-godot-ios-arm64-simulator.sh")"
+bash "$SCRIPT_DIR/install-godot-arm64-simulator-slice.sh" "$SIM_LIB_DIR" "$(dirname "$XCODE_PROJECT_ABS")"
+
+echo "=== CocoaPods (real LevelPlay + Meta, arm64 simulator) ==="
+unset LISHI_APPETIZE_STUB_ADS
 bash "$REPO_ROOT/native/levelplay/ios/scripts/prepare_xcode_project.sh" "$(dirname "$XCODE_PROJECT_ABS")"
 ci_find_xcode_workspace
 ci_patch_xcode_project_versions
 ci_discover_xcode_scheme
 
 echo "=== Package Simulator app for Appetize ==="
+export APPETIZE_WITH_ADS=1
 bash "$SCRIPT_DIR/ios-simulator-appetize.sh"
 
 echo "=== Appetize-only pipeline finished ==="
