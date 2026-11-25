@@ -215,7 +215,8 @@ backend (Play Developer API / App Store Server API); none is configured.
 Nothing external was changed; these are owner actions.
 
 **Not bound to the package ID (no action needed):**
-- LevelPlay app keys `28d197415` (Android) / `28d19e725` (iOS) and their banner ad units. The
+- LevelPlay app keys `28d197415` (Android) / `29de696ad` (iOS, App Store–linked “LiShi Mahjong”;
+  older temp key `28d19e725` left in place but unused by the binary) and their banner ad units. The
   setup script created them with only a name, a platform and a COPPA flag (no package or store
   URL). Verified on the emulator: with the new ID, `LevelPlay.init(28d197415)` downloads the app's
   banner configuration. `data/config/levelplay.json` is unchanged.

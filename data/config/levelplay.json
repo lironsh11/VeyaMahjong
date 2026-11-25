@@ -12,14 +12,14 @@
     }
   },
   "ios": {
-    "app_key": "28d19e725",
-    "banner_ad_unit_id": "nbo1oxfo63n8gajg",
+    "app_key": "29de696ad",
+    "banner_ad_unit_id": "1qxpc97d2h0hmvgz",
     "rewarded_ad_units": {
-      "rewarded_bonus_coins": "bt9766n4ikvy3tro",
-      "rewarded_bloom_bonus": "mx47znqm8ed0n9jw"
+      "rewarded_bonus_coins": "wcxjgvx03kxijicx",
+      "rewarded_bloom_bonus": "55nddkg0nzxkebrm"
     },
     "interstitial_ad_units": {
-      "interstitial_level_complete": "ilkhbt25uc1k6b5p"
+      "interstitial_level_complete": "reokn0fjjouat88i"
     }
   }
 }

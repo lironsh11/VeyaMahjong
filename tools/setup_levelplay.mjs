@@ -18,7 +18,9 @@ import { pathToFileURL } from 'node:url';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 const CREATE_AD_UNITS = process.argv.includes('--create-ad-units');
-const APP_NAME = 'Veya Mahjong';   // dashboard app name (rename here and in the dashboard together)
+// Android stays on the original temp-named app (fills without a store link).
+// iOS must use the live App Store–linked app (ironSource does not participate on the temp iOS key).
+const APP_NAME = { Android: 'Veya Mahjong', iOS: 'LiShi Mahjong' };
 
 const envPath = path.join(os.homedir(), '.cursor', 'secrets', 'monetization.env');
 const { loadMonetizationEnv } = await import(
@@ -109,10 +111,11 @@ function upsertEnv(updates) {
 
 async function findApp(platform) {
   const apps = asArray(await lp('GET', `${API}/partners/publisher/applications/v6`));
-  const existing = apps.find((a) => a.appName === APP_NAME && a.platform === platform);
+  const wantName = APP_NAME[platform] ?? APP_NAME;
+  const existing = apps.find((a) => a.appName === wantName && a.platform === platform);
   if (existing) return existing.appKey;
-  if (DRY_RUN) throw new Error(`no ${platform} app named ${APP_NAME}`);
-  const created = await lp('POST', `${API}/partners/publisher/applications/v6`, { appName: APP_NAME, platform, coppa: 0 });
+  if (DRY_RUN) throw new Error(`no ${platform} app named ${wantName}`);
+  const created = await lp('POST', `${API}/partners/publisher/applications/v6`, { appName: wantName, platform, coppa: 0 });
   const appKey = created.appKey || created?.app?.appKey || asArray(created)[0]?.appKey;
   if (!appKey) throw new Error(`create ${platform} returned no appKey: ${JSON.stringify(created).slice(0, 400)}`);
   return appKey;

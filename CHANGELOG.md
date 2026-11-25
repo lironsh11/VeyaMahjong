@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.1.4 (Android version code 17), 2026-11-25
+
+- **iOS ads:** point the iOS build at the LevelPlay app that is linked to App Store id
+  `6824438042` (`29de696ad`) so the ironSource bidder can fill. Production stats on the old
+  temp key showed Meta-only checks with zero fill and no ironSource participation; Android was
+  already fine on `28d197415` and is unchanged.
+
 ## 1.1.3 (Android version code 16), 2026-11-24
 
 - **Shop scroll:** keep the shop list position when ads or the store catalog finish loading, so

@@ -1,4 +1,4 @@
-// Writes docs/STORE_LISTINGS/<locale>.md for LiShi Mahjong 1.1.3 from the texts below, with
+// Writes docs/STORE_LISTINGS/<locale>.md for LiShi Mahjong 1.1.4 from the texts below, with
 // counts computed here (Unicode code points; Apple keywords in UTF-8 bytes) and hard limits
 // checked: the script fails instead of writing a field that is too long.
 //   node tools/store_listings/build_listings.js
@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 
 const OUT = path.join(__dirname, '..', '..', 'docs', 'STORE_LISTINGS');
-const VERSION = '1.1.3';
+const VERSION = '1.1.4';
 const LIMITS = {name: 30, short: 80, subtitle: 30, promo: 170, description: 4000, keywords: 100, whatsNew: 500};
 const chars = (s) => [...s].length;
 const bytes = (s) => Buffer.byteLength(s, 'utf8');
@@ -435,30 +435,30 @@ Disponível em português do Brasil, inglês, hebraico, japonês, coreano, alem�
 
 // What's New for ${VERSION} (App Store "What's New", Google Play release notes: 500 characters).
 const WHATS_NEW = {
-  "en": "Shop scroll stays put when ads or the store catalog finish loading — no more jump back to the top while you browse.",
-  "he": "הגלילה בחנות נשארת במקום כשפרסומות או קטלוג החנות מסיימים להיטען — בלי קפיצה חזרה למעלה באמצע.",
-  "ja": "広告やストアの読み込みが終わってもショップのスクロール位置を保つようにしました。閲覧中に先頭へ跳ね返ることがありません。",
-  "ko": "광고나 스토어 목록이 로드되어도 상점 스크롤 위치가 유지됩니다. 둘러보다가 맨 위로 튀지 않아요.",
-  "de": "Der Shop behält die Scroll-Position, wenn Anzeigen oder der Store-Katalog fertig geladen sind – kein Zurückspringen nach oben mehr.",
-  "fr": "Le défilement de la boutique reste en place quand les pubs ou le catalogue se chargent — plus de retour en haut au milieu de la navigation.",
-  "es": "La tienda mantiene el scroll cuando terminan de cargar los anuncios o el catálogo: ya no salta arriba mientras miras.",
-  "pt-BR": "A rolagem da loja permanece no lugar quando anúncios ou o catálogo terminam de carregar — sem pular de volta ao topo.",
-  "zh-Hant-TW": "廣告或商店目錄載入完成後，商店捲動位置會保持不動，瀏覽時不會再跳回頂部。",
-  "ru": "Прокрутка магазина больше не прыгает вверх, когда загружаются реклама или каталог."
+  "en": "iOS ads fix: banners and rewarded videos can fill again through LevelPlay. Shop scroll still stays put while ads and the store catalog load.",
+  "he": "תיקון פרסומות ב־iOS: באנרים וסרטונים עם תגמול יכולים להיטען שוב דרך LevelPlay. הגלילה בחנות עדיין נשארת במקום בזמן טעינה.",
+  "ja": "iOSの広告を修正し、バナーとリワード動画がLevelPlay経由で再び表示されるようにしました。ショップのスクロール位置も維持します。",
+  "ko": "iOS 광고를 고쳐 LevelPlay 배너와 보상형 영상이 다시 채워집니다. 상점 스크롤 위치도 그대로 유지됩니다.",
+  "de": "iOS-Anzeigen repariert: Banner und Reward-Videos können über LevelPlay wieder laden. Der Shop behält weiterhin die Scroll-Position.",
+  "fr": "Pubs iOS corrigées : bannières et vidéos récompensées se chargent à nouveau via LevelPlay. Le défilement de la boutique reste stable.",
+  "es": "Anuncios de iOS arreglados: banners y vídeos recompensados vuelven a cargar con LevelPlay. La tienda sigue sin saltar al hacer scroll.",
+  "pt-BR": "Anúncios no iOS corrigidos: banners e vídeos com recompensa voltam a carregar pelo LevelPlay. A rolagem da loja continua estável.",
+  "zh-Hant-TW": "修復 iOS 廣告：橫幅與獎勵影片可再透過 LevelPlay 載入。商店捲動位置仍會保持。",
+  "ru": "Исправлены объявления на iOS: баннеры и rewarded снова заполняются через LevelPlay. Прокрутка магазина по-прежнему не прыгает."
 };
 
 // Google Play release notes for ${VERSION} (≤500 characters).
 const PLAY_NOTES = {
-  "en": "Shop scroll stays put when ads or the store catalog finish loading — no more jump back to the top while you browse.",
-  "he": "הגלילה בחנות נשארת במקום כשפרסומות או קטלוג החנות מסיימים להיטען — בלי קפיצה חזרה למעלה באמצע.",
-  "ja": "広告やストアの読み込みが終わってもショップのスクロール位置を保つようにしました。閲覧中に先頭へ跳ね返ることがありません。",
-  "ko": "광고나 스토어 목록이 로드되어도 상점 스크롤 위치가 유지됩니다. 둘러보다가 맨 위로 튀지 않아요.",
-  "de": "Der Shop behält die Scroll-Position, wenn Anzeigen oder der Store-Katalog fertig geladen sind – kein Zurückspringen nach oben mehr.",
-  "fr": "Le défilement de la boutique reste en place quand les pubs ou le catalogue se chargent — plus de retour en haut au milieu de la navigation.",
-  "es": "La tienda mantiene el scroll cuando terminan de cargar los anuncios o el catálogo: ya no salta arriba mientras miras.",
-  "pt-BR": "A rolagem da loja permanece no lugar quando anúncios ou o catálogo terminam de carregar — sem pular de volta ao topo.",
-  "zh-Hant-TW": "廣告或商店目錄載入完成後，商店捲動位置會保持不動，瀏覽時不會再跳回頂部。",
-  "ru": "Прокрутка магазина больше не прыгает вверх, когда загружаются реклама или каталог."
+  "en": "iOS ads fix: banners and rewarded videos can fill again through LevelPlay. Shop scroll still stays put while ads and the store catalog load.",
+  "he": "תיקון פרסומות ב־iOS: באנרים וסרטונים עם תגמול יכולים להיטען שוב דרך LevelPlay. הגלילה בחנות עדיין נשארת במקום בזמן טעינה.",
+  "ja": "iOSの広告を修正し、バナーとリワード動画がLevelPlay経由で再び表示されるようにしました。ショップのスクロール位置も維持します。",
+  "ko": "iOS 광고를 고쳐 LevelPlay 배너와 보상형 영상이 다시 채워집니다. 상점 스크롤 위치도 그대로 유지됩니다.",
+  "de": "iOS-Anzeigen repariert: Banner und Reward-Videos können über LevelPlay wieder laden. Der Shop behält weiterhin die Scroll-Position.",
+  "fr": "Pubs iOS corrigées : bannières et vidéos récompensées se chargent à nouveau via LevelPlay. Le défilement de la boutique reste stable.",
+  "es": "Anuncios de iOS arreglados: banners y vídeos recompensados vuelven a cargar con LevelPlay. La tienda sigue sin saltar al hacer scroll.",
+  "pt-BR": "Anúncios no iOS corrigidos: banners e vídeos com recompensa voltam a carregar pelo LevelPlay. A rolagem da loja continua estável.",
+  "zh-Hant-TW": "修復 iOS 廣告：橫幅與獎勵影片可再透過 LevelPlay 載入。商店捲動位置仍會保持。",
+  "ru": "Исправлены объявления на iOS: баннеры и rewarded снова заполняются через LevelPlay. Прокрутка магазина по-прежнему не прыгает."
 };
 
 const rows = [];

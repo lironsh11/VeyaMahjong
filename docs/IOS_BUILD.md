@@ -154,8 +154,10 @@ Personalized ads follow consent: `LPMPrivacySettings setGDPRConsent:` is set fro
 3. **Sandbox tester:** App Store Connect → Users and Access → Sandbox. On the device, sign in
    under Settings → Developer → Sandbox Apple Account, then test buy, cancel, Ask to Buy
    (pending), restore on a second device, and a refund (revocation).
-4. **LevelPlay iOS app** (app key `28d19e725`): the rewarded and interstitial ad units are in
-   `data/config/levelplay.json` → `ios`, and Meta bidding is already connected with these placements:
+4. **LevelPlay iOS app** (app key `29de696ad`, App Store–linked): the rewarded and interstitial
+   ad units are in `data/config/levelplay.json` → `ios`, and Meta bidding uses these placements
+   where instances exist (banner + rewarded_bonus_coins; bloom/interstitial Meta may still need
+   a dashboard add if ERR-1401 blocks the API):
 
      | Ad unit | Meta placement id |
      |---|---|
